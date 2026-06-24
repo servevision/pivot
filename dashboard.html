@@ -245,10 +245,26 @@ window.svH = function() {
 };
 console.log('✓ GitHub save functions connected');
 
-// Load data on page start
-window.addEventListener('load', function() {
-  loadFromDB();
-  setInterval(loadFromDB, 3 * 60 * 1000);
+// Load data on page start - after all dashboard scripts loaded
+document.addEventListener('DOMContentLoaded', function() {
+  // Small delay to ensure dashboard vars are initialized
+  setTimeout(function() {
+    // Patch save functions now that they're defined
+    if(typeof sv !== 'undefined') {
+      const __sv = sv;
+      window.sv = function() { __sv(); if(typeof dbWrite==='function') dbWrite('sheets', SHEETS); };
+    }
+    if(typeof svS !== 'undefined') {
+      const __svS = svS;
+      window.svS = function() { __svS(); if(typeof dbWrite==='function') dbWrite('salary', SAL); };
+    }
+    if(typeof svH !== 'undefined') {
+      const __svH = svH;
+      window.svH = function() { __svH(); if(typeof dbWrite==='function') dbWrite('holiday', HOL); };
+    }
+    loadFromDB();
+    setInterval(loadFromDB, 3 * 60 * 1000);
+  }, 300);
 });
 
 async function pushAllToGitHub() {
@@ -905,6 +921,7 @@ async function syncAll(){
   }
 
   recalc();sv();rFilters();rCurrent();rSheets();uFoot();
+  if(typeof dbWrite==='function') dbWrite('sheets', SHEETS);
   btn.disabled=false;
   btn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23,4 23,10 17,10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Sync All Sheets';
 
@@ -930,6 +947,7 @@ function addSheet(){
   if(SHEETS.find(s=>s.name===nm)){setMsg('add-msg','Employee already exists!','red');return;}
   SHEETS.push({id:uid(),name:nm,tab,url,status:url?'pending':'no-url',rows:0});
   sv();rSheets();['n-name','n-url'].forEach(id=>document.getElementById(id).value='');
+  if(typeof dbWrite==='function') dbWrite('sheets', SHEETS);
   setMsg('add-msg','✓ Sheet added!','green');
 }
 function delSheet(id){
@@ -976,6 +994,7 @@ function saveSal(){
   if(!SAL[emp])SAL[emp]={ov:{}};
   SAL[emp].monthly=sal;SAL[emp].wdays=wd;
   svS();recalc();rSalCfg();rCurrent();
+  if(typeof dbWrite==='function') dbWrite('salary', SAL);
   setMsg('se-msg',`✓ ${emp}: ₹${sal.toLocaleString('en-IN')}/month · ${wd} working days · Daily rate: ${fmt(sal/wd)}`,'green');
 }
 function normalizeMonth(m){
@@ -998,9 +1017,10 @@ function saveOverride(){
   if(!SAL[emp].ov)SAL[emp].ov={};
   SAL[emp].ov[month]=sal;
   svS();recalc();rSalCfg();rCurrent();
+  if(typeof dbWrite==='function') dbWrite('salary', SAL);
   setMsg('se-msg',`✓ ${emp} — ${month}: ₹${sal.toLocaleString('en-IN')} override saved!`,'green');
 }
-function delSalEmp(emp){if(!confirm(`Delete salary config for ${emp}?`))return;delete SAL[emp];svS();recalc();rSalCfg();}
+function delSalEmp(emp){if(!confirm(`Delete salary config for ${emp}?`))return;delete SAL[emp];svS();recalc();rSalCfg();if(typeof dbWrite==='function') dbWrite('salary', SAL);}
 function delOv(emp,month){if(SAL[emp]&&SAL[emp].ov)delete SAL[emp].ov[month];svS();recalc();rSalCfg();}
 function rSalCfg(){
   const w=document.getElementById('sal-cfg-list');

@@ -225,9 +225,8 @@ async function loadFromDB() {
   }
 }
 
-// Patch save functions to also write to GitHub
+// Patch save functions - immediate GitHub write on every change
 window.addEventListener('load', function() {
-  // Wait for dashboard vars to be defined
   setTimeout(function() {
     const _sv = window.sv;
     window.sv = function() {
@@ -245,12 +244,25 @@ window.addEventListener('load', function() {
       dbWrite('holiday', HOL);
     };
     console.log('✓ GitHub save functions connected');
-    // Load data from GitHub
     loadFromDB();
-    // Auto-sync every 5 minutes
-    setInterval(loadFromDB, 5 * 60 * 1000);
-  }, 500);
+    setInterval(loadFromDB, 3 * 60 * 1000);
+  }, 800);
 });
+
+async function pushAllToGitHub() {
+  showDbStatus('Pushing all data to GitHub...', 'info');
+  try {
+    await Promise.all([
+      dbWrite('sheets', SHEETS),
+      dbWrite('salary', SAL),
+      dbWrite('holiday', HOL),
+    ]);
+    showDbStatus('All data pushed to GitHub!', 'ok');
+    alert('Data successfully saved to GitHub!\nOpen on any computer - data will load automatically.');
+  } catch(e) {
+    showDbStatus('Push failed', 'warn');
+  }
+}
 </script>
 
 </head>
@@ -1493,6 +1505,7 @@ setInterval(()=>{if(SHEETS.some(s=>s.url&&s.status==='ok'))syncAll();},5*60*1000
   </div>
   <div style="display:flex;align-items:center;gap:14px">
     <span style="opacity:.6;font-size:10px">💾 GitHub · Cloudflare</span>
+    <button onclick="pushAllToGitHub()" style="background:rgba(255,255,255,.15);color:#fff;border:none;padding:4px 12px;border-radius:10px;font-weight:700;font-size:11px;cursor:pointer" onmouseover="this.style.background='rgba(255,255,255,.3)'" onmouseout="this.style.background='rgba(255,255,255,.15)'">↑ Push to GitHub</button>
     <a href="/" onclick="sessionStorage.clear();return true;"
        style="background:rgba(255,255,255,.15);color:#fff;text-decoration:none;
               padding:4px 14px;border-radius:10px;font-weight:700;font-size:11px"

@@ -225,29 +225,46 @@ async function loadFromDB() {
   }
 }
 
-// Patch save functions - immediate GitHub write on every change
+// GitHub save — direct override (no setTimeout needed)
+// sv, svS, svH are defined in dashboard before this script runs
+const __sv  = window.sv  || function(){};
+const __svS = window.svS || function(){};
+const __svH = window.svH || function(){};
+
+window.sv = function() {
+  __sv();
+  dbWrite('sheets', typeof SHEETS !== 'undefined' ? SHEETS : []);
+};
+window.svS = function() {
+  __svS();
+  dbWrite('salary', typeof SAL !== 'undefined' ? SAL : {});
+};
+window.svH = function() {
+  __svH();
+  dbWrite('holiday', typeof HOL !== 'undefined' ? HOL : {});
+};
+console.log('✓ GitHub save functions connected');
+
+// Load data on page start
 window.addEventListener('load', function() {
-  setTimeout(function() {
-    const _sv = window.sv;
-    window.sv = function() {
-      if (typeof _sv === 'function') _sv();
-      dbWrite('sheets', SHEETS);
-    };
-    const _svS = window.svS;
-    window.svS = function() {
-      if (typeof _svS === 'function') _svS();
-      dbWrite('salary', SAL);
-    };
-    const _svH = window.svH;
-    window.svH = function() {
-      if (typeof _svH === 'function') _svH();
-      dbWrite('holiday', HOL);
-    };
-    console.log('✓ GitHub save functions connected');
-    loadFromDB();
-    setInterval(loadFromDB, 3 * 60 * 1000);
-  }, 800);
+  loadFromDB();
+  setInterval(loadFromDB, 3 * 60 * 1000);
 });
+
+async function pushAllToGitHub() {
+  showDbStatus('Pushing all data to GitHub...', 'info');
+  try {
+    await Promise.all([
+      dbWrite('sheets', SHEETS),
+      dbWrite('salary', SAL),
+      dbWrite('holiday', HOL),
+    ]);
+    showDbStatus('All data pushed!', 'ok');
+    alert('✓ All data saved to GitHub!\nOpen on any computer — data will load automatically.');
+  } catch(e) {
+    showDbStatus('Push failed', 'warn');
+  }
+}
 
 async function pushAllToGitHub() {
   showDbStatus('Pushing all data to GitHub...', 'info');

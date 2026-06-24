@@ -4,8 +4,9 @@
     "name": "Ansh",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbw5wcr-BJaE6qkBFv0IqIADPEnVHPEtben4HYYK0wKQKbfL2pwSKz6o5JFios1buZqT-g/exec",
-    "status": "pending",
-    "rows": 0
+    "status": "ok",
+    "rows": 100,
+    "lastSync": "1:18:21 pm"
   },
   {
     "id": "s2",

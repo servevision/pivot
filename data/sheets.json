@@ -13,9 +13,9 @@
     "name": "Aman Khokhar",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbybIabQUdjvOhZHuNf0wuvZXr2f3JfEnsI6zICqbKoVsl3VfM3ILdDON-TWZxqgh70/exec",
-    "status": "loading",
+    "status": "ok",
     "rows": 788,
-    "lastSync": "1:19:54 pm"
+    "lastSync": "1:20:23 pm"
   },
   {
     "id": "s3",
@@ -54,8 +54,8 @@
     "id": "s7",
     "name": "Joydeep Mahata",
     "tab": "Work Record",
-    "url": "",
-    "status": "no-url",
+    "url": "https://script.google.com/macros/s/AKfycbzQOcj6Au_p3k6q87p5i3gfhhuXeKwRIc1_5cC9s4Dq6dsIEh0FEwZIZcySaM_dtxs-fA/exec",
+    "status": "pending",
     "rows": 0
   },
   {

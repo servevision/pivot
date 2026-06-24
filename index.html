@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Serve Vision — Login</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+     background:linear-gradient(135deg,#0a3570 0%,#1758a8 60%,#2563eb 100%);
+     min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.box{background:#fff;border-radius:16px;padding:44px 40px;width:100%;max-width:400px;
+     box-shadow:0 24px 64px rgba(0,0,0,.22)}
+.logo{text-align:center;margin-bottom:32px}
+.logo-icon{width:56px;height:56px;background:linear-gradient(135deg,#1758a8,#0a3570);
+           border-radius:14px;display:flex;align-items:center;justify-content:center;
+           margin:0 auto 14px;box-shadow:0 4px 14px rgba(23,88,168,.35)}
+.logo-icon svg{width:30px;height:30px;fill:none;stroke:#fff;stroke-width:2}
+.co{font-size:10px;color:#a0a0a6;text-transform:uppercase;letter-spacing:1.2px;font-weight:700}
+.nm{font-size:22px;font-weight:800;color:#0a3570;letter-spacing:-.5px;margin-top:4px}
+.yr{font-size:11px;color:#a0a0a6;margin-top:3px}
+hr{border:none;border-top:1px solid #e4e3dc;margin:0 0 28px}
+.fl{margin-bottom:16px}
+label{font-size:10px;color:#64646a;font-weight:700;text-transform:uppercase;
+      letter-spacing:.5px;display:block;margin-bottom:6px}
+input{width:100%;border:1.5px solid #e4e3dc;border-radius:8px;padding:11px 14px;
+      font-size:13px;color:#16161a;outline:none;transition:all .15s}
+input:focus{border-color:#1758a8;box-shadow:0 0 0 3px rgba(23,88,168,.12)}
+.btn{width:100%;padding:13px;background:linear-gradient(135deg,#1758a8,#0a3570);
+     color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;
+     cursor:pointer;transition:all .15s;margin-top:8px;display:flex;align-items:center;
+     justify-content:center;gap:8px}
+.btn:hover{box-shadow:0 6px 18px rgba(23,88,168,.4);transform:translateY(-1px)}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.err{background:#fdeaea;border:1px solid #f0b8b8;color:#7a1a1a;border-radius:8px;
+     padding:10px 14px;font-size:12px;font-weight:600;margin-bottom:18px;display:none}
+.err.show{display:block}
+.foot{text-align:center;margin-top:22px;font-size:11px;color:#c0c0c6}
+.spin{display:inline-block;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
+    <div class="co">Serve Vision Pvt Ltd</div>
+    <div class="nm">HR Dashboard</div>
+    <div class="yr">Financial Year 2025–26</div>
+  </div>
+  <hr>
+  <div class="err" id="err"></div>
+  <div class="fl">
+    <label>Email Address</label>
+    <input type="email" id="email" placeholder="Enter your email" autocomplete="email">
+  </div>
+  <div class="fl">
+    <label>Password</label>
+    <input type="password" id="pwd" placeholder="Enter your password" autocomplete="current-password">
+  </div>
+  <button class="btn" id="login-btn" onclick="doLogin()">Sign In →</button>
+  <div class="foot">🔒 Secure · Private · Serve Vision Internal</div>
+</div>
+<script>
+const API = '/api';
+
+document.getElementById('pwd').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+document.getElementById('email').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('pwd').focus();
+});
+
+async function doLogin() {
+  const email = document.getElementById('email').value.trim();
+  const pwd   = document.getElementById('pwd').value;
+  const btn   = document.getElementById('login-btn');
+  const err   = document.getElementById('err');
+  
+  if (!email || !pwd) { showErr('Please enter email and password.'); return; }
+  
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin">↻</span> Signing in...';
+  err.classList.remove('show');
+  
+  try {
+    const r = await fetch(API + '/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pwd })
+    });
+    const data = await r.json();
+    if (data.ok && data.token) {
+      sessionStorage.setItem('sv_token', data.token);
+      sessionStorage.setItem('sv_email', data.email);
+      window.location.href = '/dashboard.html';
+    } else {
+      showErr(data.error || 'Invalid email or password.');
+    }
+  } catch(e) {
+    showErr('Connection error. Please try again.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Sign In →';
+  }
+}
+
+function showErr(msg) {
+  const err = document.getElementById('err');
+  err.textContent = msg;
+  err.classList.add('show');
+}
+</script>
+</body>
+</html>

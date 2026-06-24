@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Serve Vision — HR Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --bg:#ffffff;--bg2:#f8f8f6;--bg3:#f0efe9;
+  --text:#16161a;--text2:#64646a;--text3:#a0a0a6;
+  --border:#e4e3dc;--border2:#cccbc4;
+  --blue:#1758a8;--blue-bg:#e8f1fb;--blue-t:#0a3570;
+  --green:#12956a;--green-bg:#e3f7ee;--green-t:#0a5239;
+  --amber:#b87800;--amber-bg:#fef4d6;--amber-t:#6b4500;
+  --red:#b02a2a;--red-bg:#fdeaea;--red-t:#6e1a1a;
+  --purple:#5248c0;--purple-bg:#eceafd;--purple-t:#2c2478;
+  --teal-bg:#e0f4ef;--teal-t:#0c4d42;
+  --gray-bg:#eeecea;--gray-t:#484844;
+  --r:6px;--rl:10px;
+  --sh:0 1px 3px rgba(0,0,0,.05),0 2px 8px rgba(0,0,0,.04);
+  --sh2:0 4px 12px rgba(0,0,0,.09),0 2px 4px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;background:var(--bg3);color:var(--text);font-size:13px;line-height:1.5}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:214px;background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;box-shadow:2px 0 8px rgba(0,0,0,.04)}
+.main{position:fixed;left:214px;top:0;right:0;bottom:0;display:flex;flex-direction:column}
+.topbar{background:var(--bg);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;z-index:50;gap:10px;flex-wrap:wrap;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.content{flex:1;overflow-y:auto;overflow-x:hidden;padding:20px 24px 40px}
+.sb-brand{padding:18px 16px 14px;border-bottom:1px solid var(--border)}
+.sb-co{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:700}
+.sb-nm{font-size:16px;font-weight:800;color:var(--text);margin-top:3px;letter-spacing:-.4px}
+.sb-yr{font-size:11px;color:var(--text2);margin-top:2px}
+.nav{flex:1;padding:6px 8px;overflow-y:auto}
+.ns{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;font-weight:700;padding:12px 8px 4px}
+.ni{display:flex;align-items:center;gap:9px;padding:8px 10px;cursor:pointer;color:var(--text2);font-size:12px;border:none;background:none;width:100%;text-align:left;border-radius:var(--r);margin-bottom:1px;transition:all .12s;font-weight:500}
+.ni:hover{background:var(--bg2);color:var(--text)}
+.ni.active{background:var(--blue-bg);color:var(--blue);font-weight:600}
+.ni svg{width:15px;height:15px;flex-shrink:0;opacity:.65}
+.ni.active svg{opacity:1}
+.sb-foot{padding:12px 16px;border-top:1px solid var(--border);font-size:11px}
+select,input[type=text],input[type=number]{border:1px solid var(--border2);border-radius:var(--r);padding:6px 10px;font-size:12px;background:var(--bg);color:var(--text);outline:none;transition:border .12s,box-shadow .12s}
+select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(23,88,168,.1)}
+.btn{padding:7px 14px;border-radius:var(--r);font-size:12px;cursor:pointer;border:1px solid var(--border2);background:var(--bg);color:var(--text);display:inline-flex;align-items:center;gap:6px;font-weight:500;transition:all .12s;white-space:nowrap}
+.btn:hover{background:var(--bg2)}
+.btn-p{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 1px 4px rgba(23,88,168,.25)}
+.btn-p:hover{background:var(--blue-t)}
+.btn-sm{padding:3px 8px;font-size:11px}
+.btn-d{background:var(--red-bg);color:var(--red-t);border-color:#eec0c0}
+.met{background:var(--bg);border-radius:var(--rl);padding:14px 16px;border:1px solid var(--border);box-shadow:var(--sh);position:relative;overflow:hidden}
+.met-bar{position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--rl) var(--rl) 0 0}
+.met .lb{font-size:11px;color:var(--text2);font-weight:600;margin-bottom:6px;margin-top:3px;text-transform:uppercase;letter-spacing:.3px}
+.met .vl{font-size:21px;font-weight:800;letter-spacing:-.5px;line-height:1.1}
+.met .sb{font-size:11px;color:var(--text3);margin-top:3px}
+.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--rl);padding:16px 18px;box-shadow:var(--sh);margin-bottom:14px}
+.card-t{font-size:13px;font-weight:700;margin-bottom:12px;letter-spacing:-.1px}
+.card-sub{font-size:11px;color:var(--text2);margin-top:-8px;margin-bottom:12px}
+.tw{overflow-x:auto;border-radius:var(--rl);border:1px solid var(--border);box-shadow:var(--sh);background:var(--bg);margin-bottom:14px}
+.tw table{border-collapse:separate;border-spacing:0;width:100%}
+.tw thead th{background:var(--bg2);box-shadow:0 2px 0 var(--border2);white-space:nowrap}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:9px 12px;font-size:10px;color:var(--text2);border-bottom:1px solid var(--border);font-weight:700;background:var(--bg2);white-space:nowrap;text-transform:uppercase;letter-spacing:.4px}
+td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--bg2)}
+.hol td{background:#fffcf0!important}
+.lv td{background:#f0fdf6!important}
+.paid-hol td{background:#eef7ff!important}
+.paid-lv td{background:#f0fdf6!important}
+.grp td{background:var(--bg2)!important;font-weight:700}
+.tot td{background:var(--bg3)!important;font-weight:800;border-top:2px solid var(--border2)!important}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.b-blue{background:var(--blue-bg);color:var(--blue-t)}
+.b-green{background:var(--green-bg);color:var(--green-t)}
+.b-amber{background:var(--amber-bg);color:var(--amber-t)}
+.b-red{background:var(--red-bg);color:var(--red-t)}
+.b-purple{background:var(--purple-bg);color:var(--purple-t)}
+.b-teal{background:var(--teal-bg);color:var(--teal-t)}
+.b-gray{background:var(--gray-bg);color:var(--gray-t)}
+.b-paid{background:#dbeafe;color:#1e3a8a}
+.notice{border-radius:var(--r);padding:10px 14px;font-size:12px;margin-bottom:14px;line-height:1.7;border:1px solid}
+.n-blue{background:var(--blue-bg);border-color:#b5cee8;color:var(--blue-t)}
+.n-green{background:var(--green-bg);border-color:#9fd9be;color:var(--green-t)}
+.n-amber{background:var(--amber-bg);border-color:#f0cc70;color:var(--amber-t)}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg label{font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.fg input,.fg select{width:100%}
+hr.div{border:none;border-top:1px solid var(--border);margin:16px 0}
+.er{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.er:last-child{border-bottom:none}
+.av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0}
+.bw{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-top:4px}
+.bf{height:100%;border-radius:2px}
+.charts-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:14px;margin-bottom:14px}
+.spin{display:inline-block;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.code{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px;font-size:11px;font-family:'Courier New',monospace;white-space:pre-wrap;line-height:1.6;color:var(--text2);max-height:200px;overflow-y:auto}
+.page{display:none}.page.active{display:block}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* Collapsible pivot rows */
+.pivot-parent{cursor:pointer;user-select:none}
+.pivot-parent:hover td{background:#e8f0fb!important}
+.pivot-parent td{font-size:13px!important;padding:10px 12px!important;background:var(--blue-bg)}
+.pivot-toggle{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:5px;background:var(--blue);color:#fff;font-size:12px;font-weight:700;margin-right:8px;transition:transform .15s;flex-shrink:0}
+.pivot-toggle.open{transform:rotate(90deg)}
+.pivot-child{transition:opacity .15s}
+.pivot-child.hidden{display:none}
+/* Partner Pivot level styles */
+.pp-lvl-1 td{font-size:12px!important;padding:8px 12px!important;background:var(--bg)!important}
+.pp-lvl-2 td{font-size:12px!important;padding:7px 12px!important;background:var(--bg2)!important}
+.pp-lvl-3 td{font-size:11px!important;padding:6px 12px!important;background:var(--bg)!important}
+.pp-emp td{font-size:11px!important;padding:5px 12px!important;color:var(--text2)!important}
+.page-title{font-size:15px;font-weight:800;letter-spacing:-.3px}
+.sheet-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--rl);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh);flex-wrap:wrap;transition:box-shadow .12s}
+.sheet-card:hover{box-shadow:var(--sh2)}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* Premium additions */
+.page-title{font-size:15px;font-weight:800;letter-spacing:-.3px}
+.topbar{background:linear-gradient(135deg,#fff 0%,#f8f8f6 100%)}
+.sidebar{background:linear-gradient(180deg,#ffffff 0%,#f9f9f7 100%)}
+.sb-brand{background:linear-gradient(135deg,#1758a8 0%,#0a3570 100%);padding:20px 16px 16px;border-bottom:none}
+.sb-co{color:rgba(255,255,255,.65);letter-spacing:1.2px}
+.sb-nm{color:#ffffff;font-size:17px;font-weight:800}
+.sb-yr{color:rgba(255,255,255,.6);font-size:11px}
+.met{transition:box-shadow .15s,transform .15s}
+.met:hover{box-shadow:var(--sh2);transform:translateY(-1px)}
+.btn-p{background:linear-gradient(135deg,#1758a8 0%,#0a3570 100%);border:none;box-shadow:0 2px 6px rgba(23,88,168,.35)}
+.btn-p:hover{background:linear-gradient(135deg,#1a6bbf 0%,#1758a8 100%);box-shadow:0 3px 10px rgba(23,88,168,.4);transform:translateY(-1px)}
+.btn:hover{transform:translateY(-1px)}
+.card{transition:box-shadow .15s}
+.card:hover{box-shadow:var(--sh2)}
+.ni{border-left:3px solid transparent;border-radius:0;transition:all .12s}
+.ni.active{border-left:3px solid var(--blue);border-radius:0}
+table tbody tr{transition:background .1s}
+.tw{border-radius:var(--rl);overflow:hidden}
+th{border-bottom:2px solid var(--border2)}
+.tot td{border-top:2px solid var(--border2)!important}
+.grp td{border-left:3px solid var(--blue)}
+</style>
+
+<script>
+// ============================================================
+//  AUTH + GITHUB DATA LAYER
+//  Reads/writes via Cloudflare Worker → GitHub API
+// ============================================================
+const API_BASE = '/api';
+const token = sessionStorage.getItem('sv_token');
+const userEmail = sessionStorage.getItem('sv_email');
+
+// Redirect to login if not authenticated
+if (!token) { window.location.href = '/'; }
+
+async function apiCall(method, path, data) {
+  try {
+    const opts = {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      }
+    };
+    if (data !== undefined) opts.body = JSON.stringify(data);
+    const r = await fetch(API_BASE + path, opts);
+    if (r.status === 401) { window.location.href = '/'; return null; }
+    return await r.json();
+  } catch(e) {
+    console.error('API error:', e);
+    return null;
+  }
+}
+
+async function dbRead(table) {
+  const data = await apiCall('GET', '/data/' + table);
+  return data;
+}
+
+async function dbWrite(table, data) {
+  const result = await apiCall('POST', '/data/' + table, data);
+  if (result && result.ok) {
+    console.log('✓ Saved to GitHub:', table);
+  }
+  return result;
+}
+
+function showDbStatus(msg, type) {
+  const el = document.getElementById('db-status-txt');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = type === 'ok' ? '#0a5239' : type === 'warn' ? '#6b4500' : '#0a3570';
+  if (type === 'ok') setTimeout(() => { if(el.textContent===msg) el.textContent=''; }, 3000);
+}
+
+async function loadFromDB() {
+  showDbStatus('Syncing...', 'info');
+  try {
+    const [sheetsData, salData, holData] = await Promise.all([
+      dbRead('sheets'), dbRead('salary'), dbRead('holiday')
+    ]);
+    let changed = false;
+    if (sheetsData && Array.isArray(sheetsData) && sheetsData.length) {
+      SHEETS = sheetsData.map(s => ({
+        ...s, rows: Number(s.rows)||0,
+        status: s.url ? 'pending' : 'no-url'
+      }));
+      changed = true;
+    }
+    if (salData && typeof salData === 'object' && Object.keys(salData).length) {
+      SAL = salData; changed = true;
+    }
+    if (holData && typeof holData === 'object' && Object.keys(holData).length) {
+      HOL = holData; changed = true;
+    }
+    if (changed) {
+      recalc(); rSheets(); rFilters(); uFoot();
+      if (typeof curP !== 'undefined' && curP !== 'sheets') doR(curP);
+    }
+    showDbStatus('✓ Synced with GitHub', 'ok');
+  } catch(e) {
+    showDbStatus('Sync failed', 'warn');
+    console.error(e);
+  }
+}
+
+// Patch save functions to also write to GitHub
+window.addEventListener('load', function() {
+  // Wait for dashboard vars to be defined
+  setTimeout(function() {
+    const _sv = window.sv;
+    window.sv = function() {
+      if (typeof _sv === 'function') _sv();
+      dbWrite('sheets', SHEETS);
+    };
+    const _svS = window.svS;
+    window.svS = function() {
+      if (typeof _svS === 'function') _svS();
+      dbWrite('salary', SAL);
+    };
+    const _svH = window.svH;
+    window.svH = function() {
+      if (typeof _svH === 'function') _svH();
+      dbWrite('holiday', HOL);
+    };
+    console.log('✓ GitHub save functions connected');
+    // Load data from GitHub
+    loadFromDB();
+    // Auto-sync every 5 minutes
+    setInterval(loadFromDB, 5 * 60 * 1000);
+  }, 500);
+});
+</script>
+
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-co">Serve Vision Pvt Ltd</div>
+    <div class="sb-nm">HR Dashboard</div>
+    <div class="sb-yr">Financial Year 2025–26</div>
+  </div>
+  <nav class="nav">
+    <div class="ns">Setup</div>
+    <button class="ni active" onclick="gp('sheets',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Sheet Registry</button>
+    <button class="ni" onclick="gp('salary-setup',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Salary Setup</button>
+
+    <div class="ns">Reports</div>
+    <button class="ni" onclick="gp('overview',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Overview</button>
+    <button class="ni" onclick="gp('salaries',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6"/></svg>Salaries</button>
+    <button class="ni" onclick="gp('partner-pivot',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Partner Pivot</button>
+    <button class="ni" onclick="gp('emp-pivot',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Employee Pivot</button>
+    <button class="ni" onclick="gp('workrecord',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Work Record</button>
+  </nav>
+  <div class="sb-foot" id="sb-foot">
+    <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:5px">Sync Status</div>
+    <div id="sb-status" style="font-size:12px;font-weight:600;color:var(--text2)">Ready</div>
+    <div id="sb-rows" style="font-size:11px;color:var(--text3);margin-top:2px"></div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="page-title" id="page-title">Sheet Registry</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+      <select id="msel" onchange="af()"><option value="all">All Months</option></select>
+      <select id="empsel" onchange="af()"><option value="all">All Employees</option></select>
+      <select id="partsel" onchange="af()"><option value="all">All Partners</option></select>
+      <button class="btn btn-p" onclick="syncAll()" id="sync-btn">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23,4 23,10 17,10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Sync All Sheets
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- SHEET REGISTRY -->
+    <div class="page active" id="page-sheets">
+      <div class="notice n-blue"><b>One-time setup, no repeat needed!</b> Add each employee's Apps Script URL once. Click "Sync All Sheets" to refresh all data automatically. Auto-refreshes every 5 minutes when the file is open.</div>
+      <div class="card">
+        <div class="card-t">+ Add New Employee Sheet</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          <div class="fg"><label>Employee Name</label><input type="text" id="n-name" placeholder="e.g. Ansh"></div>
+          <div class="fg"><label>Sheet Tab Name</label><input type="text" id="n-tab" value="Work Record"></div>
+          <div class="fg" style="grid-column:1/-1"><label>Apps Script URL</label><input type="text" id="n-url" placeholder="https://script.google.com/macros/s/.../exec"></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-p" onclick="addSheet()">+ Add Sheet</button>
+          <button class="btn" onclick="loadPreset()">Load Serve Vision Preset</button>
+          <span id="add-msg" style="font-size:12px"></span>
+        </div>
+      </div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px;letter-spacing:-.1px">Registered Sheets (<span id="sh-count">0</span>)</div>
+      <div id="sh-list"></div>
+      <div id="sync-prog" style="display:none;margin-top:14px">
+        <div style="font-size:11px;font-weight:700;margin-bottom:6px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px">Sync Progress</div>
+        <div id="sync-prog-list"></div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-t">Apps Script Code — Add to Each Employee's Sheet</div>
+        <div class="card-sub">Google Sheet → Extensions → Apps Script → Paste code → Deploy → New Deployment → Web App → Anyone → Copy URL</div>
+        <div class="code">function doGet(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Work Record');
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0];
+  var rows = [];
+  for (var i = 1; i &lt; data.length; i++) {
+    var row = {};
+    for (var j = 0; j &lt; headers.length; j++) {
+      var val = data[i][j];
+      if (val instanceof Date) {
+        var mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        row['Month'] = mn[val.getMonth()]+'-'+val.getFullYear();
+        val = val.getDate()+'/'+(val.getMonth()+1)+'/'+val.getFullYear();
+      }
+      row[String(headers[j])] = (val===null||val===undefined)?'':String(val);
+    }
+    rows.push(row);
+  }
+  return ContentService.createTextOutput(JSON.stringify(rows)).setMimeType(ContentService.MimeType.JSON);
+}</div>
+      </div>
+    </div>
+
+    <!-- SALARY SETUP -->
+    <div class="page" id="page-salary-setup">
+      <div class="notice n-amber">
+  <b>Salary Setup — Ek baar set karo, sab automatic:</b><br>
+  ▸ <b>Daily Rate</b> = Monthly Salary ÷ Calendar Days (Apr=30, May=31, Jun=30...)<br>
+  ▸ <b>Sheet mein jo bhi entry hai</b> (work, Sunday, Holiday, Leave) = Present (no deduction)<br>
+  ▸ <b>Leave Rule:</b> 1.5 din paid leave automatic — zyada lene par deduction<br>
+  &nbsp;&nbsp;&nbsp;Example: 2 din leave → 1.5 paid + 0.5 unpaid deduction<br>
+  ▸ <b>Absent</b> = Jis din sheet mein koi entry nahi = Deduction<br>
+  ▸ <b>Salary cap</b> = Monthly salary se zyada kabhi nahi aayegi
+</div>
+      <div class="card">
+        <div class="card-t">Set Employee Monthly Salary</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end;margin-bottom:0">
+          <div class="fg"><label>Employee</label><select id="se-emp" style="width:100%"><option value="">-- Select --</option></select></div>
+          <div class="fg"><label>Monthly Salary (₹)</label><input type="number" id="se-sal" placeholder="e.g. 12000"></div>
+          <div class="fg"><label>Working Days / Month</label><input type="number" id="se-wd" value="26"></div>
+          <button class="btn btn-p" onclick="saveSal()" style="height:35px;align-self:end">Save</button>
+        </div>
+        <hr class="div">
+        <div style="font-size:11px;font-weight:700;margin-bottom:8px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px">Month Override — Different Salary for a Specific Month</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end">
+          <div class="fg"><label>Employee</label><select id="ov-emp" style="width:100%"><option value="">-- Select --</option></select></div>
+          <div class="fg"><label>Month (e.g. Apr-2026)</label><input type="text" id="ov-month" placeholder="Apr-2026"></div>
+          <div class="fg"><label>Salary (₹)</label><input type="number" id="ov-sal" placeholder="14000"></div>
+          <button class="btn" onclick="saveOverride()" style="height:35px;align-self:end">Add Override</button>
+        </div>
+        <div id="se-msg" style="margin-top:10px;font-size:12px;font-weight:600"></div>
+      </div>
+      <div id="sal-cfg-list"></div>
+    </div>
+
+    <!-- OVERVIEW -->
+    <div class="page" id="page-overview">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:16px">
+        <div class="met"><div class="met-bar" style="background:var(--blue)"></div><div class="lb">Total Salary</div><div class="vl" id="m1">—</div><div class="sb">Current filter</div></div>
+        <div class="met"><div class="met-bar" style="background:var(--green)"></div><div class="lb">Employees</div><div class="vl" id="m2">—</div><div class="sb">Active</div></div>
+        <div class="met"><div class="met-bar" style="background:var(--purple)"></div><div class="lb">Partners</div><div class="vl" id="m3">—</div><div class="sb">Unique</div></div>
+        <div class="met"><div class="met-bar" style="background:var(--amber)"></div><div class="lb">Working Days</div><div class="vl" id="m4">—</div></div>
+        <div class="met"><div class="met-bar" style="background:#6366f1)"></div><div class="lb">Paid Holidays</div><div class="vl" id="m5">—</div><div class="sb">Days</div></div>
+        <div class="met"><div class="met-bar" style="background:var(--teal-t)"></div><div class="lb">Paid Leaves</div><div class="vl" id="m6">—</div><div class="sb">Days</div></div>
+      </div>
+      <div class="charts-grid">
+        <div class="card" style="margin-bottom:0"><div class="card-t">Month-wise Salary Trend</div><div style="position:relative;height:195px"><canvas id="ch1" role="img" aria-label="Month wise salary trend">data</canvas></div></div>
+        <div class="card" style="margin-bottom:0"><div class="card-t">Partner-wise Salary</div><div style="position:relative;height:195px"><canvas id="ch2" role="img" aria-label="Partner wise salary">data</canvas></div></div>
+      </div>
+      <div class="card"><div class="card-t">Employee Summary</div><div id="emp-ov"></div></div>
+      <div class="card"><div class="card-t">Leave Bank — Carry Forward Balance</div><div class="card-sub">Cumulative leave balance per employee (1.5 days earned per month)</div><div id="leave-bank-ov"></div></div>
+    </div>
+
+    <!-- SALARIES -->
+    <div class="page" id="page-salaries">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <div><div style="font-size:14px;font-weight:800;letter-spacing:-.2px">Salary Matrix</div><div style="font-size:11px;color:var(--text2);margin-top:2px">Employee × Month — Hover on cell for breakdown</div></div>
+        <div style="display:flex;gap:6px">
+          <button class="btn" onclick="copyTable('sal-tb','Salary Matrix')">📋 Copy Table</button>
+          <button class="btn" onclick="expSal()">↓ CSV Export</button>
+        </div>
+      </div>
+      <div style="overflow-y:auto;overflow-x:auto;max-height:calc(100vh - 170px);border-radius:var(--rl);border:1px solid var(--border);box-shadow:var(--sh);background:var(--bg);margin-bottom:14px">
+        <table style="width:100%;border-collapse:separate;border-spacing:0;font-size:13px">
+          <thead id="sal-th"></thead>
+          <tbody id="sal-tb"></tbody>
+        </table>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;margin-top:6px">
+        <div id="sal-foot" style="font-size:12px;color:var(--text2);flex:1"></div>
+        <div id="sal-copy-msg" style="font-size:12px;color:var(--green-t);font-weight:600"></div>
+      </div>
+    </div>
+
+    <!-- PARTNER PIVOT -->
+    <div class="page" id="page-partner-pivot">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+        <div style="font-size:11px;color:var(--text2)">Click on partner name to expand / collapse</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-sm" onclick="expandAll()">Expand All</button>
+          <button class="btn btn-sm" onclick="collapseAll()">Collapse All</button>
+          <button class="btn btn-sm" onclick="copyTable('pp-tb','Partner Pivot')">📋 Copy Table</button>
+          <button class="btn btn-sm" onclick="expPP()">↓ Export CSV</button>
+        </div>
+      </div>
+      <div style="overflow-y:auto;overflow-x:auto;max-height:calc(100vh - 170px);border-radius:var(--rl);border:1px solid var(--border);box-shadow:var(--sh);background:var(--bg);margin-bottom:14px"><table id="pp-table" style="width:100%;border-collapse:separate;border-spacing:0;font-size:13px"><thead><tr><th style="position:sticky;top:0;min-width:160px;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase">Partner</th><th style="position:sticky;top:0;min-width:140px;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase">Project</th><th style="position:sticky;top:0;min-width:200px;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase">Website / Work</th><th style="position:sticky;top:0;min-width:130px;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase">Employee</th><th style="position:sticky;top:0;text-align:right;min-width:70px;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase">Days</th><th style="position:sticky;top:0;text-align:right;min-width:100px;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase">Salary</th></tr></thead><tbody id="pp-tb"></tbody></table></div>
+      <div id="copy-msg" style="font-size:12px;color:var(--green-t);margin-top:4px;font-weight:600"></div>
+    </div>
+
+    <!-- EMP PIVOT -->
+    <div class="page" id="page-emp-pivot">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+        <div style="font-size:11px;color:var(--text2)">Click on employee name to expand / collapse</div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm" onclick="copyTable('ep-tb','Employee Pivot')">📋 Copy Table</button>
+          <button class="btn btn-sm" onclick="expEP()">↓ Export CSV</button>
+        </div>
+      </div>
+      <div style="overflow-y:auto;overflow-x:auto;max-height:calc(100vh - 170px);border-radius:var(--rl);border:1px solid var(--border);box-shadow:var(--sh);background:var(--bg);margin-bottom:14px"><table style="width:100%;border-collapse:separate;border-spacing:0;font-size:13px"><thead><tr><th style="position:sticky;top:0;min-width:160px;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase">Employee</th><th style="position:sticky;top:0;min-width:160px;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase">Partner</th><th style="position:sticky;top:0;text-align:right;min-width:70px;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase">Days</th><th style="position:sticky;top:0;text-align:right;min-width:100px;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase">Salary</th></tr></thead><tbody id="ep-tb"></tbody></table></div>
+    </div>
+
+    <!-- WORK RECORD -->
+    <div class="page" id="page-workrecord">
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+        <input type="text" id="wr-q" placeholder="Search by name, partner, website, date, working..." oninput="rWR()" style="flex:1;min-width:220px">
+        <button class="btn" onclick="copyTable('wr-tb','Work Record')">📋 Copy Table</button>
+        <button class="btn" onclick="expWR()">↓ Export CSV</button>
+      </div>
+      <div style="overflow-y:auto;overflow-x:auto;max-height:calc(100vh - 170px);border-radius:var(--rl);border:1px solid var(--border);box-shadow:var(--sh);background:var(--bg)">
+        <table style="width:100%;border-collapse:separate;border-spacing:0;font-size:13px">
+          <thead><tr>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.4px">Month</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.4px">UK(DW)</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.4px">Name</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.4px">Date</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.4px">Partner</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.4px">Project</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.4px">Website / Work</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.4px">Working</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.4px;text-align:right">Days</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.4px;text-align:right">Salary</th>
+          </tr></thead>
+          <tbody id="wr-tb"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const ST='sv_v6',SC='sv_sal_v4',SH='sv_hol_v2';
+const AV=[['#dbeafe','#1e3a8a'],['#d1fae5','#064e3b'],['#ede9fe','#2e1065'],['#fef3c7','#451a03'],['#fce7f3','#500724'],['#ecfdf5','#022c22'],['#fef2f2','#450a0a'],['#fff7ed','#431407']];
+let SHEETS=[],ALL=[],SAL={},HOL={},C1=null,C2=null;
+const PT={'sheets':'Sheet Registry','salary-setup':'Salary Setup','overview':'Overview','salaries':'Salaries','partner-pivot':'Partner Pivot','emp-pivot':'Employee Pivot','workrecord':'Work Record'};
+const MONTH_ORDER=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+const fmt=n=>'₹'+Math.round(Number(n)||0).toLocaleString('en-IN');
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).substr(2,4);
+function sv(){try{localStorage.setItem(ST,JSON.stringify({sheets:SHEETS,data:ALL}))}catch(e){}}
+function svS(){try{localStorage.setItem(SC,JSON.stringify(SAL))}catch(e){}}
+function svH(){try{localStorage.setItem(SH,JSON.stringify(HOL))}catch(e){}}
+function ld(){try{const d=localStorage.getItem(ST);if(d){const p=JSON.parse(d);SHEETS=p.sheets||[];ALL=p.data||[];}}catch(e){}}
+function ldS(){try{const d=localStorage.getItem(SC);if(d)SAL=JSON.parse(d);}catch(e){SAL={};}}
+function ldH(){try{const d=localStorage.getItem(SH);if(d)HOL=JSON.parse(d);}catch(e){HOL={};}}
+
+function sortMonths(arr){
+  return arr.sort((a,b)=>{
+    const [ma,ya]=a.split('-');const [mb,yb]=b.split('-');
+    const yi=parseInt(ya)-parseInt(yb);
+    if(yi!==0)return yi;
+    return MONTH_ORDER.indexOf(ma)-MONTH_ORDER.indexOf(mb);
+  });
+}
+
+function getMonthSal(emp,month){
+  const c=SAL[emp];if(!c)return 0;
+  if(c.ov&&c.ov[month])return Number(c.ov[month]);
+  return Number(c.monthly)||0;
+}
+
+// Actual calendar days in a month — Apr=30, May=31, Jun=30 etc.
+function getCalendarDays(monthStr){
+  if(!monthStr)return 30;
+  const mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const p=monthStr.split('-');
+  if(p.length!==2)return 30;
+  const mi=mn.indexOf(p[0]);
+  const yr=parseInt(p[1]);
+  if(mi<0||isNaN(yr))return 30;
+  return new Date(yr,mi+1,0).getDate();
+}
+
+// Get manually added paid holiday days
+function getPaidHolDays(emp,month){
+  let days=0;
+  const allKey='ALL|'+month;
+  if(HOL[allKey])HOL[allKey].forEach(h=>days+=Number(h.days)||0);
+  const empKey=emp+'|'+month;
+  if(HOL[empKey])HOL[empKey].forEach(h=>days+=Number(h.days)||0);
+  return days;
+}
+
+function getPaidLeaveDays(emp,month){
+  let days=0;
+  const key='LEAVE|'+emp+'|'+month;
+  if(HOL[key])HOL[key].forEach(h=>days+=Number(h.days)||0);
+  return days;
+}
+
+function recalc(){
+  // ============================================================
+  // SALARY FORMULA — Deduction based + Leave Bank (Carry Forward)
+  //
+  // Leave Bank per employee (cumulative, month-wise):
+  //   Each month employee earns 1.5 paid leave days
+  //   Unused leave carries forward to next months
+  //   When leave taken <= bank balance → fully paid (no deduction)
+  //   When leave taken > bank balance → extra days are unpaid
+  //
+  // Example:
+  //   Apr: earned 1.5, taken 0 → bank=1.5
+  //   May: earned 1.5, taken 0 → bank=3.0
+  //   Jun: earned 1.5, taken 2 → bank=3.0+1.5-2=2.5 (2 paid, 0 unpaid)
+  //   Jul: earned 1.5, taken 5 → bank=2.5+1.5-5=-1 → 4 paid, 1 unpaid
+  //
+  // Daily Rate = Monthly ÷ Calendar Days
+  // Present = all sheet entries (work+sun+hol+leave)
+  // Absent = Calendar - sheet entries + unpaid leave portion
+  // Final = Monthly - (Daily Rate × Absent)
+  // Cap = never exceed Monthly Salary
+  // ============================================================
+
+  const MONTHLY_LEAVE_EARN = 1.5; // leave earned per month
+
+  // Step 1: Collect all unique dates per emp+month (any entry)
+  const empMonthAllDates={};
+  ALL.forEach(r=>{
+    if(!r.name||!r.month||!r.date)return;
+    const mk=r.name+'|'+r.month;
+    if(!empMonthAllDates[mk])empMonthAllDates[mk]=new Set();
+    empMonthAllDates[mk].add(r.date);
+  });
+
+  // Step 2: Count unique leave dates per emp+month
+  const empMonthLeaveTaken={};
+  ALL.forEach(r=>{
+    if(!r.name||!r.month||!r.date||!r.isLeave)return;
+    const mk=r.name+'|'+r.month;
+    if(!empMonthLeaveTaken[mk])empMonthLeaveTaken[mk]=new Set();
+    empMonthLeaveTaken[mk].add(r.date);
+  });
+
+  // Step 3: Get all months in data, sorted chronologically
+  const allMonths=[...new Set(ALL.filter(r=>r.month).map(r=>r.month))];
+  const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  allMonths.sort((a,b)=>{
+    const [ma,ya]=a.split('-'), [mb,yb]=b.split('-');
+    return (parseInt(ya)*12+MN.indexOf(ma))-(parseInt(yb)*12+MN.indexOf(mb));
+  });
+
+  // Step 4: Calculate leave bank per employee (running balance month by month)
+  // leaveBank[emp|month] = unpaid leave days for that month
+  const empLeaveBank={};    // emp -> running bank balance
+  const empMonthUnpaid={};  // emp|month -> unpaid leave days
+
+  const allEmps=[...new Set(ALL.filter(r=>r.name&&SAL[r.name]).map(r=>r.name))];
+
+  allEmps.forEach(emp=>{
+    let bank=0; // cumulative leave bank
+    allMonths.forEach(month=>{
+      const mk=emp+'|'+month;
+      // Check if emp has any data this month
+      if(!(empMonthAllDates[mk]||empMonthLeaveTaken[mk])){
+        // No data this month — still earn leave if salary set
+        if(SAL[emp]&&getMonthSal(emp,month)){
+          bank+=MONTHLY_LEAVE_EARN;
+        }
+        empMonthUnpaid[mk]=0;
+        return;
+      }
+      // Earn leave this month
+      if(SAL[emp]&&getMonthSal(emp,month)){
+        bank+=MONTHLY_LEAVE_EARN;
+      }
+      // Leave taken this month
+      const taken=(empMonthLeaveTaken[mk]||new Set()).size;
+      if(taken>0){
+        if(taken<=bank){
+          // Fully paid from bank
+          bank-=taken;
+          empMonthUnpaid[mk]=0;
+        } else {
+          // Partially paid
+          const unpaid=taken-bank;
+          bank=0;
+          empMonthUnpaid[mk]=unpaid;
+        }
+      } else {
+        empMonthUnpaid[mk]=0;
+      }
+    });
+    empLeaveBank[emp]=bank; // final remaining bank
+  });
+
+  // Step 5: Count partners per date (for salary split)
+  const datePartnerCount={};
+  ALL.forEach(r=>{
+    if(!r.name||!r.month||!r.date||r.isHol||r.isLeave||r.isSun)return;
+    const dk=r.name+'|'+r.month+'|'+r.date;
+    datePartnerCount[dk]=(datePartnerCount[dk]||0)+1;
+  });
+
+  // Step 6: Calculate final salary per emp+month using leave bank
+  const empMonthFinalSal={};
+  const empMonthDailyRate={};
+
+  const empMonthSet=new Set(ALL.filter(r=>r.name&&r.month).map(r=>r.name+'|'+r.month));
+
+  empMonthSet.forEach(mk=>{
+    const [emp,month]=mk.split('|');
+    if(!SAL[emp])return;
+    const ms=getMonthSal(emp,month);
+    if(!ms)return;
+
+    const calDays=getCalendarDays(month);
+    const dailyRate=ms/calDays;
+    empMonthDailyRate[mk]=dailyRate;
+
+    // Sheet entries count (all types = present)
+    const sheetDays=(empMonthAllDates[mk]||new Set()).size;
+
+    // Unpaid leave from bank calculation
+    const unpaidLeave=empMonthUnpaid[mk]||0;
+
+    // Absent = days not in sheet + unpaid leave
+    const absentDays=Math.max(0, calDays-sheetDays)+unpaidLeave;
+
+    // Final salary
+    const finalSal=Math.min(ms, Math.max(0, ms-(dailyRate*absentDays)));
+    empMonthFinalSal[mk]=finalSal;
+  });
+
+  // Step 7: Build partner days map for proportional split
+  const empMonthPartnerDays={};
+  ALL.forEach(r=>{
+    if(!r.name||!r.month||!r.date||r.isHol||r.isLeave||r.isSun||!r.partner)return;
+    const mk=r.name+'|'+r.month;
+    if(!empMonthPartnerDays[mk])empMonthPartnerDays[mk]={_seen:new Set()};
+    const dk=r.partner+'|'+r.date;
+    if(!empMonthPartnerDays[mk]._seen.has(dk)){
+      empMonthPartnerDays[mk]._seen.add(dk);
+      empMonthPartnerDays[mk][r.partner]=(empMonthPartnerDays[mk][r.partner]||0)+1;
+    }
+  });
+
+  // Step 8: Pre-compute row counts per emp+month+partner
+  const empMonthPartnerRowCount={};
+  ALL.forEach(r=>{
+    if(r.isHol||r.isLeave||r.isSun||!r.name||!r.month||!r.partner)return;
+    const k=r.name+'|'+r.month+'|'+r.partner;
+    empMonthPartnerRowCount[k]=(empMonthPartnerRowCount[k]||0)+1;
+  });
+
+  // Step 9: Assign _sal to each work row proportionally
+  ALL.forEach(r=>{
+    if(r.isHol||r.isLeave||r.isSun){r._sal=0;return;}
+    if(!SAL[r.name]||!r.date){r._sal=0;return;}
+    const mk=r.name+'|'+r.month;
+    const finalSal=empMonthFinalSal[mk];
+    if(finalSal===undefined){r._sal=0;return;}
+
+    const pd=empMonthPartnerDays[mk]||{};
+    const totalWorkDays=Object.keys(pd)
+      .filter(k=>k!=='_seen')
+      .reduce((s,k)=>s+(pd[k]||0),0);
+    if(!totalWorkDays){r._sal=0;return;}
+
+    const partnerDays=pd[r.partner]||0;
+    const partnerSal=(finalSal*partnerDays)/totalWorkDays;
+
+    const rowKey=r.name+'|'+r.month+'|'+r.partner;
+    const totalRows=empMonthPartnerRowCount[rowKey]||1;
+    r._sal=partnerSal/totalRows;
+  });
+
+  sv();
+}
+
+// Leave bank summary for display
+function getLeaveBankSummary(emp){
+  const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const months=[...new Set(ALL.filter(r=>r.name===emp&&r.month).map(r=>r.month))];
+  months.sort((a,b)=>{
+    const [ma,ya]=a.split('-'),[mb,yb]=b.split('-');
+    return(parseInt(ya)*12+MN.indexOf(ma))-(parseInt(yb)*12+MN.indexOf(mb));
+  });
+  const EARN=1.5;
+  let bank=0;
+  const rows=[];
+  months.forEach(month=>{
+    const mk=emp+'|'+month;
+    const ms=getMonthSal(emp,month);
+    if(!ms)return;
+    bank+=EARN;
+    const taken=[...new Set(ALL.filter(r=>r.name===emp&&r.month===month&&r.isLeave&&r.date).map(r=>r.date))].length;
+    let paid=0,unpaid=0;
+    if(taken>0){
+      if(taken<=bank){paid=taken;bank-=taken;}
+      else{paid=bank;unpaid=taken-bank;bank=0;}
+    }
+    rows.push({month,earned:EARN,taken,paid,unpaid,bank:Math.round(bank*10)/10});
+  });
+  return rows;
+}
+
+
+function getTotalSalary(emp,month,baseSalFromRows){
+  if(!SAL[emp])return baseSalFromRows;
+  const ms=getMonthSal(emp,month);
+  if(!ms)return baseSalFromRows;
+  return Math.min(baseSalFromRows,ms);
+}
+
+// Breakdown for tooltip
+function getSalaryBreakdown(emp,month,baseSal){
+  if(!SAL[emp])return{total:baseSal,paidH:0,paidL:0,dailyRate:0,calDays:30,monthSal:0};
+  const ms=getMonthSal(emp,month);
+  if(!ms)return{total:baseSal,paidH:0,paidL:0,dailyRate:0,calDays:30,monthSal:ms};
+  const calDays=getCalendarDays(month);
+  const dailyRate=ms/calDays;
+  const paidH=getPaidHolDays(emp,month);
+  const paidL=getPaidLeaveDays(emp,month);
+  return{total:Math.min(baseSal,ms),monthSal:ms,calDays,dailyRate,paidH,paidL};
+}
+
+// Column detection
+function dC(headers){
+  const h=headers.map(x=>String(x).trim().toLowerCase());
+  const fi=t=>h.findIndex(x=>t.some(s=>x.includes(s)));
+  return{
+    month:fi(['month']),uk:fi(['uk (dw)','uk(dw)','uk']),
+    name:fi(['name','employee']),date:fi(['date']),
+    partner:fi(['partner','client']),project:fi(['project']),
+    website:fi(['website / work','website/work','website','site']),
+    working:fi(['working']),days:fi(['days']),ratio:fi(['ratio']),salary:fi(['salary','amount'])
+  };
+}
+function cleanD(s){
+  if(!s)return '';
+  const str=String(s);
+  if(str.includes('T')){const d=new Date(str);const mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return d.getDate()+'-'+mn[d.getMonth()]+'-'+d.getFullYear();}
+  return str;
+}
+function getMnFromDate(s){
+  if(!s)return '';
+  const str=String(s);let d;
+  if(str.includes('T'))d=new Date(str);
+  else if(str.match(/^\d+\/\d+\/\d+/)){const p=str.split('/');d=new Date(p[2],parseInt(p[1])-1,parseInt(p[0]));}
+  else d=new Date(str);
+  if(isNaN(d))return '';
+  const mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return mn[d.getMonth()]+'-'+d.getFullYear();
+}
+function parseRows(arr,sheet){
+  if(!arr||!arr.length)return [];
+  const headers=Object.keys(arr[0]);
+  const c=dC(headers);
+  return arr.filter(r=>Object.values(r).some(v=>v!==null&&v!=='')).map((r,i)=>{
+    const v=k=>k>=0&&headers[k]?String(r[headers[k]]||'').trim():'';
+    const partner=v(c.partner),project=v(c.project),website=v(c.website);
+    const dateRaw=v(c.date);
+    let month=v(c.month)||r['Month']||'';
+    if(!month)month=getMnFromDate(dateRaw);
+    const pl=partner.toLowerCase().trim(),prl=project.toLowerCase().trim(),wl=website.toLowerCase().trim();
+    const isHol=pl==='holiday'||prl==='holiday';
+    const isLeave=pl==='leave'||prl==='leave';
+    const isSun=wl==='sunday'||(isHol&&wl==='sunday')||(pl==='holiday'&&prl==='holiday'&&wl==='sunday');
+    return{_i:i,_sid:sheet.id,_sal:0,month,uk:v(c.uk),name:sheet.name,date:cleanD(dateRaw)||dateRaw,partner,project,website,working:v(c.working),isHol,isLeave,isSun};
+  });
+}
+
+// Fetch — handles Apps Script redirects and CORS
+async function fetchData(s){
+  const url=s.url.trim();
+  // Try with no-cors mode first for Apps Script URLs, then parse
+  const r=await fetch(url, {
+    method:'GET',
+    redirect:'follow',
+    headers:{'Accept':'application/json,text/plain,*/*'}
+  });
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  const text=await r.text();
+  if(!text||text.trim()==='')throw new Error('Empty response');
+  // Try JSON first
+  try{
+    const j=JSON.parse(text);
+    if(j.error)throw new Error('Script error: '+j.error);
+    return parseRows(Array.isArray(j)?j:[j],s);
+  }catch(e){
+    // Try CSV
+    const res=Papa.parse(text.trim(),{header:true,skipEmptyLines:true});
+    if(!res.data||!res.data.length)throw new Error('No data parsed');
+    return parseRows(res.data,s);
+  }
+}
+async function syncOne(id){
+  const s=SHEETS.find(x=>x.id===id);
+  if(!s||!s.url)return;
+  s.status='loading';rSheets();
+  try{
+    const rows=await fetchData(s);
+    s.rows=rows.length;s.status='ok';s.lastSync=new Date().toLocaleTimeString('en-IN');
+    ALL=ALL.filter(x=>x._sid!==id).concat(filterByStartMonth(rows));
+    recalc();rFilters();rCurrent();
+  }catch(e){s.status='error';console.error(s.name,e);}
+  rSheets();uFoot();
+}
+async function syncAll(){
+  const btn=document.getElementById('sync-btn');
+  btn.disabled=true;
+  btn.innerHTML='<span class="spin">↻</span> Syncing...';
+  const ts=SHEETS.filter(s=>s.url&&s.url.trim());
+  if(!ts.length){
+    btn.disabled=false;
+    btn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23,4 23,10 17,10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Sync All Sheets';
+    alert('Koi sheet URL set nahi hai. Sheet Registry mein URLs add karo.');
+    return;
+  }
+  const progWrap=document.getElementById('sync-prog');
+  const progList=document.getElementById('sync-prog-list');
+  if(progWrap)progWrap.style.display='block';
+  if(progList)progList.innerHTML=ts.map(s=>`<div id="sp-${s.id}" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--r);margin-bottom:3px;background:var(--bg2);border:1px solid var(--border);font-size:12px"><span class="spin" style="color:var(--amber)">↻</span><span style="flex:1;font-weight:600">${s.name}</span><span id="sps-${s.id}" style="color:var(--text3)">Connecting...</span></div>`).join('');
+
+  let okCount=0, errCount=0;
+  for(const s of ts){
+    s.status='loading';
+    const pg=document.getElementById('sp-'+s.id);
+    try{
+      const rows=await fetchData(s);
+      s.rows=rows.length;
+      s.status='ok';
+      s.lastSync=new Date().toLocaleTimeString('en-IN');
+      ALL=ALL.filter(x=>x._sid!==s.id).concat(filterByStartMonth(rows));
+      okCount++;
+      if(pg)pg.innerHTML=`<span style="color:var(--green);font-size:16px">✓</span><span style="flex:1;font-weight:600">${s.name}</span><span style="color:var(--green-t);font-weight:600">${rows.length} rows ✓ (${s.lastSync})</span>`;
+    }catch(e){
+      s.status='error';
+      errCount++;
+      console.error('Sync error:',s.name,e.message);
+      if(pg)pg.innerHTML=`<span style="color:var(--red);font-size:16px">✗</span><span style="flex:1;font-weight:600">${s.name}</span><span style="color:var(--red-t)">${e.message||'Fetch failed'}</span>`;
+    }
+  }
+
+  recalc();sv();rFilters();rCurrent();rSheets();uFoot();
+  btn.disabled=false;
+  btn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23,4 23,10 17,10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Sync All Sheets';
+
+  // Show summary
+  const summary=document.createElement('div');
+  summary.style.cssText='margin-top:8px;padding:8px 10px;border-radius:var(--r);font-size:12px;font-weight:600;background:'+(errCount?'var(--amber-bg)':'var(--green-bg)')+';color:'+(errCount?'var(--amber-t)':'var(--green-t)');
+  summary.textContent=`${okCount}/${ts.length} sheets synced successfully${errCount?' | '+errCount+' failed':''}`;
+  if(progList)progList.appendChild(summary);
+}
+
+// Sheet list
+function loadPreset(){
+  ['Ansh','Aman Khokhar','Bhuvan Gaur','Sakshi','Sunita Mahata','Gourav Madaan','Joydeep Mahata','Monika Bhardwaj','Payal','Charu','Chahat Rana'].forEach(nm=>{
+    if(!SHEETS.find(s=>s.name===nm))SHEETS.push({id:uid(),name:nm,tab:'Work Record',url:'',status:'no-url',rows:0});
+  });
+  sv();rSheets();setMsg('add-msg','✓ Preset loaded! Add the Apps Script URL for each employee.','green');
+}
+function addSheet(){
+  const nm=document.getElementById('n-name').value.trim();
+  const url=document.getElementById('n-url').value.trim();
+  const tab=document.getElementById('n-tab').value.trim()||'Work Record';
+  if(!nm){setMsg('add-msg','Employee name required!','red');return;}
+  if(SHEETS.find(s=>s.name===nm)){setMsg('add-msg','Employee already exists!','red');return;}
+  SHEETS.push({id:uid(),name:nm,tab,url,status:url?'pending':'no-url',rows:0});
+  sv();rSheets();['n-name','n-url'].forEach(id=>document.getElementById(id).value='');
+  setMsg('add-msg','✓ Sheet added!','green');
+}
+function delSheet(id){
+  if(!confirm('Delete this sheet?'))return;
+  SHEETS=SHEETS.filter(s=>s.id!==id);ALL=ALL.filter(r=>r._sid!==id);
+  sv();rSheets();rFilters();rCurrent();
+}
+function updUrl(id,val){const s=SHEETS.find(x=>x.id===id);if(s){s.url=val;s.status=val?'pending':'no-url';sv();}}
+function rSheets(){
+  document.getElementById('sh-count').textContent=SHEETS.length;
+  const w=document.getElementById('sh-list');
+  if(!SHEETS.length){w.innerHTML='<div style="padding:20px;color:var(--text2);text-align:center;border:1px dashed var(--border2);border-radius:var(--rl)">No sheets added. Load preset or add manually.</div>';return;}
+  w.innerHTML=SHEETS.map(s=>{
+    const st=s.status==='ok'?`<span class="badge b-green"><span class="dot" style="background:var(--green)"></span>Synced</span>`:s.status==='error'?`<span class="badge b-red"><span class="dot" style="background:var(--red)"></span>Error</span>`:s.status==='loading'?`<span class="badge b-amber"><span class="spin">↻</span>Loading</span>`:s.status==='no-url'?`<span class="badge b-gray">URL Required</span>`:`<span class="badge b-amber">Pending</span>`;
+    return`<div class="sheet-card">
+      <div style="font-weight:700;min-width:130px;font-size:12px">${s.name}</div>
+      <input type="text" value="${s.url||''}" placeholder="Apps Script URL..." style="flex:1;min-width:180px;font-size:11px" onblur="updUrl('${s.id}',this.value)">
+      <input type="text" value="${s.tab||'Work Record'}" style="width:95px;font-size:11px">
+      <div style="min-width:90px;text-align:center">${st}</div>
+      <div style="font-size:11px;color:var(--text3);min-width:50px;text-align:right">${s.rows||'—'} rows</div>
+      <div style="display:flex;gap:4px">
+        <button class="btn btn-sm btn-p" onclick="syncOne('${s.id}')">↻</button>
+        <button class="btn btn-sm btn-d" onclick="delSheet('${s.id}')">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Salary setup
+function popSEmpSels(){
+  const emps=[...new Set(ALL.map(r=>r.name).filter(Boolean))].sort();
+  ['se-emp','ov-emp','hol-emp','lv-emp'].forEach(id=>{
+    const sel=document.getElementById(id);if(!sel)return;
+    const cv=sel.value,isHol=id==='hol-emp';
+    sel.innerHTML=(isHol?'<option value="">-- All Employees --</option>':'<option value="">-- Select --</option>')+emps.map(e=>`<option value="${e}">${e}</option>`).join('');
+    sel.value=cv;
+  });
+}
+function saveSal(){
+  const emp=document.getElementById('se-emp').value;
+  const sal=parseFloat(document.getElementById('se-sal').value)||0;
+  const wd=parseInt(document.getElementById('se-wd').value)||26;
+  if(!emp||!sal){setMsg('se-msg','Select employee and enter salary!','red');return;}
+  if(!SAL[emp])SAL[emp]={ov:{}};
+  SAL[emp].monthly=sal;SAL[emp].wdays=wd;
+  svS();recalc();rSalCfg();rCurrent();
+  setMsg('se-msg',`✓ ${emp}: ₹${sal.toLocaleString('en-IN')}/month · ${wd} working days · Daily rate: ${fmt(sal/wd)}`,'green');
+}
+function normalizeMonth(m){
+  // Convert 'May-26' → 'May-2026', keep 'May-2026' as is
+  if(!m)return m;
+  const MNL=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const p=m.trim().split('-');
+  if(p.length!==2)return m.trim();
+  const mn=p[0],yr=p[1];
+  if(yr.length===2)return mn+'-20'+yr;
+  return mn+'-'+yr;
+}
+function saveOverride(){
+  const emp=document.getElementById('ov-emp').value;
+  const rawMonth=document.getElementById('ov-month').value.trim();
+  const month=normalizeMonth(rawMonth); // normalize May-26 → May-2026
+  const sal=parseFloat(document.getElementById('ov-sal').value)||0;
+  if(!emp||!month||!sal){setMsg('se-msg','All fields required!','red');return;}
+  if(!SAL[emp])SAL[emp]={monthly:0,wdays:26,ov:{}};
+  if(!SAL[emp].ov)SAL[emp].ov={};
+  SAL[emp].ov[month]=sal;
+  svS();recalc();rSalCfg();rCurrent();
+  setMsg('se-msg',`✓ ${emp} — ${month}: ₹${sal.toLocaleString('en-IN')} override saved!`,'green');
+}
+function delSalEmp(emp){if(!confirm(`Delete salary config for ${emp}?`))return;delete SAL[emp];svS();recalc();rSalCfg();}
+function delOv(emp,month){if(SAL[emp]&&SAL[emp].ov)delete SAL[emp].ov[month];svS();recalc();rSalCfg();}
+function rSalCfg(){
+  const w=document.getElementById('sal-cfg-list');
+  if(!Object.keys(SAL).length){w.innerHTML='<div class="notice n-blue">No salary configurations set. Add above.</div>';return;}
+  w.innerHTML=`<div class="tw"><table>
+    <thead><tr><th>Employee</th><th style="text-align:right">Monthly Salary</th><th style="text-align:center">Working Days</th><th style="text-align:right">Daily Rate</th><th>Month Overrides</th><th></th></tr></thead>
+    <tbody>${Object.entries(SAL).map(([emp,c])=>{
+      const daily=c.monthly&&c.wdays?Math.round(c.monthly/c.wdays):0;
+      const ovs=c.ov&&Object.keys(c.ov).length?Object.entries(c.ov).map(([m,s])=>`<span class="badge b-amber" style="margin:1px;cursor:pointer" onclick="delOv('${emp}','${m}')" title="Click to remove">${m}: ${fmt(s)} ×</span>`).join(''):'-';
+      return`<tr><td style="font-weight:700">${emp}</td><td style="text-align:right;font-weight:700;color:var(--blue)">${fmt(c.monthly||0)}</td><td style="text-align:center">${c.wdays||26}</td><td style="text-align:right;color:var(--text2)">${fmt(daily)}/day</td><td>${ovs}</td><td><button class="btn btn-sm btn-d" onclick="delSalEmp('${emp}')">Delete</button></td></tr>`;
+    }).join('')}</tbody></table></div>`;
+}
+
+// Holiday & Leave setup
+function addPaidHoliday(){
+  const emp=document.getElementById('hol-emp').value||'ALL';
+  const month=document.getElementById('hol-month').value.trim();
+  const days=parseFloat(document.getElementById('hol-days').value)||0;
+  const note=document.getElementById('hol-note').value.trim();
+  if(!month||!days){setMsg('hol-msg','Month and days required!','red');return;}
+  const key=emp+'|'+month;
+  if(!HOL[key])HOL[key]=[];
+  HOL[key].push({days,note,type:'holiday'});
+  svH();rHolCfg();recalc();rCurrent();
+  setMsg('hol-msg',`✓ ${days} paid holiday day(s) added for ${emp==='ALL'?'all employees':emp} in ${month}`,'green');
+  document.getElementById('hol-days').value='';document.getElementById('hol-note').value='';
+}
+function addPaidLeave(){
+  const emp=document.getElementById('lv-emp').value;
+  const month=document.getElementById('lv-month').value.trim();
+  const days=parseFloat(document.getElementById('lv-days').value)||0;
+  const note=document.getElementById('lv-note').value.trim();
+  if(!emp||!month||!days){setMsg('lv-msg','All fields required!','red');return;}
+  const key='LEAVE|'+emp+'|'+month;
+  if(!HOL[key])HOL[key]=[];
+  HOL[key].push({days,note,type:'leave'});
+  svH();rHolCfg();recalc();rCurrent();
+  setMsg('lv-msg',`✓ ${days} paid leave day(s) added for ${emp} in ${month}`,'green');
+  document.getElementById('lv-days').value='';document.getElementById('lv-note').value='';
+}
+function delHolEntry(key,idx){
+  if(HOL[key]){HOL[key].splice(idx,1);if(!HOL[key].length)delete HOL[key];}
+  svH();rHolCfg();recalc();rCurrent();
+}
+function rHolCfg(){
+  const w=document.getElementById('hol-cfg-list');
+  const allKeys=Object.keys(HOL);
+  if(!allKeys.length){w.innerHTML='<div class="notice n-blue" style="margin-top:14px">No paid holidays or leaves configured.</div>';return;}
+  let html='<div class="tw" style="margin-top:14px"><table><thead><tr><th>Employee</th><th>Month</th><th>Type</th><th style="text-align:center">Days</th><th>Note</th><th></th></tr></thead><tbody>';
+  allKeys.sort().forEach(key=>{
+    (HOL[key]||[]).forEach((h,idx)=>{
+      let emp='',month='',type='';
+      if(key.startsWith('LEAVE|')){const p=key.split('|');emp=p[1];month=p[2];type='Paid Leave';}
+      else{const p=key.split('|');emp=p[0]==='ALL'?'All Employees':p[0];month=p[1];type='Paid Holiday';}
+      html+=`<tr><td style="font-weight:600">${emp}</td><td>${month}</td><td><span class="badge ${type==='Paid Leave'?'b-teal':'b-paid'}">${type}</span></td><td style="text-align:center;font-weight:600">${h.days}</td><td style="color:var(--text2)">${h.note||'—'}</td><td><button class="btn btn-sm btn-d" onclick="delHolEntry('${key}',${idx})">✕</button></td></tr>`;
+    });
+  });
+  html+='</tbody></table></div>';
+  w.innerHTML=html;
+}
+
+// Filters
+function rFilters(){
+  const work=ALL.filter(r=>!r.isHol&&!r.isLeave&&!r.isSun);
+  const months=sortMonths([...new Set(work.map(r=>r.month).filter(Boolean))]);
+  const emps=[...new Set(work.map(r=>r.name).filter(Boolean))].sort();
+  const parts=[...new Set(work.map(r=>r.partner).filter(Boolean))].sort();
+  const ms=document.getElementById('msel'),es=document.getElementById('empsel'),ps=document.getElementById('partsel');
+  const mv=ms.value,ev=es.value,pv=ps.value;
+  ms.innerHTML='<option value="all">All Months</option>'+months.map(m=>`<option value="${m}">${m}</option>`).join('');
+  es.innerHTML='<option value="all">All Employees</option>'+emps.map(e=>`<option value="${e}">${e}</option>`).join('');
+  ps.innerHTML='<option value="all">All Partners</option>'+parts.map(p=>`<option value="${p}">${p}</option>`).join('');
+  ms.value=mv;es.value=ev;ps.value=pv;
+}
+function gF(){
+  const m=document.getElementById('msel').value,e=document.getElementById('empsel').value,p=document.getElementById('partsel').value;
+  return ALL.filter(r=>(m==='all'||r.month===m)&&(e==='all'||r.name===e)&&(p==='all'||r.partner===p));
+}
+function af(){rCurrent();}
+function uFoot(){
+  const ok=SHEETS.filter(s=>s.status==='ok');
+  document.getElementById('sb-status').innerHTML=`<span style="color:${ok.length>0?'var(--green)':'var(--amber)'};font-weight:700">${ok.length}/${SHEETS.length} sheets synced</span>`;
+  document.getElementById('sb-rows').textContent=ALL.filter(r=>!r.isHol&&!r.isLeave&&!r.isSun).length+' work rows loaded';
+}
+
+// Page nav
+let curP='sheets';
+function gp(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(el)el.classList.add('active');
+  document.getElementById('page-title').textContent=PT[id]||id;
+  curP=id;doR(id);
+}
+function rCurrent(){doR(curP);}
+function doR(id){
+  if(id==='overview')rOv();
+  else if(id==='salaries')rSal();
+  else if(id==='partner-pivot')rPP();
+  else if(id==='emp-pivot')rEP();
+  else if(id==='workrecord')rWR();
+  else if(id==='sheets')rSheets();
+  else if(id==='salary-setup'){popSEmpSels();rSalCfg();}
+
+}
+
+// Overview
+function rOv(){
+  const fd=gF();
+  const work=fd.filter(r=>!r.isHol&&!r.isLeave&&!r.isSun);
+  const empMonthBase={};
+  work.forEach(r=>{const k=r.name+'|'+r.month;empMonthBase[k]=(empMonthBase[k]||0)+(r._sal||0);});
+  let totalSal=0;
+  const processedEM=new Set();
+  work.forEach(r=>{
+    const k=r.name+'|'+r.month;
+    if(processedEM.has(k))return;
+    processedEM.add(k);
+    totalSal+=getTotalSalary(r.name,r.month,empMonthBase[k]||0);
+  });
+  let paidH=0,paidL=0;
+  const empsInFilter=new Set(work.map(r=>r.name));
+  const monthsInFilter=new Set(work.map(r=>r.month));
+  empsInFilter.forEach(emp=>{monthsInFilter.forEach(month=>{paidH+=getPaidHolDays(emp,month);paidL+=getPaidLeaveDays(emp,month);});});
+  document.getElementById('m1').textContent=fmt(totalSal);
+  document.getElementById('m2').textContent=new Set(work.map(r=>r.name)).size;
+  document.getElementById('m3').textContent=new Set(work.map(r=>r.partner)).size;
+  // Count unique working dates (not rows) for accurate day count
+  const uniqueDatesAll=new Set(work.map(r=>r.name+'|'+r.date));
+  document.getElementById('m4').textContent=uniqueDatesAll.size;
+  document.getElementById('m5').textContent=paidH.toFixed(1);
+  document.getElementById('m6').textContent=paidL.toFixed(1);
+  const mMap={};processedEM.forEach(k=>{const[n,m]=k.split('|');mMap[m]=(mMap[m]||0)+getTotalSalary(n,m,empMonthBase[k]||0);});
+  const mL=sortMonths(Object.keys(mMap)),mV=mL.map(k=>Math.round(mMap[k]));
+  if(C1)C1.destroy();
+  if(mL.length)C1=new Chart(document.getElementById('ch1'),{type:'line',data:{labels:mL,datasets:[{label:'Salary',data:mV,borderColor:'#1758a8',backgroundColor:'rgba(23,88,168,.07)',tension:.4,fill:true,pointBackgroundColor:'#1758a8',pointRadius:4,pointHoverRadius:6,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'  '+fmt(ctx.raw)}}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:10},callback:v=>'₹'+Math.round(v/1000)+'k'}},x:{grid:{display:false},ticks:{font:{size:10},autoSkip:false,maxRotation:40}}}}});
+  const pMap={};work.forEach(r=>{if(r.partner)pMap[r.partner]=(pMap[r.partner]||0)+(r._sal||0);});
+  const pL=Object.keys(pMap).sort((a,b)=>pMap[b]-pMap[a]).slice(0,6),pV=pL.map(k=>Math.round(pMap[k]));
+  if(C2)C2.destroy();
+  if(pL.length)C2=new Chart(document.getElementById('ch2'),{type:'bar',data:{labels:pL,datasets:[{label:'Salary',data:pV,backgroundColor:['#1758a8','#12956a','#b87800','#5248c0','#b02a2a','#0d8070'],borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'  '+fmt(ctx.raw)}}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:10},callback:v=>'₹'+Math.round(v/1000)+'k'}},x:{grid:{display:false},ticks:{font:{size:10},maxRotation:35}}}}});
+  const eMap={};work.forEach(r=>{if(!r.name)return;if(!eMap[r.name])eMap[r.name]={sal:0,days:0,months:new Set(),partners:new Set()};eMap[r.name].days++;eMap[r.name].months.add(r.month);if(r.partner)eMap[r.name].partners.add(r.partner);});
+  const empMonthFull={};processedEM.forEach(k=>{const[n,m]=k.split('|');if(!empMonthFull[n])empMonthFull[n]=0;empMonthFull[n]+=getTotalSalary(n,m,empMonthBase[k]||0);});
+  Object.entries(empMonthFull).forEach(([n,s])=>{if(eMap[n])eMap[n].sal=s;});
+  const maxS=Math.max(...Object.values(eMap).map(x=>x.sal),1);
+  let ai=0;
+  document.getElementById('emp-ov').innerHTML=Object.entries(eMap).sort((a,b)=>b[1].sal-a[1].sal).map(([nm,d])=>{
+    const[bg,tc]=AV[ai++%AV.length];
+    const ini=nm.split(' ').map(x=>x[0]).join('').substr(0,2).toUpperCase();
+    return`<div class="er"><div class="av" style="background:${bg};color:${tc}">${ini}</div><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700">${nm}</div><div style="font-size:11px;color:var(--text2)">${d.days} working entries · ${[...d.partners].slice(0,3).join(', ')}</div><div class="bw"><div class="bf" style="width:${Math.round(d.sal/maxS*100)}%;background:${tc}"></div></div></div><div style="font-size:14px;font-weight:800;min-width:90px;text-align:right">${fmt(d.sal)}</div></div>`;
+  }).join('')||'<div style="padding:24px;text-align:center;color:var(--text2)">No data. Sync sheets and set salaries first.</div>';
+
+  // Leave bank summary
+  const allEmpsFilter=[...new Set(ALL.filter(r=>r.name&&SAL[r.name]).map(r=>r.name))].sort();
+  const lbHtml=allEmpsFilter.length?allEmpsFilter.map(emp=>{
+    const rows=getLeaveBankSummary(emp);
+    if(!rows.length)return'';
+    const last=rows[rows.length-1];
+    const ini=emp.split(' ').map(x=>x[0]).join('').substr(0,2).toUpperCase();
+    return`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div class="av" style="background:var(--blue-bg);color:var(--blue-t);flex-shrink:0">${ini}</div>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:700">${emp}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px">
+          ${rows.map(r=>`<span style="margin-right:8px">${r.month}: ${r.taken>0?`<b>${r.paid}d paid${r.unpaid>0?`, <span style="color:var(--red-t)">${r.unpaid}d unpaid</span>`:''}` : '0 taken'}</span>`).join('')}
+        </div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:16px;font-weight:800;color:var(--green-t)">${last.bank}</div>
+        <div style="font-size:10px;color:var(--text3)">days balance</div>
+      </div>
+    </div>`;
+  }).join(''):'<div style="padding:16px;color:var(--text2);text-align:center">No data</div>';
+  const lbEl=document.getElementById('leave-bank-ov');
+  if(lbEl)lbEl.innerHTML=lbHtml;
+
+}
+
+// Salaries matrix — CHRONOLOGICAL ORDER
+function rSal(){
+  const work=ALL.filter(r=>!r.isHol&&!r.isLeave&&!r.isSun&&r.name&&r.month);
+  const months=sortMonths([...new Set(work.map(r=>r.month))]);
+  const emps=[...new Set(work.map(r=>r.name))].sort();
+  const baseMap={};
+  work.forEach(r=>{if(!baseMap[r.name])baseMap[r.name]={};baseMap[r.name][r.month]=(baseMap[r.name][r.month]||0)+(r._sal||0);});
+  document.getElementById('sal-th').innerHTML=`<tr><th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2)">Person Name</th>${months.map(m=>`<th style="text-align:right;position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2)">${m}</th>`).join('')}<th style="text-align:right;position:sticky;top:0;background:var(--blue-bg);color:var(--blue-t);box-shadow:0 2px 0 var(--border2)">Total</th></tr>`;
+  const mTot={};months.forEach(m=>mTot[m]=0);let grand=0;
+  document.getElementById('sal-tb').innerHTML=emps.map(e=>{
+    let tot=0;
+    const cells=months.map(m=>{
+      const base=(baseMap[e]&&baseMap[e][m])||0;
+      const v=getTotalSalary(e,m,base);
+      mTot[m]+=v;tot+=v;
+      return`<td style="text-align:right;color:${v>0?'var(--text)':'var(--text3)'}">${v>0?fmt(v):'—'}</td>`;
+    }).join('');
+    grand+=tot;
+    return`<tr><td style="font-weight:700">${e}</td>${cells}<td style="text-align:right;font-weight:800;background:var(--blue-bg);color:var(--blue-t)">${fmt(tot)}</td></tr>`;
+  }).join('')+`<tr class="tot"><td>Total Amount</td>${months.map(m=>`<td style="text-align:right">${fmt(mTot[m])}</td>`).join('')}<td style="text-align:right">${fmt(grand)}</td></tr>`;
+  document.getElementById('sal-foot').textContent=`Grand Total: ${fmt(grand)} · ${months.length} months (chronological) · ${emps.length} employees`;
+}
+
+// Collapsible Partner Pivot
+let ppState={};
+function rPP(){
+  const fd=gF().filter(r=>!r.isHol&&!r.isLeave&&!r.isSun&&r.partner&&r.name);
+  const tree={};
+
+  // Step 1: Build tree from work rows
+  // Track unique dates per partner/website/emp to avoid double-counting days
+  const ppDateSets={};
+  fd.forEach(r=>{
+    const p=r.partner,pr=r.project||'—',w=r.website||'—',e=r.name;
+    if(!tree[p])tree[p]={sal:0,days:0,proj:{}};
+    tree[p].sal+=(r._sal||0);
+    // Count unique dates per partner per employee
+    const pdKey=p+'|'+e;
+    if(!ppDateSets[pdKey])ppDateSets[pdKey]=new Set();
+    if(!ppDateSets[pdKey].has(r.date)){ppDateSets[pdKey].add(r.date);tree[p].days++;}
+
+    if(!tree[p].proj[pr])tree[p].proj[pr]={sal:0,days:0,webs:{}};
+    tree[p].proj[pr].sal+=(r._sal||0);tree[p].proj[pr].days++;
+
+    if(!tree[p].proj[pr].webs[w])tree[p].proj[pr].webs[w]={sal:0,days:0,emps:{}};
+    tree[p].proj[pr].webs[w].sal+=(r._sal||0);tree[p].proj[pr].webs[w].days++;
+
+    if(!tree[p].proj[pr].webs[w].emps[e])tree[p].proj[pr].webs[w].emps[e]={sal:0,days:0};
+    tree[p].proj[pr].webs[w].emps[e].sal+=(r._sal||0);tree[p].proj[pr].webs[w].emps[e].days++;
+  });
+
+  // Step 2: Add paid holiday + leave salary distributed across partners
+  // For each employee+month in filter, find which partners they worked with
+  // and distribute paid holiday/leave salary proportionally by days worked
+  const msel=document.getElementById('msel').value;
+  const esel=document.getElementById('empsel').value;
+  const psel=document.getElementById('partsel').value;
+  const empMonths=new Set(fd.filter(r=>r.name&&r.month).map(r=>r.name+'|'+r.month));
+  empMonths.forEach(key=>{
+    const[emp,month]=key.split('|');
+    if(esel!=='all'&&emp!==esel)return;
+    const paidH=getPaidHolDays(emp,month);
+    const paidL=getPaidLeaveDays(emp,month);
+    const extraDays=paidH+paidL;
+    if(!extraDays)return;
+    if(!SAL[emp])return;
+    const ms=getMonthSal(emp,month);
+    if(!ms)return;
+    const wd=getWD(emp);
+    const dailyRate=ms/wd;
+    const extraSal=dailyRate*extraDays;
+    // Find partners this employee worked with in this month (in current filter)
+    const empPartners=fd.filter(r=>r.name===emp&&r.month===month&&r.partner);
+    // Count days per partner for this emp+month
+    const partDays={};
+    empPartners.forEach(r=>{partDays[r.partner]=(partDays[r.partner]||0)+1;});
+    const totalPartDays=Object.values(partDays).reduce((s,v)=>s+v,0);
+    if(!totalPartDays)return;
+    // Distribute extra salary proportionally
+    Object.entries(partDays).forEach(([p,d])=>{
+      if(psel!=='all'&&p!==psel)return;
+      const share=(extraSal*d)/totalPartDays;
+      if(!tree[p])return; // only add to existing partners in filter
+      tree[p].sal+=share;
+      // Add to first project/website as "Paid Leave/Holiday" sub-entry
+      const holLabel='Paid Holiday & Leave ('+emp+')';
+      if(!tree[p].proj[holLabel])tree[p].proj[holLabel]={sal:0,days:0,webs:{}};
+      tree[p].proj[holLabel].sal+=share;
+      tree[p].proj[holLabel].days+=d;
+      const wKey='—';
+      if(!tree[p].proj[holLabel].webs[wKey])tree[p].proj[holLabel].webs[wKey]={sal:0,days:0,emps:{}};
+      tree[p].proj[holLabel].webs[wKey].sal+=share;
+      tree[p].proj[holLabel].webs[wKey].days+=d;
+      if(!tree[p].proj[holLabel].webs[wKey].emps[emp])tree[p].proj[holLabel].webs[wKey].emps[emp]={sal:0,days:0};
+      tree[p].proj[holLabel].webs[wKey].emps[emp].sal+=share;
+      tree[p].proj[holLabel].webs[wKey].emps[emp].days+=d;
+    });
+  });
+  let html='';let grand=0;let pid=0;
+  Object.entries(tree).sort((a,b)=>b[1].sal-a[1].sal).forEach(([p,pd])=>{
+    grand+=pd.sal;
+    const partId='pp'+pid++;
+    const isOpen=ppState[partId]!==false;
+    html+=`<tr class="grp pivot-parent" onclick="togglePP('${partId}')">
+      <td colspan="4"><span class="pivot-toggle ${isOpen?'open':''}">▶</span>
+        <span style="font-size:13px;font-weight:700;color:var(--blue-t)">${p}</span>
+      </td>
+      <td style="text-align:right;font-size:13px;font-weight:600">${pd.days}</td>
+      <td style="text-align:right;font-size:14px;font-weight:800;color:var(--blue-t)">${fmt(pd.sal)}</td>
+    </tr>`;
+    let childHtml='';
+    Object.entries(pd.proj).forEach(([pr,prd])=>{
+      childHtml+=`<tr class="pivot-child pp-lvl-1 ${isOpen?'':'hidden'}">
+        <td></td>
+        <td colspan="3" style="padding-left:16px;font-weight:600;color:var(--text)">
+          <span style="color:var(--blue);margin-right:6px">▸</span>${pr}
+        </td>
+        <td style="text-align:right;font-weight:600">${prd.days}</td>
+        <td style="text-align:right;font-weight:700">${fmt(prd.sal)}</td>
+      </tr>`;
+      Object.entries(prd.webs).forEach(([w,wd])=>{
+        childHtml+=`<tr class="pivot-child pp-lvl-2 ${isOpen?'':'hidden'}">
+          <td></td><td></td>
+          <td colspan="2" style="padding-left:24px">
+            <span style="color:var(--blue-t);margin-right:4px">🌐</span>
+            <span style="color:var(--text)">${w}</span>
+          </td>
+          <td style="text-align:right">${wd.days}</td>
+          <td style="text-align:right;font-weight:600">${fmt(wd.sal)}</td>
+        </tr>`;
+        Object.entries(wd.emps).forEach(([e,ed])=>{
+          childHtml+=`<tr class="pivot-child pp-emp ${isOpen?'':'hidden'}">
+            <td></td><td></td><td></td>
+            <td style="padding-left:36px">
+              <span style="color:var(--text3);margin-right:4px">→</span>${e}
+            </td>
+            <td style="text-align:right">${ed.days}</td>
+            <td style="text-align:right">${fmt(ed.sal)}</td>
+          </tr>`;
+        });
+      });
+    });
+    childHtml+=`<tr class="pivot-child ${isOpen?'':'hidden'}">
+      <td colspan="5" style="padding:6px 12px;color:var(--text2);font-style:italic;font-size:11px;border-top:1px solid var(--border)">
+        ${p} Total
+      </td>
+      <td style="text-align:right;font-weight:700;border-top:1px solid var(--border);padding:6px 12px">${fmt(pd.sal)}</td>
+    </tr>`;
+    html+=childHtml.replace(/pivot-child/g,`pivot-child pp-${partId}`);
+  });
+  html+=`<tr class="tot"><td colspan="5" style="font-weight:800">Grand Total</td><td style="text-align:right">${fmt(grand)}</td></tr>`;
+  document.getElementById('pp-tb').innerHTML=html||'<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text2)">No data</td></tr>';
+}
+function togglePP(partId){
+  ppState[partId]=ppState[partId]===false?true:false;
+  const isOpen=ppState[partId]!==false;
+  document.querySelectorAll(`.pp-${partId}`).forEach(el=>{el.classList.toggle('hidden',!isOpen);});
+  const parent=document.querySelector(`[onclick="togglePP('${partId}')"]`);
+  if(parent){const tog=parent.querySelector('.pivot-toggle');if(tog)tog.classList.toggle('open',isOpen);}
+}
+function expandAll(){Object.keys(ppState).forEach(k=>{ppState[k]=true;});rPP();}
+function collapseAll(){document.querySelectorAll('[onclick^="togglePP"]').forEach(el=>{const m=el.getAttribute('onclick').match(/'([^']+)'/);if(m)ppState[m[1]]=false;});rPP();}
+
+// Collapsible Employee Pivot
+let epState={};
+function rEP(){
+  const fd=gF().filter(r=>!r.isHol&&!r.isLeave&&!r.isSun&&r.name&&r.partner);
+  const eMap={};
+  // Track unique dates to avoid double counting when emp works 2 partners same day
+  const epDateSets={};
+  fd.forEach(r=>{
+    if(!eMap[r.name])eMap[r.name]={sal:0,days:0,parts:{}};
+    eMap[r.name].sal+=(r._sal||0);
+    // Unique working dates per employee
+    if(!epDateSets[r.name])epDateSets[r.name]=new Set();
+    if(!epDateSets[r.name].has(r.date)){epDateSets[r.name].add(r.date);eMap[r.name].days++;}
+    if(!eMap[r.name].parts[r.partner])eMap[r.name].parts[r.partner]={sal:0,days:0};
+    eMap[r.name].parts[r.partner].sal+=(r._sal||0);eMap[r.name].parts[r.partner].days++;
+  });
+  let html='';let grand=0;let eid=0;
+  Object.entries(eMap).sort((a,b)=>b[1].sal-a[1].sal).forEach(([nm,d])=>{
+    grand+=d.sal;
+    const empId='ep'+eid++;
+    const isOpen=epState[empId]!==false;
+    html+=`<tr class="grp pivot-parent" onclick="toggleEP('${empId}')"><td colspan="2"><span class="pivot-toggle ${isOpen?'open':''}">▶</span><span style="font-weight:700">${nm}</span></td><td style="text-align:right">${d.days}</td><td style="text-align:right;font-weight:800">${fmt(d.sal)}</td></tr>`;
+    let cHtml='';
+    Object.entries(d.parts).sort((a,b)=>b[1].sal-a[1].sal).forEach(([pt,pd])=>{
+      cHtml+=`<tr class="pivot-child ep-${empId} ${isOpen?'':'hidden'}"><td style="padding-left:20px"><span class="badge b-blue">${pt}</span></td><td></td><td style="text-align:right;font-size:11px">${pd.days}</td><td style="text-align:right;font-size:11px">${fmt(pd.sal)}</td></tr>`;
+    });
+    cHtml+=`<tr class="pivot-child ep-${empId} ${isOpen?'':'hidden'}"><td colspan="3" style="font-size:11px;color:var(--text3);padding:3px 12px;font-style:italic">${nm} Total</td><td style="text-align:right;font-weight:700;border-top:1px solid var(--border2)">${fmt(d.sal)}</td></tr>`;
+    html+=cHtml;
+  });
+  html+=`<tr class="tot"><td colspan="3" style="font-weight:800">Grand Total</td><td style="text-align:right">${fmt(grand)}</td></tr>`;
+  document.getElementById('ep-tb').innerHTML=html||'<tr><td colspan="4" style="padding:20px;text-align:center;color:var(--text2)">No data</td></tr>';
+}
+function toggleEP(empId){
+  epState[empId]=epState[empId]===false?true:false;
+  const isOpen=epState[empId]!==false;
+  document.querySelectorAll(`.ep-${empId}`).forEach(el=>el.classList.toggle('hidden',!isOpen));
+  const parent=document.querySelector(`[onclick="toggleEP('${empId}')"]`);
+  if(parent){const tog=parent.querySelector('.pivot-toggle');if(tog)tog.classList.toggle('open',isOpen);}
+}
+
+// Work Record
+function rWR(){
+  const fd=gF();
+  const q=(document.getElementById('wr-q').value||'').toLowerCase();
+  const rows=fd.filter(r=>!q||[r.name,r.partner,r.website,r.project,r.month,r.date,r.working].some(x=>(x||'').toLowerCase().includes(q)));
+  document.getElementById('wr-tb').innerHTML=rows.length?rows.map(r=>{
+    const cls=r.isHol||r.isSun?' class="hol"':r.isLeave?' class="lv"':'';
+    const pb=r.isHol||r.isSun?`<span class="badge b-amber">${r.partner}</span>`:r.isLeave?`<span class="badge b-teal">${r.partner}</span>`:`<span class="badge b-blue">${r.partner}</span>`;
+    return`<tr${cls}><td><span class="badge b-gray">${r.month||'—'}</span></td><td style="font-size:11px;color:var(--text3)">${r.uk||'—'}</td><td style="font-weight:700;white-space:nowrap">${r.name}</td><td style="color:var(--text2);white-space:nowrap">${r.date||'—'}</td><td>${pb}</td><td style="font-size:11px;color:var(--text2)">${r.project||'—'}</td><td style="font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.website||''}">${r.website||'—'}</td><td style="font-size:11px;color:var(--text2)">${r.working||'—'}</td><td style="text-align:right;color:var(--text3);font-size:10px">${r.isHol||r.isLeave||r.isSun?'—':'1d'}</td><td style="text-align:right;font-weight:700;color:${r._sal>0?'var(--blue-t)':'var(--text3)'}">${r._sal>0?fmt(r._sal):'—'}</td></tr>`;
+  }).join(''):'<tr><td colspan="10" style="padding:24px;text-align:center;color:var(--text2)">No data found</td></tr>';
+}
+
+// Copy table to clipboard (Excel-compatible tab-separated)
+function copyTable(tbodyId,title){
+  const tbody=document.getElementById(tbodyId);
+  if(!tbody){return;}
+  // Get headers from closest thead
+  const table=tbody.closest('table');
+  const thead=table?table.querySelector('thead'):null;
+  let rows=[];
+  if(thead){
+    const hRow=[...thead.querySelectorAll('th')].map(th=>th.innerText.trim());
+    rows.push(hRow.join('\t'));
+  }
+  [...tbody.querySelectorAll('tr')].forEach(tr=>{
+    const cells=[...tr.querySelectorAll('td')].map(td=>{
+      let t=td.innerText.trim();
+      // Remove emoji and badge wrappers, clean whitespace
+      t=t.replace(/[🌐📋↓✓✗]/g,'').replace(/\s+/g,' ').trim();
+      return t;
+    });
+    if(cells.some(c=>c))rows.push(cells.join('\t'));
+  });
+  const text=rows.join('\n');
+  const showCopyMsg=(m)=>{
+    // Find active page's copy msg, or show toast
+    const pages=['copy-msg','sal-copy-msg'];
+    let shown=false;
+    pages.forEach(id=>{const el=document.getElementById(id);if(el&&el.offsetParent!==null){el.textContent=m;setTimeout(()=>el.textContent='',4000);shown=true;}});
+    if(!shown){
+      // Create floating toast
+      const t=document.createElement('div');
+      t.style.cssText='position:fixed;bottom:24px;right:24px;background:#16161a;color:#fff;padding:10px 18px;border-radius:8px;font-size:12px;font-weight:600;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2)';
+      t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),3000);
+    }
+  };
+  navigator.clipboard.writeText(text).then(()=>{
+    showCopyMsg('✓ '+title+' copied to clipboard! Paste in Excel with Ctrl+V.');
+  }).catch(()=>{
+    const ta=document.createElement('textarea');
+    ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    showCopyMsg('✓ '+title+' copied! Paste in Excel with Ctrl+V.');
+  });
+}
+
+// Export Partner Pivot as CSV
+function expPP(){
+  const tb=document.getElementById('pp-tb');
+  if(!tb)return;
+  const rows=[['Partner','Project','Website/Work','Employee','Days','Salary']];
+  [...tb.querySelectorAll('tr')].forEach(tr=>{
+    const cells=[...tr.querySelectorAll('td')].map(td=>td.innerText.trim().replace(/[🌐▶▸→]/g,'').replace(/\s+/g,' ').trim());
+    if(cells.some(c=>c))rows.push(cells);
+  });
+  dlC(rows,'partner_pivot.csv');
+}
+
+// Export Employee Pivot as CSV
+function expEP(){
+  const tb=document.getElementById('ep-tb');
+  if(!tb)return;
+  const rows=[['Employee','Partner','Days','Salary']];
+  [...tb.querySelectorAll('tr')].forEach(tr=>{
+    const cells=[...tr.querySelectorAll('td')].map(td=>td.innerText.trim().replace(/[▶▸→]/g,'').replace(/\s+/g,' ').trim());
+    if(cells.some(c=>c))rows.push(cells);
+  });
+  dlC(rows,'employee_pivot.csv');
+}
+
+// Exports
+function expWR(){dlC([['Month','UK(DW)','Name','Date','Partner','Project','Website','Working','Days','Salary'],...gF().map(r=>[r.month,r.uk,r.name,r.date,r.partner,r.project,r.website,r.working,1,Math.round(r._sal||0)])],'work_record.csv');}
+function expSal(){
+  const work=ALL.filter(r=>!r.isHol&&!r.isLeave&&!r.isSun&&r.name&&r.month);
+  const months=sortMonths([...new Set(work.map(r=>r.month))]);
+  const emps=[...new Set(work.map(r=>r.name))].sort();
+  const bM={};work.forEach(r=>{if(!bM[r.name])bM[r.name]={};bM[r.name][r.month]=(bM[r.name][r.month]||0)+(r._sal||0);});
+  dlC([['Person Name',...months,'Total'],...emps.map(e=>[e,...months.map(m=>Math.round(getTotalSalary(e,m,(bM[e]&&bM[e][m])||0))),Math.round(months.reduce((s,m)=>s+getTotalSalary(e,m,(bM[e]&&bM[e][m])||0),0))])],'salaries.csv');
+}
+function dlC(rows,name){const csv=rows.map(r=>r.map(x=>'"'+String(x||'').replace(/"/g,'""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);a.download=name;a.click();}
+function setMsg(id,msg,type){const el=document.getElementById(id);if(el){el.textContent=msg;el.style.color=type==='green'?'var(--green-t)':type==='red'?'var(--red-t)':'var(--text2)';}}
+
+// ============================================================
+// DATA START DATE — Sirf is month se aage ka data dikhega
+// Change karne ke liye: 'Apr-2026' ki jagah apna month likho
+// ============================================================
+const START_MONTH = 'Apr-2026';
+const MONTH_ORDER_LIST = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function monthToNum(m){
+  if(!m)return 0;
+  const parts=m.split('-');
+  if(parts.length!==2)return 0;
+  const mi=MONTH_ORDER_LIST.indexOf(parts[0]);
+  const yr=parseInt(parts[1]);
+  if(mi<0||isNaN(yr))return 0;
+  return yr*12+mi;
+}
+
+const START_NUM=monthToNum(START_MONTH);
+
+// Filter rows before start month
+function filterByStartMonth(rows){
+  if(!START_NUM)return rows;
+  return rows.filter(r=>{
+    if(!r.month)return true; // keep rows without month (will be filtered later)
+    return monthToNum(r.month)>=START_NUM;
+  });
+}
+
+// Init
+ldS();ldH();ld();
+// Apply start month filter to loaded data
+if(ALL.length) ALL=filterByStartMonth(ALL);
+recalc();rSheets();rFilters();uFoot();
+setInterval(()=>{if(SHEETS.some(s=>s.url&&s.status==='ok'))syncAll();},5*60*1000);
+</script>
+
+<div id="sv-userbar" style="position:fixed;bottom:0;left:0;right:0;z-index:9999;
+  background:linear-gradient(90deg,#0a3570,#1758a8);color:#fff;font-size:11px;
+  padding:6px 20px;display:flex;justify-content:space-between;align-items:center;
+  box-shadow:0 -2px 10px rgba(0,0,0,.2)">
+  <div style="display:flex;align-items:center;gap:10px">
+    <span style="background:rgba(255,255,255,.2);border-radius:10px;padding:2px 10px;
+                 font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:.7px">Admin</span>
+    <span id="sv-user-email" style="font-size:11px"></span>
+    <span style="opacity:.4">·</span>
+    <span id="db-status-txt" style="font-size:11px;font-weight:600"></span>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px">
+    <span style="opacity:.6;font-size:10px">💾 GitHub · Cloudflare</span>
+    <a href="/" onclick="sessionStorage.clear();return true;"
+       style="background:rgba(255,255,255,.15);color:#fff;text-decoration:none;
+              padding:4px 14px;border-radius:10px;font-weight:700;font-size:11px"
+       onmouseover="this.style.background='rgba(255,255,255,.3)'"
+       onmouseout="this.style.background='rgba(255,255,255,.15)'">
+      Logout →
+    </a>
+  </div>
+</div>
+<style>.content{padding-bottom:46px!important}</style>
+<script>
+  const emailEl = document.getElementById('sv-user-email');
+  if (emailEl) emailEl.textContent = sessionStorage.getItem('sv_email') || '';
+</script>
+
+</body>
+</html>

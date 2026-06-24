@@ -1,1 +1,59 @@
-{}
+{
+  "Aman Khokhar": {
+    "monthly": 63000,
+    "wdays": 30,
+    "ov": {}
+  },
+  "Ansh": {
+    "monthly": 12476,
+    "wdays": 30,
+    "ov": {}
+  },
+  "Bhuvan Gaur": {
+    "monthly": 17000,
+    "wdays": 30,
+    "ov": {
+      "May-2026": 25000
+    }
+  },
+  "Gourav Madaan": {
+    "monthly": 18585,
+    "wdays": 30,
+    "ov": {}
+  },
+  "Joydeep Mahata": {
+    "monthly": 18585,
+    "wdays": 30,
+    "ov": {}
+  },
+  "Monika Bhardwaj": {
+    "monthly": 20650,
+    "wdays": 30,
+    "ov": {}
+  },
+  "Payal": {
+    "monthly": 12476,
+    "wdays": 30,
+    "ov": {}
+  },
+  "Sakshi": {
+    "monthly": 22000,
+    "wdays": 30,
+    "ov": {}
+  },
+  "Sunita Mahata": {
+    "monthly": 24000,
+    "wdays": 30,
+    "ov": {}
+  },
+  "Charu": {
+    "monthly": 0,
+    "wdays": 30,
+    "ov": {}
+  },
+  "Chahat Rana": {
+    "monthly": 0,
+    "wdays": 30,
+    "ov": {}
+  }
+}

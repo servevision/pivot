@@ -64,20 +64,12 @@
     "name": "Monika Bhardwaj",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbxY7ZUbQxEZdN9Bbc_cj1CWy03rb8nDTvMjG4QYusLubGcFwVV5lSOUo1DNCCxXrtam8g/exec",
-    "status": "pending",
+    "status": "loading",
     "rows": 0
   },
   {
     "id": "s9",
     "name": "Payal",
-    "tab": "Work Record",
-    "url": "",
-    "status": "no-url",
-    "rows": 0
-  },
-  {
-    "id": "s10",
-    "name": "Charu",
     "tab": "Work Record",
     "url": "",
     "status": "no-url",

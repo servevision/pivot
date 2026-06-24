@@ -30,8 +30,9 @@
     "name": "Sakshi",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbynMafp2BwQBk_zS4exzweR0otJyOflpmaoRfU4DdLDcwjUi5WvwWyvYaeGgcbah90/exec",
-    "status": "pending",
-    "rows": 0
+    "status": "ok",
+    "rows": 302,
+    "lastSync": "1:21:33 pm"
   },
   {
     "id": "s5",

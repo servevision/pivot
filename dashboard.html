@@ -22,12 +22,11 @@
   --sh2:0 4px 12px rgba(0,0,0,.09),0 2px 4px rgba(0,0,0,.06);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;background:var(--bg3);color:var(--text);font-size:13px;line-height:1.5}
 .sidebar{position:fixed;left:0;top:0;bottom:0;width:214px;background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;box-shadow:2px 0 8px rgba(0,0,0,.04)}
-.main{position:fixed;left:214px;top:0;right:0;bottom:0;display:flex;flex-direction:column}
-.topbar{background:var(--bg);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;z-index:50;gap:10px;flex-wrap:wrap;box-shadow:0 1px 4px rgba(0,0,0,.05)}
-.content{flex:1;overflow-y:auto;overflow-x:hidden;padding:20px 24px 40px}
+.main{margin-left:214px;min-height:100vh}
+.topbar{background:var(--bg);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50;gap:10px;flex-wrap:wrap;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.content{padding:20px 24px}
 .sb-brand{padding:18px 16px 14px;border-bottom:1px solid var(--border)}
 .sb-co{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:700}
 .sb-nm{font-size:16px;font-weight:800;color:var(--text);margin-top:3px;letter-spacing:-.4px}
@@ -56,9 +55,8 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(23,8
 .card{background:var(--bg);border:1px solid var(--border);border-radius:var(--rl);padding:16px 18px;box-shadow:var(--sh);margin-bottom:14px}
 .card-t{font-size:13px;font-weight:700;margin-bottom:12px;letter-spacing:-.1px}
 .card-sub{font-size:11px;color:var(--text2);margin-top:-8px;margin-bottom:12px}
-.tw{overflow-x:auto;border-radius:var(--rl);border:1px solid var(--border);box-shadow:var(--sh);background:var(--bg);margin-bottom:14px}
-.tw table{border-collapse:separate;border-spacing:0;width:100%}
-.tw thead th{background:var(--bg2);box-shadow:0 2px 0 var(--border2);white-space:nowrap}
+.tw{overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 180px);border-radius:var(--rl);border:1px solid var(--border);box-shadow:var(--sh);background:var(--bg);margin-bottom:14px}
+.tw thead th{position:sticky;top:0;z-index:10;background:var(--bg2);box-shadow:0 1px 0 var(--border2)}
 table{width:100%;border-collapse:collapse;font-size:12px}
 th{text-align:left;padding:9px 12px;font-size:10px;color:var(--text2);border-bottom:1px solid var(--border);font-weight:700;background:var(--bg2);white-space:nowrap;text-transform:uppercase;letter-spacing:.4px}
 td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
@@ -141,163 +139,6 @@ th{border-bottom:2px solid var(--border2)}
 .tot td{border-top:2px solid var(--border2)!important}
 .grp td{border-left:3px solid var(--blue)}
 </style>
-
-<script>
-// ============================================================
-//  AUTH + GITHUB DATA LAYER
-//  Reads/writes via Cloudflare Worker → GitHub API
-// ============================================================
-const API_BASE = '/api';
-const token = sessionStorage.getItem('sv_token');
-const userEmail = sessionStorage.getItem('sv_email');
-
-// Redirect to login if not authenticated
-if (!token) { window.location.href = '/'; }
-
-async function apiCall(method, path, data) {
-  try {
-    const opts = {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token
-      }
-    };
-    if (data !== undefined) opts.body = JSON.stringify(data);
-    const r = await fetch(API_BASE + path, opts);
-    if (r.status === 401) { window.location.href = '/'; return null; }
-    return await r.json();
-  } catch(e) {
-    console.error('API error:', e);
-    return null;
-  }
-}
-
-async function dbRead(table) {
-  const data = await apiCall('GET', '/data/' + table);
-  return data;
-}
-
-async function dbWrite(table, data) {
-  const result = await apiCall('POST', '/data/' + table, data);
-  if (result && result.ok) {
-    console.log('✓ Saved to GitHub:', table);
-  }
-  return result;
-}
-
-function showDbStatus(msg, type) {
-  const el = document.getElementById('db-status-txt');
-  if (!el) return;
-  el.textContent = msg;
-  el.style.color = type === 'ok' ? '#0a5239' : type === 'warn' ? '#6b4500' : '#0a3570';
-  if (type === 'ok') setTimeout(() => { if(el.textContent===msg) el.textContent=''; }, 3000);
-}
-
-async function loadFromDB() {
-  showDbStatus('Syncing...', 'info');
-  try {
-    const [sheetsData, salData, holData] = await Promise.all([
-      dbRead('sheets'), dbRead('salary'), dbRead('holiday')
-    ]);
-    let changed = false;
-    if (sheetsData && Array.isArray(sheetsData) && sheetsData.length) {
-      SHEETS = sheetsData.map(s => ({
-        ...s, rows: Number(s.rows)||0,
-        status: s.url ? 'pending' : 'no-url'
-      }));
-      changed = true;
-    }
-    if (salData && typeof salData === 'object' && Object.keys(salData).length) {
-      SAL = salData; changed = true;
-    }
-    if (holData && typeof holData === 'object' && Object.keys(holData).length) {
-      HOL = holData; changed = true;
-    }
-    if (changed) {
-      recalc(); rSheets(); rFilters(); uFoot();
-      if (typeof curP !== 'undefined' && curP !== 'sheets') doR(curP);
-    }
-    showDbStatus('✓ Synced with GitHub', 'ok');
-  } catch(e) {
-    showDbStatus('Sync failed', 'warn');
-    console.error(e);
-  }
-}
-
-// GitHub save — direct override (no setTimeout needed)
-// sv, svS, svH are defined in dashboard before this script runs
-const __sv  = window.sv  || function(){};
-const __svS = window.svS || function(){};
-const __svH = window.svH || function(){};
-
-window.sv = function() {
-  __sv();
-  dbWrite('sheets', typeof SHEETS !== 'undefined' ? SHEETS : []);
-};
-window.svS = function() {
-  __svS();
-  dbWrite('salary', typeof SAL !== 'undefined' ? SAL : {});
-};
-window.svH = function() {
-  __svH();
-  dbWrite('holiday', typeof HOL !== 'undefined' ? HOL : {});
-};
-console.log('✓ GitHub save functions connected');
-
-// Load data on page start - after all dashboard scripts loaded
-document.addEventListener('DOMContentLoaded', function() {
-  // Small delay to ensure dashboard vars are initialized
-  setTimeout(function() {
-    // Patch save functions now that they're defined
-    if(typeof sv !== 'undefined') {
-      const __sv = sv;
-      window.sv = function() { __sv(); if(typeof dbWrite==='function') dbWrite('sheets', SHEETS); };
-    }
-    if(typeof svS !== 'undefined') {
-      const __svS = svS;
-      window.svS = function() { __svS(); if(typeof dbWrite==='function') dbWrite('salary', SAL); };
-    }
-    if(typeof svH !== 'undefined') {
-      const __svH = svH;
-      window.svH = function() { __svH(); if(typeof dbWrite==='function') dbWrite('holiday', HOL); };
-    }
-    loadFromDB();
-    setInterval(loadFromDB, 3 * 60 * 1000);
-  }, 300);
-});
-
-async function pushAllToGitHub() {
-  showDbStatus('Pushing all data to GitHub...', 'info');
-  try {
-    await Promise.all([
-      dbWrite('sheets', SHEETS),
-      dbWrite('salary', SAL),
-      dbWrite('holiday', HOL),
-    ]);
-    showDbStatus('All data pushed!', 'ok');
-    alert('✓ All data saved to GitHub!\nOpen on any computer — data will load automatically.');
-  } catch(e) {
-    showDbStatus('Push failed', 'warn');
-  }
-}
-
-async function pushAllToGitHub() {
-  showDbStatus('Pushing all data to GitHub...', 'info');
-  try {
-    await Promise.all([
-      dbWrite('sheets', SHEETS),
-      dbWrite('salary', SAL),
-      dbWrite('holiday', HOL),
-    ]);
-    showDbStatus('All data pushed to GitHub!', 'ok');
-    alert('Data successfully saved to GitHub!\nOpen on any computer - data will load automatically.');
-  } catch(e) {
-    showDbStatus('Push failed', 'warn');
-  }
-}
-</script>
-
 </head>
 <body>
 
@@ -311,13 +152,15 @@ async function pushAllToGitHub() {
     <div class="ns">Setup</div>
     <button class="ni active" onclick="gp('sheets',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Sheet Registry</button>
     <button class="ni" onclick="gp('salary-setup',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Salary Setup</button>
-
+    <button class="ni" onclick="gp('holiday-setup',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Paid Holidays & Leave</button>
     <div class="ns">Reports</div>
     <button class="ni" onclick="gp('overview',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Overview</button>
     <button class="ni" onclick="gp('salaries',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6"/></svg>Salaries</button>
     <button class="ni" onclick="gp('partner-pivot',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Partner Pivot</button>
     <button class="ni" onclick="gp('emp-pivot',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Employee Pivot</button>
     <button class="ni" onclick="gp('workrecord',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Work Record</button>
+    <div class="ns">Finance</div>
+    <button class="ni" onclick="gp('expenses',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Expenses</button>
   </nav>
   <div class="sb-foot" id="sb-foot">
     <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:5px">Sync Status</div>
@@ -391,15 +234,7 @@ async function pushAllToGitHub() {
 
     <!-- SALARY SETUP -->
     <div class="page" id="page-salary-setup">
-      <div class="notice n-amber">
-  <b>Salary Setup — Ek baar set karo, sab automatic:</b><br>
-  ▸ <b>Daily Rate</b> = Monthly Salary ÷ Calendar Days (Apr=30, May=31, Jun=30...)<br>
-  ▸ <b>Sheet mein jo bhi entry hai</b> (work, Sunday, Holiday, Leave) = Present (no deduction)<br>
-  ▸ <b>Leave Rule:</b> 1.5 din paid leave automatic — zyada lene par deduction<br>
-  &nbsp;&nbsp;&nbsp;Example: 2 din leave → 1.5 paid + 0.5 unpaid deduction<br>
-  ▸ <b>Absent</b> = Jis din sheet mein koi entry nahi = Deduction<br>
-  ▸ <b>Salary cap</b> = Monthly salary se zyada kabhi nahi aayegi
-</div>
+      <div class="notice n-amber"><b>Salary Calculation Logic:</b> Set monthly salary for each employee. Daily rate = Monthly Salary ÷ Working Days. If an employee works for multiple partners on the same date, that day's salary is split proportionally. Paid holidays and paid leaves are included in the salary calculation. Use Month Override for any month with a different salary.</div>
       <div class="card">
         <div class="card-t">Set Employee Monthly Salary</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end;margin-bottom:0">
@@ -421,6 +256,38 @@ async function pushAllToGitHub() {
       <div id="sal-cfg-list"></div>
     </div>
 
+    <!-- HOLIDAY SETUP -->
+    <div class="page" id="page-holiday-setup">
+      <div class="notice n-blue"><b>Paid Holidays & Paid Leave:</b> By default, holidays and Sundays are unpaid (₹0). Add paid holidays here — each paid holiday counts as a full working day's salary. For paid leave, enter the number of leave days taken that month — those days will be counted as working days in salary calculation.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="card">
+          <div class="card-t">Add Paid Holiday</div>
+          <div class="card-sub">e.g. Diwali, Republic Day, Company Holiday</div>
+          <div style="display:grid;gap:10px;margin-bottom:12px">
+            <div class="fg"><label>Employee</label><select id="hol-emp" style="width:100%"><option value="">-- All Employees --</option></select></div>
+            <div class="fg"><label>Month (e.g. Apr-2026)</label><input type="text" id="hol-month" placeholder="Apr-2026"></div>
+            <div class="fg"><label>Number of Paid Holiday Days</label><input type="number" id="hol-days" placeholder="e.g. 4" step="0.5" min="0"></div>
+            <div class="fg"><label>Holiday Name / Note</label><input type="text" id="hol-note" placeholder="e.g. Diwali, Republic Day"></div>
+          </div>
+          <button class="btn btn-p" onclick="addPaidHoliday()">Add Paid Holiday</button>
+          <div id="hol-msg" style="margin-top:8px;font-size:12px;font-weight:600"></div>
+        </div>
+        <div class="card">
+          <div class="card-t">Add Paid Leave</div>
+          <div class="card-sub">Employee took leave but it is paid</div>
+          <div style="display:grid;gap:10px;margin-bottom:12px">
+            <div class="fg"><label>Employee</label><select id="lv-emp" style="width:100%"><option value="">-- Select --</option></select></div>
+            <div class="fg"><label>Month (e.g. Apr-2026)</label><input type="text" id="lv-month" placeholder="Apr-2026"></div>
+            <div class="fg"><label>Number of Paid Leave Days</label><input type="number" id="lv-days" placeholder="e.g. 1.5" step="0.5" min="0"></div>
+            <div class="fg"><label>Note (optional)</label><input type="text" id="lv-note" placeholder="e.g. Sick leave, Casual leave"></div>
+          </div>
+          <button class="btn btn-p" onclick="addPaidLeave()">Add Paid Leave</button>
+          <div id="lv-msg" style="margin-top:8px;font-size:12px;font-weight:600"></div>
+        </div>
+      </div>
+      <div id="hol-cfg-list"></div>
+    </div>
+
     <!-- OVERVIEW -->
     <div class="page" id="page-overview">
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:16px">
@@ -436,7 +303,6 @@ async function pushAllToGitHub() {
         <div class="card" style="margin-bottom:0"><div class="card-t">Partner-wise Salary</div><div style="position:relative;height:195px"><canvas id="ch2" role="img" aria-label="Partner wise salary">data</canvas></div></div>
       </div>
       <div class="card"><div class="card-t">Employee Summary</div><div id="emp-ov"></div></div>
-      <div class="card"><div class="card-t">Leave Bank — Carry Forward Balance</div><div class="card-sub">Cumulative leave balance per employee (1.5 days earned per month)</div><div id="leave-bank-ov"></div></div>
     </div>
 
     <!-- SALARIES -->
@@ -448,9 +314,9 @@ async function pushAllToGitHub() {
           <button class="btn" onclick="expSal()">↓ CSV Export</button>
         </div>
       </div>
-      <div style="overflow-y:auto;overflow-x:auto;max-height:calc(100vh - 170px);border-radius:var(--rl);border:1px solid var(--border);box-shadow:var(--sh);background:var(--bg);margin-bottom:14px">
-        <table style="width:100%;border-collapse:separate;border-spacing:0;font-size:13px">
-          <thead id="sal-th"></thead>
+      <div class="tw" style="max-height:calc(100vh - 200px)">
+        <table style="font-size:13px">
+          <thead id="sal-th" style="position:sticky;top:0;z-index:10"></thead>
           <tbody id="sal-tb"></tbody>
         </table>
       </div>
@@ -471,7 +337,7 @@ async function pushAllToGitHub() {
           <button class="btn btn-sm" onclick="expPP()">↓ Export CSV</button>
         </div>
       </div>
-      <div style="overflow-y:auto;overflow-x:auto;max-height:calc(100vh - 170px);border-radius:var(--rl);border:1px solid var(--border);box-shadow:var(--sh);background:var(--bg);margin-bottom:14px"><table id="pp-table" style="width:100%;border-collapse:separate;border-spacing:0;font-size:13px"><thead><tr><th style="position:sticky;top:0;min-width:160px;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase">Partner</th><th style="position:sticky;top:0;min-width:140px;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase">Project</th><th style="position:sticky;top:0;min-width:200px;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase">Website / Work</th><th style="position:sticky;top:0;min-width:130px;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase">Employee</th><th style="position:sticky;top:0;text-align:right;min-width:70px;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase">Days</th><th style="position:sticky;top:0;text-align:right;min-width:100px;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase">Salary</th></tr></thead><tbody id="pp-tb"></tbody></table></div>
+      <div class="tw"><table id="pp-table"><thead><tr><th style="min-width:160px">Partner</th><th style="min-width:140px">Project</th><th style="min-width:200px">Website / Work</th><th style="min-width:130px">Employee</th><th style="text-align:right;min-width:70px">Days</th><th style="text-align:right;min-width:100px">Salary</th></tr></thead><tbody id="pp-tb"></tbody></table></div>
       <div id="copy-msg" style="font-size:12px;color:var(--green-t);margin-top:4px;font-weight:600"></div>
     </div>
 
@@ -484,7 +350,123 @@ async function pushAllToGitHub() {
           <button class="btn btn-sm" onclick="expEP()">↓ Export CSV</button>
         </div>
       </div>
-      <div style="overflow-y:auto;overflow-x:auto;max-height:calc(100vh - 170px);border-radius:var(--rl);border:1px solid var(--border);box-shadow:var(--sh);background:var(--bg);margin-bottom:14px"><table style="width:100%;border-collapse:separate;border-spacing:0;font-size:13px"><thead><tr><th style="position:sticky;top:0;min-width:160px;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase">Employee</th><th style="position:sticky;top:0;min-width:160px;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase">Partner</th><th style="position:sticky;top:0;text-align:right;min-width:70px;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase">Days</th><th style="position:sticky;top:0;text-align:right;min-width:100px;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase">Salary</th></tr></thead><tbody id="ep-tb"></tbody></table></div>
+      <div class="tw" style="max-height:calc(100vh - 180px)"><table><thead style="position:sticky;top:0;z-index:10"><tr><th style="min-width:160px">Employee</th><th style="min-width:160px">Partner</th><th style="text-align:right;min-width:70px">Days</th><th style="text-align:right;min-width:100px">Salary</th></tr></thead><tbody id="ep-tb"></tbody></table></div>
+    </div>
+
+    <!-- EXPENSES -->
+    <div class="page" id="page-expenses">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-size:14px;font-weight:800;letter-spacing:-.2px">Expense Tracker</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px">Track expenses with invoice attachments</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn" onclick="expExpCSV()">↓ Export CSV</button>
+          <button class="btn btn-p" onclick="toggleExpForm()">+ Add Expense</button>
+        </div>
+      </div>
+
+      <!-- Add Expense Form -->
+      <div id="exp-form-wrap" style="display:none;margin-bottom:16px">
+        <div class="card">
+          <div class="card-t" id="exp-form-title">Add New Expense</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+            <div class="fg"><label>Expense Name / Description</label>
+              <input type="text" id="exp-name" placeholder="e.g. AWS Server, Domain renewal"></div>
+            <div class="fg"><label>Amount (USD $)</label>
+              <input type="number" id="exp-usd" placeholder="0.00" step="0.01" oninput="autoConvert()"></div>
+            <div class="fg"><label>Amount (INR ₹)</label>
+              <input type="number" id="exp-inr" placeholder="0.00" step="0.01"></div>
+            <div class="fg"><label>Date</label>
+              <input type="date" id="exp-date"></div>
+            <div class="fg"><label>Partner</label>
+              <select id="exp-partner" style="width:100%">
+                <option value="">-- Select Partner --</option>
+                <option>Serve Vision</option>
+                <option>Serve Vision X Digierts</option>
+                <option>Grimbyte x Serve Vision</option>
+                <option>HSIM</option>
+                <option>Vivek Attri</option>
+                <option>Other</option>
+              </select></div>
+            <div class="fg"><label>Category</label>
+              <select id="exp-cat" style="width:100%">
+                <option value="">-- Select Category --</option>
+                <option>Software / SaaS</option>
+                <option>Server / Hosting</option>
+                <option>Domain</option>
+                <option>Marketing</option>
+                <option>Tools</option>
+                <option>Travel</option>
+                <option>Office</option>
+                <option>Other</option>
+              </select></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+            <div class="fg"><label>Notes (optional)</label>
+              <input type="text" id="exp-notes" placeholder="Any additional details"></div>
+            <div class="fg">
+              <label>Invoice / Receipt Attachment</label>
+              <input type="file" id="exp-file" accept=".pdf,.jpg,.jpeg,.png,.webp"
+                style="border:1px dashed var(--border2);border-radius:var(--r);padding:6px 10px;font-size:12px;width:100%;cursor:pointer;background:var(--bg2)"
+                onchange="previewFile(this)">
+              <div id="exp-file-preview" style="margin-top:6px;font-size:11px;color:var(--text2)"></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn btn-p" onclick="saveExpense()">Save Expense</button>
+            <button class="btn" onclick="toggleExpForm()">Cancel</button>
+            <span id="exp-msg" style="font-size:12px;font-weight:600"></span>
+          </div>
+          <input type="hidden" id="exp-edit-id" value="">
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+        <input type="text" id="exp-q" placeholder="Search expenses..." oninput="rExp()" style="flex:1;min-width:200px">
+        <select id="exp-fpart" onchange="rExp()" style="min-width:140px">
+          <option value="">All Partners</option>
+          <option>Serve Vision</option>
+          <option>Serve Vision X Digierts</option>
+          <option>Grimbyte x Serve Vision</option>
+          <option>HSIM</option>
+          <option>Vivek Attri</option>
+          <option>Other</option>
+        </select>
+        <select id="exp-fcat" onchange="rExp()" style="min-width:140px">
+          <option value="">All Categories</option>
+          <option>Software / SaaS</option>
+          <option>Server / Hosting</option>
+          <option>Domain</option>
+          <option>Marketing</option>
+          <option>Tools</option>
+          <option>Travel</option>
+          <option>Office</option>
+          <option>Other</option>
+        </select>
+      </div>
+
+      <!-- Summary Cards -->
+      <div id="exp-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:14px"></div>
+
+      <!-- Table -->
+      <div style="overflow-y:auto;overflow-x:auto;max-height:calc(100vh - 260px);border-radius:var(--rl);border:1px solid var(--border);box-shadow:var(--sh);background:var(--bg)">
+        <table style="width:100%;border-collapse:separate;border-spacing:0;font-size:13px">
+          <thead><tr>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;min-width:160px">Name</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;text-align:right;min-width:100px">USD ($)</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;text-align:right;min-width:100px">INR (₹)</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;min-width:100px">Date</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;min-width:130px">Partner</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;min-width:120px">Category</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;min-width:140px">Notes</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;min-width:90px;text-align:center">Invoice</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;min-width:80px;text-align:center">Actions</th>
+          </tr></thead>
+          <tbody id="exp-tb"></tbody>
+        </table>
+      </div>
     </div>
 
     <!-- WORK RECORD -->
@@ -494,23 +476,10 @@ async function pushAllToGitHub() {
         <button class="btn" onclick="copyTable('wr-tb','Work Record')">📋 Copy Table</button>
         <button class="btn" onclick="expWR()">↓ Export CSV</button>
       </div>
-      <div style="overflow-y:auto;overflow-x:auto;max-height:calc(100vh - 170px);border-radius:var(--rl);border:1px solid var(--border);box-shadow:var(--sh);background:var(--bg)">
-        <table style="width:100%;border-collapse:separate;border-spacing:0;font-size:13px">
-          <thead><tr>
-            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.4px">Month</th>
-            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.4px">UK(DW)</th>
-            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.4px">Name</th>
-            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.4px">Date</th>
-            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.4px">Partner</th>
-            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.4px">Project</th>
-            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.4px">Website / Work</th>
-            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.4px">Working</th>
-            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.4px;text-align:right">Days</th>
-            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.4px;text-align:right">Salary</th>
-          </tr></thead>
-          <tbody id="wr-tb"></tbody>
-        </table>
-      </div>
+      <div class="tw" style="max-height:calc(100vh - 180px)"><table>
+        <thead><tr><th>Month</th><th>UK(DW)</th><th>Name</th><th>Date</th><th>Partner</th><th>Project</th><th>Website / Work</th><th>Working</th><th style="text-align:right">Days</th><th style="text-align:right">Salary</th></tr></thead>
+        <tbody id="wr-tb"></tbody>
+      </table></div>
     </div>
 
   </div>
@@ -519,8 +488,8 @@ async function pushAllToGitHub() {
 <script>
 const ST='sv_v6',SC='sv_sal_v4',SH='sv_hol_v2';
 const AV=[['#dbeafe','#1e3a8a'],['#d1fae5','#064e3b'],['#ede9fe','#2e1065'],['#fef3c7','#451a03'],['#fce7f3','#500724'],['#ecfdf5','#022c22'],['#fef2f2','#450a0a'],['#fff7ed','#431407']];
-let SHEETS=[],ALL=[],SAL={},HOL={},C1=null,C2=null;
-const PT={'sheets':'Sheet Registry','salary-setup':'Salary Setup','overview':'Overview','salaries':'Salaries','partner-pivot':'Partner Pivot','emp-pivot':'Employee Pivot','workrecord':'Work Record'};
+let SHEETS=[],ALL=[],SAL={},HOL={},EXP=[],C1=null,C2=null;
+const PT={'sheets':'Sheet Registry','salary-setup':'Salary Setup','holiday-setup':'Paid Holidays & Leave','overview':'Overview','salaries':'Salaries','partner-pivot':'Partner Pivot','emp-pivot':'Employee Pivot','workrecord':'Work Record','expenses':'Expenses'};
 const MONTH_ORDER=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 const fmt=n=>'₹'+Math.round(Number(n)||0).toLocaleString('en-IN');
@@ -528,6 +497,8 @@ const uid=()=>Date.now().toString(36)+Math.random().toString(36).substr(2,4);
 function sv(){try{localStorage.setItem(ST,JSON.stringify({sheets:SHEETS,data:ALL}))}catch(e){}}
 function svS(){try{localStorage.setItem(SC,JSON.stringify(SAL))}catch(e){}}
 function svH(){try{localStorage.setItem(SH,JSON.stringify(HOL))}catch(e){}}
+function svE(){try{localStorage.setItem('sv_exp_v1',JSON.stringify(EXP))}catch(e){}}
+function ldE(){try{const d=localStorage.getItem('sv_exp_v1');if(d)EXP=JSON.parse(d);}catch(e){EXP=[];}}
 function ld(){try{const d=localStorage.getItem(ST);if(d){const p=JSON.parse(d);SHEETS=p.sheets||[];ALL=p.data||[];}}catch(e){}}
 function ldS(){try{const d=localStorage.getItem(SC);if(d)SAL=JSON.parse(d);}catch(e){SAL={};}}
 function ldH(){try{const d=localStorage.getItem(SH);if(d)HOL=JSON.parse(d);}catch(e){HOL={};}}
@@ -578,30 +549,23 @@ function getPaidLeaveDays(emp,month){
 
 function recalc(){
   // ============================================================
-  // SALARY FORMULA — Deduction based + Leave Bank (Carry Forward)
+  // SALARY = FIXED MONTHLY (deduction-based)
   //
-  // Leave Bank per employee (cumulative, month-wise):
-  //   Each month employee earns 1.5 paid leave days
-  //   Unused leave carries forward to next months
-  //   When leave taken <= bank balance → fully paid (no deduction)
-  //   When leave taken > bank balance → extra days are unpaid
+  // Daily Rate = Monthly Salary ÷ Calendar Days of that month
+  //   Apr=30, May=31, Jun=30, Jul=31, Feb=28/29
   //
-  // Example:
-  //   Apr: earned 1.5, taken 0 → bank=1.5
-  //   May: earned 1.5, taken 0 → bank=3.0
-  //   Jun: earned 1.5, taken 2 → bank=3.0+1.5-2=2.5 (2 paid, 0 unpaid)
-  //   Jul: earned 1.5, taken 5 → bank=2.5+1.5-5=-1 → 4 paid, 1 unpaid
+  // All sheet entries (work + sunday + holiday + leave) = present
+  // Manually added paid holidays = also present
+  // Truly absent days = Calendar days - all sheet entries - paid holidays
   //
-  // Daily Rate = Monthly ÷ Calendar Days
-  // Present = all sheet entries (work+sun+hol+leave)
-  // Absent = Calendar - sheet entries + unpaid leave portion
-  // Final = Monthly - (Daily Rate × Absent)
-  // Cap = never exceed Monthly Salary
+  // Salary = Monthly - (Daily Rate × Absent Days)
+  // Leave rule: 1.5 days paid, extra leave = deduction
+  // Cap: salary never exceeds monthly amount
+  //
+  // Partner split: proportional to days worked per partner
   // ============================================================
 
-  const MONTHLY_LEAVE_EARN = 1.5; // leave earned per month
-
-  // Step 1: Collect all unique dates per emp+month (any entry)
+  // Step 1: All unique dates per emp+month from sheet (any entry type)
   const empMonthAllDates={};
   ALL.forEach(r=>{
     if(!r.name||!r.month||!r.date)return;
@@ -610,76 +574,25 @@ function recalc(){
     empMonthAllDates[mk].add(r.date);
   });
 
-  // Step 2: Count unique leave dates per emp+month
-  const empMonthLeaveTaken={};
+  // Step 2: Count leave days per emp+month
+  const empMonthLeaveDays={};
   ALL.forEach(r=>{
     if(!r.name||!r.month||!r.date||!r.isLeave)return;
     const mk=r.name+'|'+r.month;
-    if(!empMonthLeaveTaken[mk])empMonthLeaveTaken[mk]=new Set();
-    empMonthLeaveTaken[mk].add(r.date);
+    if(!empMonthLeaveDays[mk])empMonthLeaveDays[mk]=new Set();
+    empMonthLeaveDays[mk].add(r.date);
   });
 
-  // Step 3: Get all months in data, sorted chronologically
-  const allMonths=[...new Set(ALL.filter(r=>r.month).map(r=>r.month))];
-  const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  allMonths.sort((a,b)=>{
-    const [ma,ya]=a.split('-'), [mb,yb]=b.split('-');
-    return (parseInt(ya)*12+MN.indexOf(ma))-(parseInt(yb)*12+MN.indexOf(mb));
-  });
-
-  // Step 4: Calculate leave bank per employee (running balance month by month)
-  // leaveBank[emp|month] = unpaid leave days for that month
-  const empLeaveBank={};    // emp -> running bank balance
-  const empMonthUnpaid={};  // emp|month -> unpaid leave days
-
-  const allEmps=[...new Set(ALL.filter(r=>r.name&&SAL[r.name]).map(r=>r.name))];
-
-  allEmps.forEach(emp=>{
-    let bank=0; // cumulative leave bank
-    allMonths.forEach(month=>{
-      const mk=emp+'|'+month;
-      // Check if emp has any data this month
-      if(!(empMonthAllDates[mk]||empMonthLeaveTaken[mk])){
-        // No data this month — still earn leave if salary set
-        if(SAL[emp]&&getMonthSal(emp,month)){
-          bank+=MONTHLY_LEAVE_EARN;
-        }
-        empMonthUnpaid[mk]=0;
-        return;
-      }
-      // Earn leave this month
-      if(SAL[emp]&&getMonthSal(emp,month)){
-        bank+=MONTHLY_LEAVE_EARN;
-      }
-      // Leave taken this month
-      const taken=(empMonthLeaveTaken[mk]||new Set()).size;
-      if(taken>0){
-        if(taken<=bank){
-          // Fully paid from bank
-          bank-=taken;
-          empMonthUnpaid[mk]=0;
-        } else {
-          // Partially paid
-          const unpaid=taken-bank;
-          bank=0;
-          empMonthUnpaid[mk]=unpaid;
-        }
-      } else {
-        empMonthUnpaid[mk]=0;
-      }
-    });
-    empLeaveBank[emp]=bank; // final remaining bank
-  });
-
-  // Step 5: Count partners per date (for salary split)
+  // Step 3: Count partners per date (for salary split)
   const datePartnerCount={};
   ALL.forEach(r=>{
-    if(!r.name||!r.month||!r.date||r.isHol||r.isLeave||r.isSun)return;
+    if(!r.name||!r.month||!r.date)return;
+    if(r.isHol||r.isLeave||r.isSun)return;
     const dk=r.name+'|'+r.month+'|'+r.date;
     datePartnerCount[dk]=(datePartnerCount[dk]||0)+1;
   });
 
-  // Step 6: Calculate final salary per emp+month using leave bank
+  // Step 4: Calculate final salary per emp+month
   const empMonthFinalSal={};
   const empMonthDailyRate={};
 
@@ -695,21 +608,30 @@ function recalc(){
     const dailyRate=ms/calDays;
     empMonthDailyRate[mk]=dailyRate;
 
-    // Sheet entries count (all types = present)
+    // Days accounted in sheet
     const sheetDays=(empMonthAllDates[mk]||new Set()).size;
 
-    // Unpaid leave from bank calculation
-    const unpaidLeave=empMonthUnpaid[mk]||0;
+    // Leave days taken
+    const leaveTaken=(empMonthLeaveDays[mk]||new Set()).size;
+    // 1.5 days paid leave — rest is unpaid deduction
+    const PAID_LEAVE_LIMIT=1.5;
+    const unpaidLeave=Math.max(0, leaveTaken-PAID_LEAVE_LIMIT);
 
-    // Absent = days not in sheet + unpaid leave
-    const absentDays=Math.max(0, calDays-sheetDays)+unpaidLeave;
+    // Extra paid holidays added manually in dashboard
+    const paidH=getPaidHolDays(emp,month);
+
+    // Total accounted days (sheet has leave entries already, so no double count)
+    const accountedDays=sheetDays+paidH;
+
+    // Absent = truly missing days + unpaid leave portion
+    const absentDays=Math.max(0, calDays-accountedDays)+unpaidLeave;
 
     // Final salary
     const finalSal=Math.min(ms, Math.max(0, ms-(dailyRate*absentDays)));
     empMonthFinalSal[mk]=finalSal;
   });
 
-  // Step 7: Build partner days map for proportional split
+  // Step 5: Build partner days map for proportional split
   const empMonthPartnerDays={};
   ALL.forEach(r=>{
     if(!r.name||!r.month||!r.date||r.isHol||r.isLeave||r.isSun||!r.partner)return;
@@ -722,15 +644,7 @@ function recalc(){
     }
   });
 
-  // Step 8: Pre-compute row counts per emp+month+partner
-  const empMonthPartnerRowCount={};
-  ALL.forEach(r=>{
-    if(r.isHol||r.isLeave||r.isSun||!r.name||!r.month||!r.partner)return;
-    const k=r.name+'|'+r.month+'|'+r.partner;
-    empMonthPartnerRowCount[k]=(empMonthPartnerRowCount[k]||0)+1;
-  });
-
-  // Step 9: Assign _sal to each work row proportionally
+  // Step 6: Assign _sal to each work row proportionally
   ALL.forEach(r=>{
     if(r.isHol||r.isLeave||r.isSun){r._sal=0;return;}
     if(!SAL[r.name]||!r.date){r._sal=0;return;}
@@ -739,50 +653,25 @@ function recalc(){
     if(finalSal===undefined){r._sal=0;return;}
 
     const pd=empMonthPartnerDays[mk]||{};
-    const totalWorkDays=Object.keys(pd)
-      .filter(k=>k!=='_seen')
-      .reduce((s,k)=>s+(pd[k]||0),0);
+    const totalWorkDays=Object.keys(pd).filter(k=>k!=='_seen').reduce((s,k)=>s+(pd[k]||0),0);
     if(!totalWorkDays){r._sal=0;return;}
 
     const partnerDays=pd[r.partner]||0;
     const partnerSal=(finalSal*partnerDays)/totalWorkDays;
 
-    const rowKey=r.name+'|'+r.month+'|'+r.partner;
-    const totalRows=empMonthPartnerRowCount[rowKey]||1;
-    r._sal=partnerSal/totalRows;
+    // Split among all rows for this partner in this month
+    const totalRowsForPartner=ALL.filter(x=>
+      x.name===r.name&&x.month===r.month&&x.partner===r.partner&&
+      !x.isHol&&!x.isLeave&&!x.isSun
+    ).length;
+
+    r._sal=totalRowsForPartner>0?partnerSal/totalRowsForPartner:0;
   });
 
   sv();
 }
 
-// Leave bank summary for display
-function getLeaveBankSummary(emp){
-  const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const months=[...new Set(ALL.filter(r=>r.name===emp&&r.month).map(r=>r.month))];
-  months.sort((a,b)=>{
-    const [ma,ya]=a.split('-'),[mb,yb]=b.split('-');
-    return(parseInt(ya)*12+MN.indexOf(ma))-(parseInt(yb)*12+MN.indexOf(mb));
-  });
-  const EARN=1.5;
-  let bank=0;
-  const rows=[];
-  months.forEach(month=>{
-    const mk=emp+'|'+month;
-    const ms=getMonthSal(emp,month);
-    if(!ms)return;
-    bank+=EARN;
-    const taken=[...new Set(ALL.filter(r=>r.name===emp&&r.month===month&&r.isLeave&&r.date).map(r=>r.date))].length;
-    let paid=0,unpaid=0;
-    if(taken>0){
-      if(taken<=bank){paid=taken;bank-=taken;}
-      else{paid=bank;unpaid=taken-bank;bank=0;}
-    }
-    rows.push({month,earned:EARN,taken,paid,unpaid,bank:Math.round(bank*10)/10});
-  });
-  return rows;
-}
-
-
+// Total salary = sum of _sal (already deduction-based & capped)
 function getTotalSalary(emp,month,baseSalFromRows){
   if(!SAL[emp])return baseSalFromRows;
   const ms=getMonthSal(emp,month);
@@ -921,7 +810,6 @@ async function syncAll(){
   }
 
   recalc();sv();rFilters();rCurrent();rSheets();uFoot();
-  if(typeof dbWrite==='function') dbWrite('sheets', SHEETS);
   btn.disabled=false;
   btn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23,4 23,10 17,10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Sync All Sheets';
 
@@ -947,7 +835,6 @@ function addSheet(){
   if(SHEETS.find(s=>s.name===nm)){setMsg('add-msg','Employee already exists!','red');return;}
   SHEETS.push({id:uid(),name:nm,tab,url,status:url?'pending':'no-url',rows:0});
   sv();rSheets();['n-name','n-url'].forEach(id=>document.getElementById(id).value='');
-  if(typeof dbWrite==='function') dbWrite('sheets', SHEETS);
   setMsg('add-msg','✓ Sheet added!','green');
 }
 function delSheet(id){
@@ -994,33 +881,20 @@ function saveSal(){
   if(!SAL[emp])SAL[emp]={ov:{}};
   SAL[emp].monthly=sal;SAL[emp].wdays=wd;
   svS();recalc();rSalCfg();rCurrent();
-  if(typeof dbWrite==='function') dbWrite('salary', SAL);
   setMsg('se-msg',`✓ ${emp}: ₹${sal.toLocaleString('en-IN')}/month · ${wd} working days · Daily rate: ${fmt(sal/wd)}`,'green');
-}
-function normalizeMonth(m){
-  // Convert 'May-26' → 'May-2026', keep 'May-2026' as is
-  if(!m)return m;
-  const MNL=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const p=m.trim().split('-');
-  if(p.length!==2)return m.trim();
-  const mn=p[0],yr=p[1];
-  if(yr.length===2)return mn+'-20'+yr;
-  return mn+'-'+yr;
 }
 function saveOverride(){
   const emp=document.getElementById('ov-emp').value;
-  const rawMonth=document.getElementById('ov-month').value.trim();
-  const month=normalizeMonth(rawMonth); // normalize May-26 → May-2026
+  const month=document.getElementById('ov-month').value.trim();
   const sal=parseFloat(document.getElementById('ov-sal').value)||0;
   if(!emp||!month||!sal){setMsg('se-msg','All fields required!','red');return;}
   if(!SAL[emp])SAL[emp]={monthly:0,wdays:26,ov:{}};
   if(!SAL[emp].ov)SAL[emp].ov={};
   SAL[emp].ov[month]=sal;
   svS();recalc();rSalCfg();rCurrent();
-  if(typeof dbWrite==='function') dbWrite('salary', SAL);
   setMsg('se-msg',`✓ ${emp} — ${month}: ₹${sal.toLocaleString('en-IN')} override saved!`,'green');
 }
-function delSalEmp(emp){if(!confirm(`Delete salary config for ${emp}?`))return;delete SAL[emp];svS();recalc();rSalCfg();if(typeof dbWrite==='function') dbWrite('salary', SAL);}
+function delSalEmp(emp){if(!confirm(`Delete salary config for ${emp}?`))return;delete SAL[emp];svS();recalc();rSalCfg();}
 function delOv(emp,month){if(SAL[emp]&&SAL[emp].ov)delete SAL[emp].ov[month];svS();recalc();rSalCfg();}
 function rSalCfg(){
   const w=document.getElementById('sal-cfg-list');
@@ -1123,9 +997,10 @@ function doR(id){
   else if(id==='partner-pivot')rPP();
   else if(id==='emp-pivot')rEP();
   else if(id==='workrecord')rWR();
+  else if(id==='expenses')rExp();
   else if(id==='sheets')rSheets();
   else if(id==='salary-setup'){popSEmpSels();rSalCfg();}
-
+  else if(id==='holiday-setup'){popSEmpSels();rHolCfg();}
 }
 
 // Overview
@@ -1172,31 +1047,6 @@ function rOv(){
     const ini=nm.split(' ').map(x=>x[0]).join('').substr(0,2).toUpperCase();
     return`<div class="er"><div class="av" style="background:${bg};color:${tc}">${ini}</div><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700">${nm}</div><div style="font-size:11px;color:var(--text2)">${d.days} working entries · ${[...d.partners].slice(0,3).join(', ')}</div><div class="bw"><div class="bf" style="width:${Math.round(d.sal/maxS*100)}%;background:${tc}"></div></div></div><div style="font-size:14px;font-weight:800;min-width:90px;text-align:right">${fmt(d.sal)}</div></div>`;
   }).join('')||'<div style="padding:24px;text-align:center;color:var(--text2)">No data. Sync sheets and set salaries first.</div>';
-
-  // Leave bank summary
-  const allEmpsFilter=[...new Set(ALL.filter(r=>r.name&&SAL[r.name]).map(r=>r.name))].sort();
-  const lbHtml=allEmpsFilter.length?allEmpsFilter.map(emp=>{
-    const rows=getLeaveBankSummary(emp);
-    if(!rows.length)return'';
-    const last=rows[rows.length-1];
-    const ini=emp.split(' ').map(x=>x[0]).join('').substr(0,2).toUpperCase();
-    return`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
-      <div class="av" style="background:var(--blue-bg);color:var(--blue-t);flex-shrink:0">${ini}</div>
-      <div style="flex:1">
-        <div style="font-size:12px;font-weight:700">${emp}</div>
-        <div style="font-size:11px;color:var(--text2);margin-top:2px">
-          ${rows.map(r=>`<span style="margin-right:8px">${r.month}: ${r.taken>0?`<b>${r.paid}d paid${r.unpaid>0?`, <span style="color:var(--red-t)">${r.unpaid}d unpaid</span>`:''}` : '0 taken'}</span>`).join('')}
-        </div>
-      </div>
-      <div style="text-align:right;flex-shrink:0">
-        <div style="font-size:16px;font-weight:800;color:var(--green-t)">${last.bank}</div>
-        <div style="font-size:10px;color:var(--text3)">days balance</div>
-      </div>
-    </div>`;
-  }).join(''):'<div style="padding:16px;color:var(--text2);text-align:center">No data</div>';
-  const lbEl=document.getElementById('leave-bank-ov');
-  if(lbEl)lbEl.innerHTML=lbHtml;
-
 }
 
 // Salaries matrix — CHRONOLOGICAL ORDER
@@ -1206,7 +1056,7 @@ function rSal(){
   const emps=[...new Set(work.map(r=>r.name))].sort();
   const baseMap={};
   work.forEach(r=>{if(!baseMap[r.name])baseMap[r.name]={};baseMap[r.name][r.month]=(baseMap[r.name][r.month]||0)+(r._sal||0);});
-  document.getElementById('sal-th').innerHTML=`<tr><th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2)">Person Name</th>${months.map(m=>`<th style="text-align:right;position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2)">${m}</th>`).join('')}<th style="text-align:right;position:sticky;top:0;background:var(--blue-bg);color:var(--blue-t);box-shadow:0 2px 0 var(--border2)">Total</th></tr>`;
+  document.getElementById('sal-th').innerHTML=`<tr><th>Person Name</th>${months.map(m=>`<th style="text-align:right">${m}</th>`).join('')}<th style="text-align:right;background:var(--blue-bg);color:var(--blue-t)">Total</th></tr>`;
   const mTot={};months.forEach(m=>mTot[m]=0);let grand=0;
   document.getElementById('sal-tb').innerHTML=emps.map(e=>{
     let tot=0;
@@ -1481,6 +1331,237 @@ function expEP(){
   dlC(rows,'employee_pivot.csv');
 }
 
+// ── EXPENSE FUNCTIONS ──────────────────────────────────────
+const USD_TO_INR = 84; // approximate rate
+
+function autoConvert(){
+  const usd = parseFloat(document.getElementById('exp-usd').value)||0;
+  if(usd>0){
+    document.getElementById('exp-inr').value = (usd * USD_TO_INR).toFixed(2);
+  }
+}
+
+function previewFile(input){
+  const preview = document.getElementById('exp-file-preview');
+  if(input.files && input.files[0]){
+    const f = input.files[0];
+    const size = (f.size/1024).toFixed(1);
+    preview.innerHTML = `📎 ${f.name} (${size} KB) <span style="color:var(--green-t)">✓ Ready</span>`;
+  } else {
+    preview.innerHTML = '';
+  }
+}
+
+function toggleExpForm(){
+  const w = document.getElementById('exp-form-wrap');
+  const isOpen = w.style.display !== 'none';
+  if(isOpen){
+    w.style.display='none';
+    clearExpForm();
+  } else {
+    w.style.display='block';
+    document.getElementById('exp-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('exp-form-title').textContent = 'Add New Expense';
+    document.getElementById('exp-edit-id').value = '';
+  }
+}
+
+function clearExpForm(){
+  ['exp-name','exp-usd','exp-inr','exp-notes'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  document.getElementById('exp-partner').value='';
+  document.getElementById('exp-cat').value='';
+  document.getElementById('exp-file').value='';
+  document.getElementById('exp-file-preview').innerHTML='';
+  document.getElementById('exp-edit-id').value='';
+  document.getElementById('exp-msg').textContent='';
+}
+
+async function saveExpense(){
+  const name    = document.getElementById('exp-name').value.trim();
+  const usd     = parseFloat(document.getElementById('exp-usd').value)||0;
+  const inr     = parseFloat(document.getElementById('exp-inr').value)||0;
+  const date    = document.getElementById('exp-date').value;
+  const partner = document.getElementById('exp-partner').value;
+  const cat     = document.getElementById('exp-cat').value;
+  const notes   = document.getElementById('exp-notes').value.trim();
+  const editId  = document.getElementById('exp-edit-id').value;
+
+  if(!name||!date){
+    setMsg('exp-msg','Name and date are required!','red'); return;
+  }
+  if(!usd && !inr){
+    setMsg('exp-msg','Enter at least one amount!','red'); return;
+  }
+
+  // Handle file attachment
+  let fileData = null;
+  const fileInput = document.getElementById('exp-file');
+  if(fileInput.files && fileInput.files[0]){
+    fileData = await toBase64(fileInput.files[0]);
+  }
+
+  const expense = {
+    id: editId || Date.now().toString(36) + Math.random().toString(36).substr(2,4),
+    name, usd, inr, date, partner, cat, notes,
+    file: fileData,
+    fileName: fileInput.files[0]?.name || null,
+    createdAt: editId ? undefined : new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  if(editId){
+    const idx = EXP.findIndex(e=>e.id===editId);
+    if(idx>=0){
+      // Keep old file if no new file uploaded
+      if(!fileData && EXP[idx].file) expense.file = EXP[idx].file;
+      if(!fileData && EXP[idx].fileName) expense.fileName = EXP[idx].fileName;
+      expense.createdAt = EXP[idx].createdAt;
+      EXP[idx] = expense;
+    }
+  } else {
+    EXP.unshift(expense);
+  }
+
+  svE();
+  if(typeof dbWrite==='function') dbWrite('expenses', EXP);
+  rExp();
+  toggleExpForm();
+  setMsg('exp-msg','','green');
+}
+
+function toBase64(file){
+  return new Promise((res,rej)=>{
+    const reader = new FileReader();
+    reader.onload = ()=>res(reader.result);
+    reader.onerror = rej;
+    reader.readAsDataURL(file);
+  });
+}
+
+function editExpense(id){
+  const exp = EXP.find(e=>e.id===id);
+  if(!exp) return;
+  document.getElementById('exp-form-wrap').style.display='block';
+  document.getElementById('exp-form-title').textContent = 'Edit Expense';
+  document.getElementById('exp-name').value    = exp.name||'';
+  document.getElementById('exp-usd').value     = exp.usd||'';
+  document.getElementById('exp-inr').value     = exp.inr||'';
+  document.getElementById('exp-date').value    = exp.date||'';
+  document.getElementById('exp-partner').value = exp.partner||'';
+  document.getElementById('exp-cat').value     = exp.cat||'';
+  document.getElementById('exp-notes').value   = exp.notes||'';
+  document.getElementById('exp-edit-id').value = exp.id;
+  if(exp.fileName){
+    document.getElementById('exp-file-preview').innerHTML =
+      `📎 Current: ${exp.fileName} <span style="color:var(--text3)">(upload new to replace)</span>`;
+  }
+}
+
+function deleteExpense(id){
+  if(!confirm('Delete this expense?')) return;
+  EXP = EXP.filter(e=>e.id!==id);
+  svE();
+  if(typeof dbWrite==='function') dbWrite('expenses', EXP);
+  rExp();
+}
+
+function viewInvoice(id){
+  const exp = EXP.find(e=>e.id===id);
+  if(!exp||!exp.file) return;
+  const win = window.open();
+  if(exp.file.startsWith('data:image')){
+    win.document.write(`<img src="${exp.file}" style="max-width:100%;height:auto">`);
+  } else {
+    win.document.write(`<iframe src="${exp.file}" style="width:100%;height:100vh;border:none"></iframe>`);
+  }
+}
+
+function rExp(){
+  const q    = (document.getElementById('exp-q')?.value||'').toLowerCase();
+  const fPart= document.getElementById('exp-fpart')?.value||'';
+  const fCat = document.getElementById('exp-fcat')?.value||'';
+
+  let filtered = EXP.filter(e=>{
+    const matchQ = !q || [e.name,e.partner,e.cat,e.notes,e.date].some(v=>(v||'').toLowerCase().includes(q));
+    const matchP = !fPart || e.partner===fPart;
+    const matchC = !fCat  || e.cat===fCat;
+    return matchQ && matchP && matchC;
+  });
+
+  // Sort by date desc
+  filtered.sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+  // Summary cards
+  const totalUSD = filtered.reduce((s,e)=>s+(Number(e.usd)||0),0);
+  const totalINR = filtered.reduce((s,e)=>s+(Number(e.inr)||0),0);
+  const partnerMap = {};
+  filtered.forEach(e=>{ if(e.partner) partnerMap[e.partner]=(partnerMap[e.partner]||0)+(Number(e.inr)||0); });
+  const topPartner = Object.entries(partnerMap).sort((a,b)=>b[1]-a[1])[0];
+
+  document.getElementById('exp-summary').innerHTML = `
+    <div class="met"><div class="met-bar" style="background:var(--blue)"></div>
+      <div class="lb">Total Expenses</div>
+      <div class="vl">$${totalUSD.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+      <div class="sb">₹${Math.round(totalINR).toLocaleString('en-IN')}</div>
+    </div>
+    <div class="met"><div class="met-bar" style="background:var(--purple)"></div>
+      <div class="lb">Count</div>
+      <div class="vl">${filtered.length}</div>
+      <div class="sb">expenses</div>
+    </div>
+    <div class="met"><div class="met-bar" style="background:var(--green)"></div>
+      <div class="lb">Top Partner</div>
+      <div class="vl" style="font-size:14px">${topPartner?topPartner[0]:'—'}</div>
+      <div class="sb">${topPartner?'₹'+Math.round(topPartner[1]).toLocaleString('en-IN'):''}</div>
+    </div>
+    <div class="met"><div class="met-bar" style="background:var(--amber)"></div>
+      <div class="lb">Avg per Expense</div>
+      <div class="vl">$${filtered.length?((totalUSD/filtered.length).toFixed(2)):'0'}</div>
+      <div class="sb">per entry</div>
+    </div>
+  `;
+
+  // Table rows
+  const fmtUSD = n => n?`$${Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`:'—';
+  const fmtINR = n => n?`₹${Math.round(Number(n)).toLocaleString('en-IN')}`:'—';
+  const fmtDate= d => d?new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'—';
+
+  document.getElementById('exp-tb').innerHTML = filtered.length ? filtered.map(e=>`
+    <tr>
+      <td style="padding:9px 14px;font-weight:600;border-bottom:1px solid var(--border)">${e.name||'—'}</td>
+      <td style="padding:9px 14px;text-align:right;border-bottom:1px solid var(--border);font-weight:600;color:var(--blue-t)">${fmtUSD(e.usd)}</td>
+      <td style="padding:9px 14px;text-align:right;border-bottom:1px solid var(--border);font-weight:600">${fmtINR(e.inr)}</td>
+      <td style="padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text2)">${fmtDate(e.date)}</td>
+      <td style="padding:9px 14px;border-bottom:1px solid var(--border)">
+        ${e.partner?`<span class="badge b-blue">${e.partner}</span>`:'—'}
+      </td>
+      <td style="padding:9px 14px;border-bottom:1px solid var(--border)">
+        ${e.cat?`<span class="badge b-gray">${e.cat}</span>`:'—'}
+      </td>
+      <td style="padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text2);font-size:12px">${e.notes||'—'}</td>
+      <td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:center">
+        ${e.file
+          ? `<button class="btn btn-sm b-green" onclick="viewInvoice('${e.id}')" style="background:var(--green-bg);color:var(--green-t);border-color:var(--green-bg)">📎 View</button>`
+          : `<span style="color:var(--text3);font-size:11px">No file</span>`}
+      </td>
+      <td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:center">
+        <div style="display:flex;gap:4px;justify-content:center">
+          <button class="btn btn-sm" onclick="editExpense('${e.id}')" title="Edit">✏️</button>
+          <button class="btn btn-sm btn-d" onclick="deleteExpense('${e.id}')" title="Delete">✕</button>
+        </div>
+      </td>
+    </tr>`).join('')
+    : '<tr><td colspan="9" style="padding:32px;text-align:center;color:var(--text2)">No expenses yet. Click "+ Add Expense" to add one.</td></tr>';
+}
+
+function expExpCSV(){
+  const rows = [['Name','USD','INR','Date','Partner','Category','Notes','Has Invoice']];
+  EXP.forEach(e=>rows.push([e.name,e.usd,e.inr,e.date,e.partner,e.cat,e.notes,e.file?'Yes':'No']));
+  dlC(rows,'expenses.csv');
+}
+
 // Exports
 function expWR(){dlC([['Month','UK(DW)','Name','Date','Partner','Project','Website','Working','Days','Salary'],...gF().map(r=>[r.month,r.uk,r.name,r.date,r.partner,r.project,r.website,r.working,1,Math.round(r._sal||0)])],'work_record.csv');}
 function expSal(){
@@ -1522,41 +1603,11 @@ function filterByStartMonth(rows){
 }
 
 // Init
-ldS();ldH();ld();
+ldS();ldH();ld();ldE();
 // Apply start month filter to loaded data
 if(ALL.length) ALL=filterByStartMonth(ALL);
 recalc();rSheets();rFilters();uFoot();
 setInterval(()=>{if(SHEETS.some(s=>s.url&&s.status==='ok'))syncAll();},5*60*1000);
 </script>
-
-<div id="sv-userbar" style="position:fixed;bottom:0;left:0;right:0;z-index:9999;
-  background:linear-gradient(90deg,#0a3570,#1758a8);color:#fff;font-size:11px;
-  padding:6px 20px;display:flex;justify-content:space-between;align-items:center;
-  box-shadow:0 -2px 10px rgba(0,0,0,.2)">
-  <div style="display:flex;align-items:center;gap:10px">
-    <span style="background:rgba(255,255,255,.2);border-radius:10px;padding:2px 10px;
-                 font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:.7px">Admin</span>
-    <span id="sv-user-email" style="font-size:11px"></span>
-    <span style="opacity:.4">·</span>
-    <span id="db-status-txt" style="font-size:11px;font-weight:600"></span>
-  </div>
-  <div style="display:flex;align-items:center;gap:14px">
-    <span style="opacity:.6;font-size:10px">💾 GitHub · Cloudflare</span>
-    <button onclick="pushAllToGitHub()" style="background:rgba(255,255,255,.15);color:#fff;border:none;padding:4px 12px;border-radius:10px;font-weight:700;font-size:11px;cursor:pointer" onmouseover="this.style.background='rgba(255,255,255,.3)'" onmouseout="this.style.background='rgba(255,255,255,.15)'">↑ Push to GitHub</button>
-    <a href="/" onclick="sessionStorage.clear();return true;"
-       style="background:rgba(255,255,255,.15);color:#fff;text-decoration:none;
-              padding:4px 14px;border-radius:10px;font-weight:700;font-size:11px"
-       onmouseover="this.style.background='rgba(255,255,255,.3)'"
-       onmouseout="this.style.background='rgba(255,255,255,.15)'">
-      Logout →
-    </a>
-  </div>
-</div>
-<style>.content{padding-bottom:46px!important}</style>
-<script>
-  const emailEl = document.getElementById('sv-user-email');
-  if (emailEl) emailEl.textContent = sessionStorage.getItem('sv_email') || '';
-</script>
-
 </body>
 </html>

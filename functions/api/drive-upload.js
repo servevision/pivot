@@ -7,7 +7,6 @@ const API_KEY = 'sv_api_2026_karnal_pivot';
 const DRIVE_FOLDER_ID = '1s5EyYyHGEbWrI3awv2DePYp4tmBZZJkc';
 const SA_EMAIL = 'expense-uploader@servevisionexpenses.iam.gserviceaccount.com';
 
-// Assemble private key from parts
 const _k = [
   '-----BEGIN PRIVATE KEY-----',
   '\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCydmOs1a1tvTtK',
@@ -48,99 +47,87 @@ function b64url(buf) {
 
 async function getAccessToken() {
   const now = Math.floor(Date.now()/1000);
-  const header = b64url(new TextEncoder().encode(JSON.stringify({alg:'RS256',typ:'JWT'})));
+  const header  = b64url(new TextEncoder().encode(JSON.stringify({alg:'RS256',typ:'JWT'})));
   const payload = b64url(new TextEncoder().encode(JSON.stringify({
     iss: SA_EMAIL,
     scope: 'https://www.googleapis.com/auth/drive',
     aud: 'https://oauth2.googleapis.com/token',
-    exp: now + 3600,
-    iat: now
+    exp: now+3600, iat: now
   })));
   const msg = `${header}.${payload}`;
-
-  // Import private key
   const pemBody = _k.replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----/g,'').replace(/\n/g,'').trim();
-  const binaryDer = Uint8Array.from(atob(pemBody), c => c.charCodeAt(0));
+  const binaryDer = Uint8Array.from(atob(pemBody), c=>c.charCodeAt(0));
   const cryptoKey = await crypto.subtle.importKey(
     'pkcs8', binaryDer.buffer,
-    {name:'RSASSA-PKCS1-v1_5', hash:'SHA-256'},
-    false, ['sign']
+    {name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'}, false, ['sign']
   );
   const sig = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', cryptoKey, new TextEncoder().encode(msg));
   const jwt = `${msg}.${b64url(sig)}`;
-
-  const resp = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-    body: `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`
+  const resp = await fetch('https://oauth2.googleapis.com/token',{
+    method:'POST',
+    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:`grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`
   });
   const data = await resp.json();
-  if (!data.access_token) throw new Error('Token failed: ' + JSON.stringify(data));
+  if(!data.access_token) throw new Error('Token failed: '+JSON.stringify(data));
   return data.access_token;
 }
 
 async function uploadToDrive(accessToken, fileName, fileData, mimeType) {
-  // fileData is base64 string (data:mime;base64,xxx)
   const b64 = fileData.includes(',') ? fileData.split(',')[1] : fileData;
-  const fileBytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-
+  const fileBytes = Uint8Array.from(atob(b64), c=>c.charCodeAt(0));
   const metadata = JSON.stringify({
     name: fileName,
     parents: [DRIVE_FOLDER_ID]
   });
-
-  const boundary = '-------boundary123456';
-  const metaPart = `--${boundary}\r\nContent-Type: application/json\r\n\r\n${metadata}\r\n`;
-  const dataPart = `--${boundary}\r\nContent-Type: ${mimeType}\r\n\r\n`;
-  const endPart  = `\r\n--${boundary}--`;
-
+  const boundary = 'boundary_sv_' + Date.now();
   const enc = new TextEncoder();
-  const parts = [enc.encode(metaPart), enc.encode(dataPart), fileBytes, enc.encode(endPart)];
-  const total = parts.reduce((s,p)=>s+p.length, 0);
+  const metaPart = enc.encode(`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${metadata}\r\n`);
+  const filePart = enc.encode(`--${boundary}\r\nContent-Type: ${mimeType}\r\n\r\n`);
+  const endPart  = enc.encode(`\r\n--${boundary}--`);
+  const total = metaPart.length + filePart.length + fileBytes.length + endPart.length;
   const body = new Uint8Array(total);
-  let offset = 0;
-  for (const p of parts) { body.set(p, offset); offset += p.length; }
+  let off = 0;
+  [metaPart, filePart, fileBytes, endPart].forEach(p=>{body.set(p,off);off+=p.length;});
 
-  const resp = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${accessToken}`,
-      'Content-Type': `multipart/related; boundary=${boundary}`,
-    },
-    body
-  });
-  if (!resp.ok) {
+  // supportsAllDrives=true allows uploading to folders shared with service account
+  const resp = await fetch(
+    'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true&fields=id,name,webViewLink',
+    {
+      method:'POST',
+      headers:{
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': `multipart/related; boundary=${boundary}`,
+      },
+      body
+    }
+  );
+  if(!resp.ok){
     const err = await resp.text();
-    throw new Error(`Drive upload failed: ${resp.status} ${err}`);
+    throw new Error(`Drive upload failed (${resp.status}): ${err.substring(0,300)}`);
   }
   return await resp.json();
 }
 
-function respond(data, status=200) {
-  return new Response(JSON.stringify(data), {
-    status, headers: {'Content-Type':'application/json', ...CORS}
-  });
+function respond(data,status=200){
+  return new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json',...CORS}});
 }
 
-export async function onRequestOptions() {
-  return new Response(null, {status:204, headers:CORS});
+export async function onRequestOptions(){
+  return new Response(null,{status:204,headers:CORS});
 }
 
-export async function onRequestPost(context) {
-  const {request} = context;
-  const auth = (request.headers.get('Authorization')||'').replace('Bearer ','').trim();
-  if (auth !== API_KEY) return respond({error:'Unauthorized'}, 401);
-
-  try {
-    const body = await request.json();
-    const {fileName, fileData, mimeType} = body;
-    if (!fileName||!fileData||!mimeType) return respond({error:'Missing fields'}, 400);
-
-    const token = await getAccessToken();
-    const result = await uploadToDrive(token, fileName, fileData, mimeType);
-    return respond({ok:true, fileId:result.id, fileName:result.name, viewLink:result.webViewLink});
-  } catch(e) {
-    console.error('Drive upload error:', e.message);
-    return respond({error: e.message}, 500);
+export async function onRequestPost(context){
+  const {request}=context;
+  const auth=(request.headers.get('Authorization')||'').replace('Bearer ','').trim();
+  if(auth!==API_KEY) return respond({error:'Unauthorized'},401);
+  try{
+    const {fileName,fileData,mimeType}=await request.json();
+    if(!fileName||!fileData||!mimeType) return respond({error:'Missing fields'},400);
+    const token=await getAccessToken();
+    const result=await uploadToDrive(token,fileName,fileData,mimeType);
+    return respond({ok:true,fileId:result.id,fileName:result.name,viewLink:result.webViewLink});
+  }catch(e){
+    return respond({error:e.message},500);
   }
 }

@@ -1903,11 +1903,39 @@ async function saveExpense(){
   if(!payment){setMsg('exp-msg','Please select payment method!','red');return;}
 
   const subcat=document.getElementById('exp-subcat')?.value||'';
+  // Upload to Google Drive if file selected
+  let driveFileId=null, driveViewLink=null, driveFileName=null;
+  if(currentInvoiceData && currentInvoiceName){
+    try{
+      setMsg('exp-msg','Uploading to Google Drive...','info');
+      const mimeType=currentInvoiceData.split(';')[0].replace('data:','');
+      const uploadResp=await fetch('/api/drive-upload',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer sv_api_2026_karnal_pivot'},
+        body:JSON.stringify({fileName:currentInvoiceName,fileData:currentInvoiceData,mimeType})
+      });
+      const uploadResult=await uploadResp.json();
+      if(uploadResult.ok){
+        driveFileId=uploadResult.fileId;
+        driveViewLink=uploadResult.viewLink;
+        driveFileName=uploadResult.fileName;
+        console.log('✓ Uploaded to Drive:', driveViewLink);
+      } else {
+        console.warn('Drive upload failed:', uploadResult.error);
+      }
+    }catch(e){
+      console.warn('Drive upload error:', e.message);
+    }
+  }
+
   const expense={
     id:editId||Date.now().toString(36)+Math.random().toString(36).substr(2,4),
     name,usd,inr,date,partner,payment,cat,subcat,notes,
-    file:currentInvoiceData,
-    fileName:currentInvoiceName,
+    // Store Drive link instead of base64 (saves space in GitHub)
+    driveFileId, driveViewLink, driveFileName,
+    // Keep local preview as fallback
+    file:driveFileId?null:currentInvoiceData,
+    fileName:driveFileName||currentInvoiceName,
     createdAt:editId?undefined:new Date().toISOString(),
     updatedAt:new Date().toISOString(),
   };
@@ -1950,6 +1978,7 @@ function editExpense(id){
   currentInvoiceName=exp.fileName||null;
   if(exp.fileName) document.getElementById('ai-preview-name').textContent='📎 '+exp.fileName;
   if(exp.file) showInvoicePreview(exp.file, exp.file.startsWith('data:image')?'image/jpeg':'application/pdf');
+  else if(exp.driveViewLink){ document.getElementById('invoice-preview-empty').innerHTML=`<div style="font-size:20px;margin-bottom:6px">☁️</div><div style="font-size:12px;color:var(--green-t);font-weight:600">Saved in Google Drive</div><a href="${exp.driveViewLink}" target="_blank" class="btn btn-sm" style="margin-top:8px">Open in Drive</a>`; document.getElementById('invoice-preview-empty').style.display='block'; }
   document.getElementById('exp-form-wrap').scrollIntoView({behavior:'smooth'});
 }
 
@@ -1963,12 +1992,20 @@ function deleteExpense(id){
 
 function viewInvoice(id){
   const exp=EXP.find(e=>e.id===id);
-  if(!exp||!exp.file) return;
-  const win=window.open();
-  if(exp.file.startsWith('data:image')){
-    win.document.write(`<img src="${exp.file}" style="max-width:100%;height:auto">`);
-  } else {
-    win.document.write(`<iframe src="${exp.file}" style="width:100%;height:100vh;border:none"></iframe>`);
+  if(!exp) return;
+  // Prefer Google Drive link
+  if(exp.driveViewLink){
+    window.open(exp.driveViewLink,'_blank');
+    return;
+  }
+  // Fallback to local base64
+  if(exp.file){
+    const win=window.open();
+    if(exp.file.startsWith('data:image')){
+      win.document.write(`<img src="${exp.file}" style="max-width:100%;height:auto">`);
+    } else {
+      win.document.write(`<iframe src="${exp.file}" style="width:100%;height:100vh;border:none"></iframe>`);
+    }
   }
 }
 
@@ -2029,7 +2066,7 @@ function rExp(){
       <td style="padding:9px 14px;border-bottom:1px solid var(--border)">${e.cat?`<span class="badge b-gray">${e.cat}${e.subcat?' › '+e.subcat:''}</span>`:'—'}</td>
       <td style="padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text2);font-size:12px">${e.notes||'—'}</td>
       <td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:center">
-        ${e.file?`<button class="btn btn-sm" onclick="viewInvoice('${e.id}')" style="background:var(--green-bg);color:var(--green-t);border-color:var(--green-bg)">📎 View</button>`:`<span style="color:var(--text3);font-size:11px">—</span>`}
+        ${(e.driveViewLink||e.file)?`<button class="btn btn-sm" onclick="viewInvoice('${e.id}')" style="background:var(--green-bg);color:var(--green-t);border-color:var(--green-bg)">${e.driveViewLink?'☁️ Drive':'📎 View'}</button>`:`<span style="color:var(--text3);font-size:11px">—</span>`}
       </td>
       <td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:center">
         <div style="display:flex;gap:4px;justify-content:center">

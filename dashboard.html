@@ -473,7 +473,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
         <div>
           <div style="font-size:14px;font-weight:800;letter-spacing:-.2px">Expense Tracker</div>
-          <div style="font-size:11px;color:var(--text2);margin-top:2px">Track expenses with invoice attachments</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px">AI-powered invoice scanning • Auto-fill from receipts</div>
         </div>
         <div style="display:flex;gap:6px">
           <button class="btn" onclick="expExpCSV()">↓ Export CSV</button>
@@ -481,20 +481,67 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       </div>
 
-      <!-- Add Expense Form -->
+      <!-- AI Upload Zone -->
+      <div id="ai-upload-zone" style="border:2px dashed var(--blue);border-radius:var(--rl);padding:28px;text-align:center;margin-bottom:16px;background:var(--blue-bg);cursor:pointer;transition:all .15s;display:none"
+        onclick="document.getElementById('ai-file-input').click()"
+        ondragover="event.preventDefault();this.style.background='#d0e4f7'"
+        ondragleave="this.style.background='var(--blue-bg)'"
+        ondrop="handleAIDrop(event)">
+        <div style="font-size:28px;margin-bottom:8px">🤖</div>
+        <div style="font-weight:700;color:var(--blue-t);font-size:14px">Drop Invoice / Receipt here</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px">PDF, JPG, PNG — AI will scan and auto-fill all fields</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:8px">or click to browse</div>
+        <input type="file" id="ai-file-input" accept=".pdf,.jpg,.jpeg,.png,.webp" style="display:none" onchange="scanWithAI(this.files[0])">
+      </div>
+
+      <!-- AI Scanning Status -->
+      <div id="ai-status" style="display:none;text-align:center;padding:20px;background:var(--blue-bg);border-radius:var(--rl);margin-bottom:16px;border:1px solid var(--border)">
+        <div class="spin" style="font-size:24px;display:inline-block;margin-bottom:8px">⚙️</div>
+        <div style="font-weight:700;color:var(--blue-t)" id="ai-status-msg">Scanning invoice with AI...</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:4px">Claude AI is reading your invoice</div>
+      </div>
+
+      <!-- Add/Edit Expense Form -->
       <div id="exp-form-wrap" style="display:none;margin-bottom:16px">
-        <div class="card">
-          <div class="card-t" id="exp-form-title">Add New Expense</div>
+        <div class="card" style="border:2px solid var(--blue-bg)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+            <div class="card-t" id="exp-form-title" style="margin-bottom:0">Add New Expense</div>
+            <div id="ai-badge" style="display:none;background:var(--blue-bg);color:var(--blue-t);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700">🤖 AI Auto-filled</div>
+          </div>
+
+          <!-- AI Upload toggle -->
+          <div style="margin-bottom:14px;padding:10px 14px;background:var(--bg2);border-radius:var(--r);border:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <span style="font-size:12px;font-weight:600">📎 Invoice / Receipt:</span>
+            <button class="btn btn-sm" onclick="toggleAIUpload()" id="ai-upload-btn">
+              🤖 Scan with AI (auto-fill)
+            </button>
+            <span style="color:var(--text3);font-size:11px">or fill manually below</span>
+            <div id="ai-preview-name" style="font-size:11px;color:var(--green-t);font-weight:600"></div>
+          </div>
+
+          <!-- Form Fields -->
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
-            <div class="fg"><label>Expense Name / Description</label>
-              <input type="text" id="exp-name" placeholder="e.g. AWS Server, Domain renewal"></div>
-            <div class="fg"><label>Amount (USD $)</label>
-              <input type="number" id="exp-usd" placeholder="0.00" step="0.01" oninput="autoConvert()"></div>
-            <div class="fg"><label>Amount (INR ₹)</label>
-              <input type="number" id="exp-inr" placeholder="0.00" step="0.01"></div>
-            <div class="fg"><label>Date</label>
-              <input type="date" id="exp-date"></div>
-            <div class="fg"><label>Partner</label>
+            <div class="fg" style="grid-column:1/-1">
+              <label>Expense Name / Description</label>
+              <input type="text" id="exp-name" placeholder="e.g. AWS Server, Domain renewal, Canva Pro">
+            </div>
+            <div class="fg">
+              <label>Amount (USD $)</label>
+              <input type="number" id="exp-usd" placeholder="0.00" step="0.01" oninput="autoConvert()">
+            </div>
+            <div class="fg">
+              <label>Amount (INR ₹)</label>
+              <input type="number" id="exp-inr" placeholder="Auto from USD or enter manually" step="0.01">
+            </div>
+            <div class="fg">
+              <label>Date</label>
+              <input type="date" id="exp-date">
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+            <div class="fg">
+              <label>Partner <span style="color:var(--red-t)">*</span></label>
               <select id="exp-partner" style="width:100%">
                 <option value="">-- Select Partner --</option>
                 <option>Serve Vision</option>
@@ -503,8 +550,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 <option>HSIM</option>
                 <option>Vivek Attri</option>
                 <option>Other</option>
-              </select></div>
-            <div class="fg"><label>Category</label>
+              </select>
+            </div>
+            <div class="fg">
+              <label>Payment Method <span style="color:var(--red-t)">*</span></label>
+              <select id="exp-payment" style="width:100%">
+                <option value="">-- Select Method --</option>
+                <option>Credit Card</option>
+                <option>Debit Card</option>
+                <option>UPI</option>
+                <option>Bank Transfer</option>
+                <option>PayPal</option>
+                <option>Crypto</option>
+                <option>Cash</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label>Category</label>
               <select id="exp-cat" style="width:100%">
                 <option value="">-- Select Category --</option>
                 <option>Software / SaaS</option>
@@ -515,25 +578,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 <option>Travel</option>
                 <option>Office</option>
                 <option>Other</option>
-              </select></div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
-            <div class="fg"><label>Notes (optional)</label>
-              <input type="text" id="exp-notes" placeholder="Any additional details"></div>
-            <div class="fg">
-              <label>Invoice / Receipt Attachment</label>
-              <input type="file" id="exp-file" accept=".pdf,.jpg,.jpeg,.png,.webp"
-                style="border:1px dashed var(--border2);border-radius:var(--r);padding:6px 10px;font-size:12px;width:100%;cursor:pointer;background:var(--bg2)"
-                onchange="previewFile(this)">
-              <div id="exp-file-preview" style="margin-top:6px;font-size:11px;color:var(--text2)"></div>
+              </select>
             </div>
           </div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <button class="btn btn-p" onclick="saveExpense()">Save Expense</button>
+
+          <div class="fg" style="margin-bottom:14px">
+            <label>Notes (optional)</label>
+            <input type="text" id="exp-notes" placeholder="Any additional details, invoice number etc.">
+          </div>
+
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <button class="btn btn-p" onclick="saveExpense()">💾 Save Expense</button>
             <button class="btn" onclick="toggleExpForm()">Cancel</button>
             <span id="exp-msg" style="font-size:12px;font-weight:600"></span>
           </div>
           <input type="hidden" id="exp-edit-id" value="">
+          <input type="hidden" id="exp-file-data" value="">
+          <input type="hidden" id="exp-file-name" value="">
         </div>
       </div>
 
@@ -549,7 +610,18 @@ document.addEventListener('DOMContentLoaded', function() {
           <option>Vivek Attri</option>
           <option>Other</option>
         </select>
-        <select id="exp-fcat" onchange="rExp()" style="min-width:140px">
+        <select id="exp-fpay" onchange="rExp()" style="min-width:130px">
+          <option value="">All Payment Methods</option>
+          <option>Credit Card</option>
+          <option>Debit Card</option>
+          <option>UPI</option>
+          <option>Bank Transfer</option>
+          <option>PayPal</option>
+          <option>Crypto</option>
+          <option>Cash</option>
+          <option>Other</option>
+        </select>
+        <select id="exp-fcat" onchange="rExp()" style="min-width:130px">
           <option value="">All Categories</option>
           <option>Software / SaaS</option>
           <option>Server / Hosting</option>
@@ -566,24 +638,24 @@ document.addEventListener('DOMContentLoaded', function() {
       <div id="exp-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:14px"></div>
 
       <!-- Table -->
-      <div style="overflow-y:auto;overflow-x:auto;max-height:calc(100vh - 260px);border-radius:var(--rl);border:1px solid var(--border);box-shadow:var(--sh);background:var(--bg)">
+      <div style="overflow-y:auto;overflow-x:auto;max-height:calc(100vh - 280px);border-radius:var(--rl);border:1px solid var(--border);box-shadow:var(--sh);background:var(--bg)">
         <table style="width:100%;border-collapse:separate;border-spacing:0;font-size:13px">
           <thead><tr>
-            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;min-width:160px">Name</th>
-            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;text-align:right;min-width:100px">USD ($)</th>
-            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;text-align:right;min-width:100px">INR (₹)</th>
-            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;min-width:100px">Date</th>
-            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;min-width:130px">Partner</th>
-            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;min-width:120px">Category</th>
-            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;min-width:140px">Notes</th>
-            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;min-width:90px;text-align:center">Invoice</th>
-            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;min-width:80px;text-align:center">Actions</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;min-width:160px">Name</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;text-align:right;min-width:90px">USD</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;text-align:right;min-width:90px">INR</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;min-width:95px">Date</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;min-width:120px">Partner</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;min-width:110px">Payment</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;min-width:110px">Category</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;min-width:130px">Notes</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;min-width:80px;text-align:center">Invoice</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;min-width:80px;text-align:center">Actions</th>
           </tr></thead>
           <tbody id="exp-tb"></tbody>
         </table>
       </div>
     </div>
-
     <!-- WORK RECORD -->
     <div class="page" id="page-workrecord">
       <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
@@ -1447,144 +1519,252 @@ function expEP(){
 }
 
 // ── EXPENSE FUNCTIONS ──────────────────────────────────────
-const USD_TO_INR = 84; // approximate rate
+const USD_TO_INR = 84;
+let currentInvoiceData = null;
+let currentInvoiceName = null;
 
 function autoConvert(){
-  const usd = parseFloat(document.getElementById('exp-usd').value)||0;
-  if(usd>0){
-    document.getElementById('exp-inr').value = (usd * USD_TO_INR).toFixed(2);
-  }
+  const usd=parseFloat(document.getElementById('exp-usd').value)||0;
+  if(usd>0) document.getElementById('exp-inr').value=(usd*USD_TO_INR).toFixed(2);
 }
 
-function previewFile(input){
-  const preview = document.getElementById('exp-file-preview');
-  if(input.files && input.files[0]){
-    const f = input.files[0];
-    const size = (f.size/1024).toFixed(1);
-    preview.innerHTML = `📎 ${f.name} (${size} KB) <span style="color:var(--green-t)">✓ Ready</span>`;
-  } else {
-    preview.innerHTML = '';
+function toggleAIUpload(){
+  const zone=document.getElementById('ai-upload-zone');
+  const isVisible=zone.style.display!=='none';
+  zone.style.display=isVisible?'none':'block';
+  document.getElementById('ai-upload-btn').textContent=isVisible?'🤖 Scan with AI (auto-fill)':'✕ Close Scanner';
+}
+
+function handleAIDrop(event){
+  event.preventDefault();
+  event.currentTarget.style.background='var(--blue-bg)';
+  const file=event.dataTransfer.files[0];
+  if(file) scanWithAI(file);
+}
+
+async function toBase64(file){
+  return new Promise((res,rej)=>{
+    const reader=new FileReader();
+    reader.onload=()=>res(reader.result);
+    reader.onerror=rej;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function scanWithAI(file){
+  if(!file) return;
+  const zone=document.getElementById('ai-upload-zone');
+  const status=document.getElementById('ai-status');
+  const statusMsg=document.getElementById('ai-status-msg');
+
+  zone.style.display='none';
+  status.style.display='block';
+  statusMsg.textContent='Reading invoice...';
+
+  try{
+    // Convert file to base64
+    const b64=await toBase64(file);
+    currentInvoiceData=b64;
+    currentInvoiceName=file.name;
+    document.getElementById('ai-preview-name').textContent='📎 '+file.name+' attached';
+
+    statusMsg.textContent='Claude AI is analyzing your invoice...';
+
+    // Determine media type
+    const mediaType=file.type||'image/jpeg';
+    const isImage=mediaType.startsWith('image/');
+    const isPDF=mediaType==='application/pdf';
+
+    // Call Claude API
+    const b64Data=b64.split(',')[1];
+
+    const messages=[{
+      role:'user',
+      content:[
+        ...(isImage?[{
+          type:'image',
+          source:{type:'base64',media_type:mediaType,data:b64Data}
+        }]:[{
+          type:'document',
+          source:{type:'base64',media_type:'application/pdf',data:b64Data}
+        }]),
+        {
+          type:'text',
+          text:`Analyze this invoice/receipt and extract the following information. Return ONLY a JSON object with these exact fields (no markdown, no explanation):
+{
+  "name": "short expense description (e.g. 'AWS EC2 Server', 'Canva Pro Subscription')",
+  "usd": 0.00,
+  "inr": 0.00,
+  "date": "YYYY-MM-DD",
+  "category": "one of: Software / SaaS, Server / Hosting, Domain, Marketing, Tools, Travel, Office, Other",
+  "notes": "invoice number or any important detail"
+}
+If amount is in INR only, set usd to 0 and calculate usd = inr/84. If in USD only, set inr = usd*84. If date not found, use today's date. Return valid JSON only.`
+        }
+      ]
+    }];
+
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:500,
+        messages
+      })
+    });
+
+    const result=await resp.json();
+    const text=result.content?.[0]?.text||'{}';
+
+    // Parse AI response
+    let parsed={};
+    try{
+      const clean=text.replace(/```json|```/g,'').trim();
+      parsed=JSON.parse(clean);
+    }catch(e){
+      console.error('AI parse error:',e,text);
+      throw new Error('Could not parse AI response');
+    }
+
+    // Auto-fill form
+    if(parsed.name)  document.getElementById('exp-name').value=parsed.name;
+    if(parsed.usd)   document.getElementById('exp-usd').value=Number(parsed.usd).toFixed(2);
+    if(parsed.inr)   document.getElementById('exp-inr').value=Number(parsed.inr).toFixed(2);
+    if(parsed.date)  document.getElementById('exp-date').value=parsed.date;
+    if(parsed.notes) document.getElementById('exp-notes').value=parsed.notes;
+    if(parsed.category){
+      const catSel=document.getElementById('exp-cat');
+      for(let i=0;i<catSel.options.length;i++){
+        if(catSel.options[i].text===parsed.category){catSel.selectedIndex=i;break;}
+      }
+    }
+
+    status.style.display='none';
+    document.getElementById('ai-badge').style.display='block';
+    document.getElementById('ai-upload-btn').textContent='🤖 Scan with AI (auto-fill)';
+
+    // Show form
+    document.getElementById('exp-form-wrap').style.display='block';
+    document.getElementById('exp-form-title').textContent='Review & Save Expense';
+
+    // Scroll to form
+    document.getElementById('exp-form-wrap').scrollIntoView({behavior:'smooth',block:'start'});
+
+  }catch(e){
+    status.style.display='none';
+    document.getElementById('ai-upload-zone').style.display='block';
+    alert('AI scan failed: '+e.message+'\n\nPlease fill the form manually.');
+    console.error('AI scan error:',e);
   }
 }
 
 function toggleExpForm(){
-  const w = document.getElementById('exp-form-wrap');
-  const isOpen = w.style.display !== 'none';
+  const w=document.getElementById('exp-form-wrap');
+  const zone=document.getElementById('ai-upload-zone');
+  const isOpen=w.style.display!=='none';
   if(isOpen){
     w.style.display='none';
+    zone.style.display='none';
     clearExpForm();
   } else {
     w.style.display='block';
-    document.getElementById('exp-date').value = new Date().toISOString().split('T')[0];
-    document.getElementById('exp-form-title').textContent = 'Add New Expense';
-    document.getElementById('exp-edit-id').value = '';
+    zone.style.display='block';
+    document.getElementById('exp-date').value=new Date().toISOString().split('T')[0];
+    document.getElementById('exp-form-title').textContent='Add New Expense';
+    document.getElementById('exp-edit-id').value='';
+    document.getElementById('ai-badge').style.display='none';
+    document.getElementById('ai-upload-btn').textContent='🤖 Scan with AI (auto-fill)';
   }
 }
 
 function clearExpForm(){
-  ['exp-name','exp-usd','exp-inr','exp-notes'].forEach(id=>{
-    document.getElementById(id).value='';
-  });
-  document.getElementById('exp-partner').value='';
-  document.getElementById('exp-cat').value='';
-  document.getElementById('exp-file').value='';
-  document.getElementById('exp-file-preview').innerHTML='';
+  ['exp-name','exp-usd','exp-inr','exp-notes'].forEach(id=>document.getElementById(id).value='');
+  ['exp-partner','exp-payment','exp-cat'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('exp-edit-id').value='';
   document.getElementById('exp-msg').textContent='';
+  document.getElementById('ai-badge').style.display='none';
+  document.getElementById('ai-preview-name').textContent='';
+  currentInvoiceData=null;
+  currentInvoiceName=null;
 }
 
 async function saveExpense(){
-  const name    = document.getElementById('exp-name').value.trim();
-  const usd     = parseFloat(document.getElementById('exp-usd').value)||0;
-  const inr     = parseFloat(document.getElementById('exp-inr').value)||0;
-  const date    = document.getElementById('exp-date').value;
-  const partner = document.getElementById('exp-partner').value;
-  const cat     = document.getElementById('exp-cat').value;
-  const notes   = document.getElementById('exp-notes').value.trim();
-  const editId  = document.getElementById('exp-edit-id').value;
+  const name   =document.getElementById('exp-name').value.trim();
+  const usd    =parseFloat(document.getElementById('exp-usd').value)||0;
+  const inr    =parseFloat(document.getElementById('exp-inr').value)||0;
+  const date   =document.getElementById('exp-date').value;
+  const partner=document.getElementById('exp-partner').value;
+  const payment=document.getElementById('exp-payment').value;
+  const cat    =document.getElementById('exp-cat').value;
+  const notes  =document.getElementById('exp-notes').value.trim();
+  const editId =document.getElementById('exp-edit-id').value;
 
-  if(!name||!date){
-    setMsg('exp-msg','Name and date are required!','red'); return;
-  }
-  if(!usd && !inr){
-    setMsg('exp-msg','Enter at least one amount!','red'); return;
-  }
+  if(!name||!date){setMsg('exp-msg','Name and date required!','red');return;}
+  if(!usd&&!inr){setMsg('exp-msg','Enter at least one amount!','red');return;}
+  if(!partner){setMsg('exp-msg','Please select a partner!','red');return;}
+  if(!payment){setMsg('exp-msg','Please select payment method!','red');return;}
 
-  // Handle file attachment
-  let fileData = null;
-  const fileInput = document.getElementById('exp-file');
-  if(fileInput.files && fileInput.files[0]){
-    fileData = await toBase64(fileInput.files[0]);
-  }
-
-  const expense = {
-    id: editId || Date.now().toString(36) + Math.random().toString(36).substr(2,4),
-    name, usd, inr, date, partner, cat, notes,
-    file: fileData,
-    fileName: fileInput.files[0]?.name || null,
-    createdAt: editId ? undefined : new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+  const expense={
+    id:editId||Date.now().toString(36)+Math.random().toString(36).substr(2,4),
+    name,usd,inr,date,partner,payment,cat,notes,
+    file:currentInvoiceData,
+    fileName:currentInvoiceName,
+    createdAt:editId?undefined:new Date().toISOString(),
+    updatedAt:new Date().toISOString(),
   };
 
   if(editId){
-    const idx = EXP.findIndex(e=>e.id===editId);
+    const idx=EXP.findIndex(e=>e.id===editId);
     if(idx>=0){
-      // Keep old file if no new file uploaded
-      if(!fileData && EXP[idx].file) expense.file = EXP[idx].file;
-      if(!fileData && EXP[idx].fileName) expense.fileName = EXP[idx].fileName;
-      expense.createdAt = EXP[idx].createdAt;
-      EXP[idx] = expense;
+      if(!currentInvoiceData&&EXP[idx].file) expense.file=EXP[idx].file;
+      if(!currentInvoiceName&&EXP[idx].fileName) expense.fileName=EXP[idx].fileName;
+      expense.createdAt=EXP[idx].createdAt;
+      EXP[idx]=expense;
     }
   } else {
     EXP.unshift(expense);
   }
 
-  svE();if(typeof dbWrite!=='undefined')dbWrite('expenses',EXP||[]);
+  svE();
+  if(typeof dbWrite!=='undefined') dbWrite('expenses',EXP);
   rExp();
   toggleExpForm();
-  setMsg('exp-msg','','green');
-}
-
-function toBase64(file){
-  return new Promise((res,rej)=>{
-    const reader = new FileReader();
-    reader.onload = ()=>res(reader.result);
-    reader.onerror = rej;
-    reader.readAsDataURL(file);
-  });
 }
 
 function editExpense(id){
-  const exp = EXP.find(e=>e.id===id);
+  const exp=EXP.find(e=>e.id===id);
   if(!exp) return;
   document.getElementById('exp-form-wrap').style.display='block';
-  document.getElementById('exp-form-title').textContent = 'Edit Expense';
-  document.getElementById('exp-name').value    = exp.name||'';
-  document.getElementById('exp-usd').value     = exp.usd||'';
-  document.getElementById('exp-inr').value     = exp.inr||'';
-  document.getElementById('exp-date').value    = exp.date||'';
-  document.getElementById('exp-partner').value = exp.partner||'';
-  document.getElementById('exp-cat').value     = exp.cat||'';
-  document.getElementById('exp-notes').value   = exp.notes||'';
-  document.getElementById('exp-edit-id').value = exp.id;
-  if(exp.fileName){
-    document.getElementById('exp-file-preview').innerHTML =
-      `📎 Current: ${exp.fileName} <span style="color:var(--text3)">(upload new to replace)</span>`;
-  }
+  document.getElementById('exp-form-title').textContent='Edit Expense';
+  document.getElementById('exp-name').value=exp.name||'';
+  document.getElementById('exp-usd').value=exp.usd||'';
+  document.getElementById('exp-inr').value=exp.inr||'';
+  document.getElementById('exp-date').value=exp.date||'';
+  document.getElementById('exp-partner').value=exp.partner||'';
+  document.getElementById('exp-payment').value=exp.payment||'';
+  document.getElementById('exp-cat').value=exp.cat||'';
+  document.getElementById('exp-notes').value=exp.notes||'';
+  document.getElementById('exp-edit-id').value=exp.id;
+  document.getElementById('ai-badge').style.display='none';
+  currentInvoiceData=exp.file||null;
+  currentInvoiceName=exp.fileName||null;
+  if(exp.fileName) document.getElementById('ai-preview-name').textContent='📎 '+exp.fileName;
+  document.getElementById('exp-form-wrap').scrollIntoView({behavior:'smooth'});
 }
 
 function deleteExpense(id){
   if(!confirm('Delete this expense?')) return;
-  EXP = EXP.filter(e=>e.id!==id);
+  EXP=EXP.filter(e=>e.id!==id);
   svE();
-  if(typeof dbWrite==='function') dbWrite('expenses', EXP);
+  if(typeof dbWrite!=='undefined') dbWrite('expenses',EXP);
   rExp();
 }
 
 function viewInvoice(id){
-  const exp = EXP.find(e=>e.id===id);
+  const exp=EXP.find(e=>e.id===id);
   if(!exp||!exp.file) return;
-  const win = window.open();
+  const win=window.open();
   if(exp.file.startsWith('data:image')){
     win.document.write(`<img src="${exp.file}" style="max-width:100%;height:auto">`);
   } else {
@@ -1593,81 +1773,70 @@ function viewInvoice(id){
 }
 
 function rExp(){
-  const q    = (document.getElementById('exp-q')?.value||'').toLowerCase();
-  const fPart= document.getElementById('exp-fpart')?.value||'';
-  const fCat = document.getElementById('exp-fcat')?.value||'';
+  const q    =(document.getElementById('exp-q')?.value||'').toLowerCase();
+  const fPart=document.getElementById('exp-fpart')?.value||'';
+  const fPay =document.getElementById('exp-fpay')?.value||'';
+  const fCat =document.getElementById('exp-fcat')?.value||'';
 
-  let filtered = EXP.filter(e=>{
-    const matchQ = !q || [e.name,e.partner,e.cat,e.notes,e.date].some(v=>(v||'').toLowerCase().includes(q));
-    const matchP = !fPart || e.partner===fPart;
-    const matchC = !fCat  || e.cat===fCat;
-    return matchQ && matchP && matchC;
+  let filtered=EXP.filter(e=>{
+    const matchQ=!q||[e.name,e.partner,e.cat,e.notes,e.date,e.payment].some(v=>(v||'').toLowerCase().includes(q));
+    const matchP=!fPart||e.partner===fPart;
+    const matchPay=!fPay||e.payment===fPay;
+    const matchC=!fCat||e.cat===fCat;
+    return matchQ&&matchP&&matchPay&&matchC;
   });
 
-  // Sort by date desc
   filtered.sort((a,b)=>new Date(b.date)-new Date(a.date));
 
-  // Summary cards
-  const totalUSD = filtered.reduce((s,e)=>s+(Number(e.usd)||0),0);
-  const totalINR = filtered.reduce((s,e)=>s+(Number(e.inr)||0),0);
-  const partnerMap = {};
-  filtered.forEach(e=>{ if(e.partner) partnerMap[e.partner]=(partnerMap[e.partner]||0)+(Number(e.inr)||0); });
-  const topPartner = Object.entries(partnerMap).sort((a,b)=>b[1]-a[1])[0];
+  const totalUSD=filtered.reduce((s,e)=>s+(Number(e.usd)||0),0);
+  const totalINR=filtered.reduce((s,e)=>s+(Number(e.inr)||0),0);
+  const payMap={};
+  filtered.forEach(e=>{if(e.payment)payMap[e.payment]=(payMap[e.payment]||0)+(Number(e.inr)||0);});
+  const topPay=Object.entries(payMap).sort((a,b)=>b[1]-a[1])[0];
 
-  document.getElementById('exp-summary').innerHTML = `
+  document.getElementById('exp-summary').innerHTML=`
     <div class="met"><div class="met-bar" style="background:var(--blue)"></div>
-      <div class="lb">Total Expenses</div>
-      <div class="vl">$${totalUSD.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-      <div class="sb">₹${Math.round(totalINR).toLocaleString('en-IN')}</div>
-    </div>
+      <div class="lb">Total (USD)</div>
+      <div class="vl">$${totalUSD.toFixed(2)}</div></div>
+    <div class="met"><div class="met-bar" style="background:var(--green)"></div>
+      <div class="lb">Total (INR)</div>
+      <div class="vl">₹${Math.round(totalINR).toLocaleString('en-IN')}</div></div>
     <div class="met"><div class="met-bar" style="background:var(--purple)"></div>
       <div class="lb">Count</div>
       <div class="vl">${filtered.length}</div>
-      <div class="sb">expenses</div>
-    </div>
-    <div class="met"><div class="met-bar" style="background:var(--green)"></div>
-      <div class="lb">Top Partner</div>
-      <div class="vl" style="font-size:14px">${topPartner?topPartner[0]:'—'}</div>
-      <div class="sb">${topPartner?'₹'+Math.round(topPartner[1]).toLocaleString('en-IN'):''}</div>
-    </div>
+      <div class="sb">expenses</div></div>
     <div class="met"><div class="met-bar" style="background:var(--amber)"></div>
-      <div class="lb">Avg per Expense</div>
-      <div class="vl">$${filtered.length?((totalUSD/filtered.length).toFixed(2)):'0'}</div>
-      <div class="sb">per entry</div>
-    </div>
+      <div class="lb">Top Payment</div>
+      <div class="vl" style="font-size:14px">${topPay?topPay[0]:'—'}</div></div>
   `;
 
-  // Table rows
-  const fmtUSD = n => n?`$${Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`:'—';
-  const fmtINR = n => n?`₹${Math.round(Number(n)).toLocaleString('en-IN')}`:'—';
-  const fmtDate= d => d?new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'—';
+  const fmtUSD=n=>n?`$${Number(n).toFixed(2)}`:'—';
+  const fmtINR=n=>n?`₹${Math.round(Number(n)).toLocaleString('en-IN')}`:'—';
+  const fmtDate=d=>d?new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'—';
 
-  document.getElementById('exp-tb').innerHTML = filtered.length ? filtered.map(e=>`
+  const payColors={'Credit Card':'b-blue','Debit Card':'b-purple','UPI':'b-green','Bank Transfer':'b-teal','PayPal':'b-blue','Crypto':'b-amber','Cash':'b-gray','Other':'b-gray'};
+
+  document.getElementById('exp-tb').innerHTML=filtered.length?filtered.map(e=>`
     <tr>
       <td style="padding:9px 14px;font-weight:600;border-bottom:1px solid var(--border)">${e.name||'—'}</td>
       <td style="padding:9px 14px;text-align:right;border-bottom:1px solid var(--border);font-weight:600;color:var(--blue-t)">${fmtUSD(e.usd)}</td>
       <td style="padding:9px 14px;text-align:right;border-bottom:1px solid var(--border);font-weight:600">${fmtINR(e.inr)}</td>
       <td style="padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text2)">${fmtDate(e.date)}</td>
-      <td style="padding:9px 14px;border-bottom:1px solid var(--border)">
-        ${e.partner?`<span class="badge b-blue">${e.partner}</span>`:'—'}
-      </td>
-      <td style="padding:9px 14px;border-bottom:1px solid var(--border)">
-        ${e.cat?`<span class="badge b-gray">${e.cat}</span>`:'—'}
-      </td>
+      <td style="padding:9px 14px;border-bottom:1px solid var(--border)">${e.partner?`<span class="badge b-blue">${e.partner}</span>`:'—'}</td>
+      <td style="padding:9px 14px;border-bottom:1px solid var(--border)">${e.payment?`<span class="badge ${payColors[e.payment]||'b-gray'}">${e.payment}</span>`:'—'}</td>
+      <td style="padding:9px 14px;border-bottom:1px solid var(--border)">${e.cat?`<span class="badge b-gray">${e.cat}</span>`:'—'}</td>
       <td style="padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text2);font-size:12px">${e.notes||'—'}</td>
       <td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:center">
-        ${e.file
-          ? `<button class="btn btn-sm b-green" onclick="viewInvoice('${e.id}')" style="background:var(--green-bg);color:var(--green-t);border-color:var(--green-bg)">📎 View</button>`
-          : `<span style="color:var(--text3);font-size:11px">No file</span>`}
+        ${e.file?`<button class="btn btn-sm" onclick="viewInvoice('${e.id}')" style="background:var(--green-bg);color:var(--green-t);border-color:var(--green-bg)">📎 View</button>`:`<span style="color:var(--text3);font-size:11px">—</span>`}
       </td>
       <td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:center">
         <div style="display:flex;gap:4px;justify-content:center">
-          <button class="btn btn-sm" onclick="editExpense('${e.id}')" title="Edit">✏️</button>
-          <button class="btn btn-sm btn-d" onclick="deleteExpense('${e.id}')" title="Delete">✕</button>
+          <button class="btn btn-sm" onclick="editExpense('${e.id}')">✏️</button>
+          <button class="btn btn-sm btn-d" onclick="deleteExpense('${e.id}')">✕</button>
         </div>
       </td>
     </tr>`).join('')
-    : '<tr><td colspan="9" style="padding:32px;text-align:center;color:var(--text2)">No expenses yet. Click "+ Add Expense" to add one.</td></tr>';
+    :'<tr><td colspan="10" style="padding:32px;text-align:center;color:var(--text2)">No expenses yet. Click &quot;+ Add Expense&quot; to add one.</td></tr>';
 }
 
 function expExpCSV(){

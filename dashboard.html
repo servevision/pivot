@@ -139,6 +139,121 @@ th{border-bottom:2px solid var(--border2)}
 .tot td{border-top:2px solid var(--border2)!important}
 .grp td{border-left:3px solid var(--blue)}
 </style>
+<script>
+// ============================================================
+//  AUTH + GITHUB DATA LAYER
+// ============================================================
+const API_BASE  = '/api';
+const _svToken  = sessionStorage.getItem('sv_token');
+const _svEmail  = sessionStorage.getItem('sv_email');
+
+// Redirect to login if not authenticated
+if (!_svToken) { window.location.href = '/'; }
+
+async function apiCall(method, path, data) {
+  try {
+    const opts = {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + _svToken
+      }
+    };
+    if (data !== undefined) opts.body = JSON.stringify(data);
+    const r = await fetch(API_BASE + path, opts);
+    if (r.status === 401) { window.location.href = '/'; return null; }
+    return await r.json();
+  } catch(e) {
+    console.error('API error:', path, e.message);
+    return null;
+  }
+}
+
+async function dbRead(table) {
+  return await apiCall('GET', '/data/' + table);
+}
+
+async function dbWrite(table, data) {
+  const result = await apiCall('POST', '/data/' + table, data);
+  if (result && result.ok) {
+    console.log('✓ Saved to GitHub:', table);
+  } else {
+    console.warn('✗ GitHub save failed:', table, result);
+  }
+  return result;
+}
+
+function showDbStatus(msg, type) {
+  const el = document.getElementById('db-status-txt');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = type==='ok'?'#0a5239':type==='warn'?'#6b4500':'#fff';
+  if (type==='ok') setTimeout(()=>{ if(el.textContent===msg) el.textContent=''; }, 3000);
+}
+
+async function loadFromDB() {
+  showDbStatus('Syncing...', 'info');
+  try {
+    const [sheetsData, salData, holData, expData] = await Promise.all([
+      dbRead('sheets'), dbRead('salary'), dbRead('holiday'), dbRead('expenses')
+    ]);
+    let changed = false;
+    if (sheetsData && Array.isArray(sheetsData) && sheetsData.length) {
+      SHEETS = sheetsData.map(s => ({
+        ...s, rows: Number(s.rows)||0,
+        status: s.url ? 'pending' : 'no-url'
+      }));
+      changed = true;
+    }
+    if (salData && typeof salData==='object' && Object.keys(salData).length) {
+      SAL = salData; changed = true;
+    }
+    if (holData && typeof holData==='object' && Object.keys(holData).length) {
+      HOL = holData; changed = true;
+    }
+    if (expData && Array.isArray(expData)) {
+      EXP = expData;
+    }
+    if (changed) {
+      recalc(); rSheets(); rFilters(); uFoot();
+      if (typeof curP!=='undefined' && curP!=='sheets') doR(curP);
+    }
+    showDbStatus('✓ Synced', 'ok');
+  } catch(e) {
+    showDbStatus('Sync failed', 'warn');
+    console.error('loadFromDB error:', e);
+  }
+}
+
+async function pushAllToGitHub() {
+  showDbStatus('Pushing...', 'info');
+  try {
+    await Promise.all([
+      dbWrite('sheets', SHEETS),
+      dbWrite('salary', SAL),
+      dbWrite('holiday', HOL),
+      dbWrite('expenses', EXP||[]),
+    ]);
+    showDbStatus('✓ All pushed!', 'ok');
+    alert('✓ All data saved to GitHub!');
+  } catch(e) {
+    showDbStatus('Push failed', 'warn');
+  }
+}
+
+// Patch save functions after dashboard loads
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    if(typeof sv  !=='undefined'){ const _sv =sv;  window.sv =function(){ _sv(); dbWrite('sheets', SHEETS); }; }
+    if(typeof svS !=='undefined'){ const _svS=svS; window.svS=function(){ _svS(); dbWrite('salary', SAL); }; }
+    if(typeof svH !=='undefined'){ const _svH=svH; window.svH=function(){ _svH(); dbWrite('holiday', HOL); }; }
+    if(typeof svE !=='undefined'){ const _svE=svE; window.svE=function(){ _svE(); dbWrite('expenses', EXP||[]); }; }
+    console.log('✓ GitHub save functions connected');
+    loadFromDB();
+    setInterval(loadFromDB, 3*60*1000);
+  }, 100);
+});
+</script>
 </head>
 <body>
 
@@ -880,7 +995,7 @@ function saveSal(){
   if(!emp||!sal){setMsg('se-msg','Select employee and enter salary!','red');return;}
   if(!SAL[emp])SAL[emp]={ov:{}};
   SAL[emp].monthly=sal;SAL[emp].wdays=wd;
-  svS();recalc();rSalCfg();rCurrent();
+  svS();if(typeof dbWrite!=='undefined')dbWrite('salary',SAL);recalc();rSalCfg();rCurrent();
   setMsg('se-msg',`✓ ${emp}: ₹${sal.toLocaleString('en-IN')}/month · ${wd} working days · Daily rate: ${fmt(sal/wd)}`,'green');
 }
 function saveOverride(){
@@ -891,7 +1006,7 @@ function saveOverride(){
   if(!SAL[emp])SAL[emp]={monthly:0,wdays:26,ov:{}};
   if(!SAL[emp].ov)SAL[emp].ov={};
   SAL[emp].ov[month]=sal;
-  svS();recalc();rSalCfg();rCurrent();
+  svS();if(typeof dbWrite!=='undefined')dbWrite('salary',SAL);recalc();rSalCfg();rCurrent();
   setMsg('se-msg',`✓ ${emp} — ${month}: ₹${sal.toLocaleString('en-IN')} override saved!`,'green');
 }
 function delSalEmp(emp){if(!confirm(`Delete salary config for ${emp}?`))return;delete SAL[emp];svS();recalc();rSalCfg();}
@@ -1424,8 +1539,7 @@ async function saveExpense(){
     EXP.unshift(expense);
   }
 
-  svE();
-  if(typeof dbWrite==='function') dbWrite('expenses', EXP);
+  svE();if(typeof dbWrite!=='undefined')dbWrite('expenses',EXP||[]);
   rExp();
   toggleExpForm();
   setMsg('exp-msg','','green');
@@ -1608,6 +1722,36 @@ ldS();ldH();ld();ldE();
 if(ALL.length) ALL=filterByStartMonth(ALL);
 recalc();rSheets();rFilters();uFoot();
 setInterval(()=>{if(SHEETS.some(s=>s.url&&s.status==='ok'))syncAll();},5*60*1000);
+</script>
+
+<div id="sv-userbar" style="position:fixed;bottom:0;left:0;right:0;z-index:9999;
+  background:linear-gradient(90deg,#0a3570,#1758a8);color:#fff;font-size:11px;
+  padding:6px 20px;display:flex;justify-content:space-between;align-items:center;
+  box-shadow:0 -2px 10px rgba(0,0,0,.2)">
+  <div style="display:flex;align-items:center;gap:10px">
+    <span style="background:rgba(255,255,255,.2);border-radius:10px;padding:2px 10px;
+                 font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:.7px">Admin</span>
+    <span id="sv-user-email" style="font-size:11px;opacity:.9"></span>
+    <span style="opacity:.4">·</span>
+    <span id="db-status-txt" style="font-size:11px;font-weight:600"></span>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px">
+    <button onclick="pushAllToGitHub()"
+      style="background:rgba(255,255,255,.15);color:#fff;border:none;padding:4px 12px;
+             border-radius:10px;font-weight:700;font-size:11px;cursor:pointer"
+      onmouseover="this.style.background='rgba(255,255,255,.3)'"
+      onmouseout="this.style.background='rgba(255,255,255,.15)'">↑ Push to GitHub</button>
+    <a href="/" onclick="sessionStorage.clear();return true;"
+       style="background:rgba(255,255,255,.15);color:#fff;text-decoration:none;
+              padding:4px 14px;border-radius:10px;font-weight:700;font-size:11px"
+       onmouseover="this.style.background='rgba(255,255,255,.3)'"
+       onmouseout="this.style.background='rgba(255,255,255,.15)'">Logout →</a>
+  </div>
+</div>
+<style>.content{padding-bottom:46px!important}</style>
+<script>
+  const _el=document.getElementById('sv-user-email');
+  if(_el) _el.textContent=sessionStorage.getItem('sv_email')||'';
 </script>
 </body>
 </html>

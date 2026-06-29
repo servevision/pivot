@@ -509,14 +509,25 @@ document.addEventListener('DOMContentLoaded', function() {
             <div id="ai-badge" style="display:none;background:var(--blue-bg);color:var(--blue-t);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700">🤖 AI Auto-filled</div>
           </div>
 
-          <!-- AI Upload toggle -->
-          <div style="margin-bottom:14px;padding:10px 14px;background:var(--bg2);border-radius:var(--r);border:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-            <span style="font-size:12px;font-weight:600">📎 Invoice / Receipt:</span>
-            <button class="btn btn-sm" onclick="toggleAIUpload()" id="ai-upload-btn">
-              🤖 Scan with AI (auto-fill)
-            </button>
-            <span style="color:var(--text3);font-size:11px">or fill manually below</span>
-            <div id="ai-preview-name" style="font-size:11px;color:var(--green-t);font-weight:600"></div>
+          <!-- AI Upload + Invoice Preview -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+            <div style="padding:10px 14px;background:var(--bg2);border-radius:var(--r);border:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <span style="font-size:12px;font-weight:600">📎 Invoice / Receipt:</span>
+              <button class="btn btn-sm" onclick="toggleAIUpload()" id="ai-upload-btn">
+                🤖 Scan with AI (auto-fill)
+              </button>
+              <span style="color:var(--text3);font-size:11px">or fill manually below</span>
+              <div id="ai-preview-name" style="font-size:11px;color:var(--green-t);font-weight:600;width:100%"></div>
+            </div>
+            <!-- Invoice Preview -->
+            <div id="invoice-preview-box" style="border:1px solid var(--border);border-radius:var(--r);background:var(--bg2);overflow:hidden;min-height:80px;display:flex;align-items:center;justify-content:center;max-height:280px">
+              <div id="invoice-preview-empty" style="color:var(--text3);font-size:12px;text-align:center;padding:20px">
+                <div style="font-size:24px;margin-bottom:6px">🧾</div>
+                Invoice preview will appear here after scanning
+              </div>
+              <img id="invoice-preview-img" style="display:none;max-width:100%;max-height:280px;object-fit:contain">
+              <iframe id="invoice-preview-pdf" style="display:none;width:100%;height:280px;border:none"></iframe>
+            </div>
           </div>
 
           <!-- Form Fields -->
@@ -527,11 +538,11 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="fg">
               <label>Amount (USD $)</label>
-              <input type="number" id="exp-usd" placeholder="0.00" step="0.01" oninput="autoConvert()">
+              <input type="number" id="exp-usd" placeholder="0.00" step="0.01">
             </div>
             <div class="fg">
-              <label>Amount (INR ₹)</label>
-              <input type="number" id="exp-inr" placeholder="Auto from USD or enter manually" step="0.01">
+              <label>Amount (INR ₹) — Enter manually</label>
+              <input type="number" id="exp-inr" placeholder="Enter INR amount manually" step="0.01">
             </div>
             <div class="fg">
               <label>Date</label>
@@ -1524,8 +1535,34 @@ let currentInvoiceData = null;
 let currentInvoiceName = null;
 
 function autoConvert(){
-  const usd=parseFloat(document.getElementById('exp-usd').value)||0;
-  if(usd>0) document.getElementById('exp-inr').value=(usd*USD_TO_INR).toFixed(2);
+  // INR is manual — no auto-convert
+}
+
+function showInvoicePreview(b64Data, mediaType){
+  const box  = document.getElementById('invoice-preview-box');
+  const empty= document.getElementById('invoice-preview-empty');
+  const img  = document.getElementById('invoice-preview-img');
+  const pdf  = document.getElementById('invoice-preview-pdf');
+
+  empty.style.display='none';
+
+  if(mediaType && mediaType.startsWith('image/')){
+    img.src = b64Data;
+    img.style.display='block';
+    pdf.style.display='none';
+  } else {
+    pdf.src = b64Data;
+    pdf.style.display='block';
+    img.style.display='none';
+  }
+}
+
+function clearInvoicePreview(){
+  document.getElementById('invoice-preview-empty').style.display='block';
+  document.getElementById('invoice-preview-img').style.display='none';
+  document.getElementById('invoice-preview-img').src='';
+  document.getElementById('invoice-preview-pdf').style.display='none';
+  document.getElementById('invoice-preview-pdf').src='';
 }
 
 function toggleAIUpload(){
@@ -1566,7 +1603,10 @@ async function scanWithAI(file){
     const b64=await toBase64(file);
     currentInvoiceData=b64;
     currentInvoiceName=file.name;
-    document.getElementById('ai-preview-name').textContent='📎 '+file.name+' attached';
+    document.getElementById('ai-preview-name').textContent='📎 '+file.name;
+
+    // Show invoice preview in panel immediately
+    showInvoicePreview(b64, file.type);
 
     statusMsg.textContent='Claude AI is analyzing your invoice...';
 
@@ -1595,7 +1635,7 @@ async function scanWithAI(file){
     // Auto-fill form
     if(parsed.name)  document.getElementById('exp-name').value=parsed.name;
     if(parsed.usd)   document.getElementById('exp-usd').value=Number(parsed.usd).toFixed(2);
-    if(parsed.inr)   document.getElementById('exp-inr').value=Number(parsed.inr).toFixed(2);
+    // INR left blank — user will enter manually
     if(parsed.date)  document.getElementById('exp-date').value=parsed.date;
     if(parsed.notes) document.getElementById('exp-notes').value=parsed.notes;
     if(parsed.category){
@@ -1650,6 +1690,7 @@ function clearExpForm(){
   document.getElementById('exp-msg').textContent='';
   document.getElementById('ai-badge').style.display='none';
   document.getElementById('ai-preview-name').textContent='';
+  clearInvoicePreview();
   currentInvoiceData=null;
   currentInvoiceName=null;
 }
@@ -1715,6 +1756,7 @@ function editExpense(id){
   currentInvoiceData=exp.file||null;
   currentInvoiceName=exp.fileName||null;
   if(exp.fileName) document.getElementById('ai-preview-name').textContent='📎 '+exp.fileName;
+  if(exp.file) showInvoicePreview(exp.file, exp.file.startsWith('data:image')?'image/jpeg':'application/pdf');
   document.getElementById('exp-form-wrap').scrollIntoView({behavior:'smooth'});
 }
 

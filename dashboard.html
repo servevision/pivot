@@ -1575,57 +1575,22 @@ async function scanWithAI(file){
     const isImage=mediaType.startsWith('image/');
     const isPDF=mediaType==='application/pdf';
 
-    // Call Claude API
+    // Call Claude API via Cloudflare Worker (no CORS issue)
     const b64Data=b64.split(',')[1];
 
-    const messages=[{
-      role:'user',
-      content:[
-        ...(isImage?[{
-          type:'image',
-          source:{type:'base64',media_type:mediaType,data:b64Data}
-        }]:[{
-          type:'document',
-          source:{type:'base64',media_type:'application/pdf',data:b64Data}
-        }]),
-        {
-          type:'text',
-          text:`Analyze this invoice/receipt and extract the following information. Return ONLY a JSON object with these exact fields (no markdown, no explanation):
-{
-  "name": "short expense description (e.g. 'AWS EC2 Server', 'Canva Pro Subscription')",
-  "usd": 0.00,
-  "inr": 0.00,
-  "date": "YYYY-MM-DD",
-  "category": "one of: Software / SaaS, Server / Hosting, Domain, Marketing, Tools, Travel, Office, Other",
-  "notes": "invoice number or any important detail"
-}
-If amount is in INR only, set usd to 0 and calculate usd = inr/84. If in USD only, set inr = usd*84. If date not found, use today's date. Return valid JSON only.`
-        }
-      ]
-    }];
-
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+    const resp=await fetch('/api/scan',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-6',
-        max_tokens:500,
-        messages
-      })
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':'Bearer sv_api_2026_karnal_pivot'
+      },
+      body:JSON.stringify({mediaType,b64Data})
     });
 
+    if(!resp.ok) throw new Error('Scan API error: '+resp.status);
     const result=await resp.json();
-    const text=result.content?.[0]?.text||'{}';
-
-    // Parse AI response
-    let parsed={};
-    try{
-      const clean=text.replace(/```json|```/g,'').trim();
-      parsed=JSON.parse(clean);
-    }catch(e){
-      console.error('AI parse error:',e,text);
-      throw new Error('Could not parse AI response');
-    }
+    if(!result.ok) throw new Error(result.error||'AI scan failed');
+    const parsed=result.data;
 
     // Auto-fill form
     if(parsed.name)  document.getElementById('exp-name').value=parsed.name;

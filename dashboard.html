@@ -565,17 +565,16 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="fg">
               <label>Payment Method <span style="color:var(--red-t)">*</span></label>
-              <select id="exp-payment" style="width:100%">
-                <option value="">-- Select Method --</option>
-                <option>Credit Card</option>
-                <option>Debit Card</option>
-                <option>UPI</option>
-                <option>Bank Transfer</option>
-                <option>PayPal</option>
-                <option>Crypto</option>
-                <option>Cash</option>
-                <option>Other</option>
-              </select>
+              <div style="display:flex;gap:6px">
+                <select id="exp-payment" style="flex:1"></select>
+                <button class="btn btn-sm btn-p" onclick="showAddPayMethod()" title="Add new payment method" style="flex-shrink:0;padding:6px 10px">+</button>
+              </div>
+              <!-- Add new method inline -->
+              <div id="add-pay-wrap" style="display:none;margin-top:6px;display:none;gap:6px;align-items:center">
+                <input type="text" id="new-pay-input" placeholder="e.g. Mercury Card, Wise" style="flex:1;font-size:12px">
+                <button class="btn btn-sm btn-p" onclick="saveNewPayMethod()" style="flex-shrink:0">Save</button>
+                <button class="btn btn-sm" onclick="hideAddPayMethod()" style="flex-shrink:0">✕</button>
+              </div>
             </div>
             <div class="fg">
               <label>Category</label>
@@ -623,14 +622,6 @@ document.addEventListener('DOMContentLoaded', function() {
         </select>
         <select id="exp-fpay" onchange="rExp()" style="min-width:130px">
           <option value="">All Payment Methods</option>
-          <option>Credit Card</option>
-          <option>Debit Card</option>
-          <option>UPI</option>
-          <option>Bank Transfer</option>
-          <option>PayPal</option>
-          <option>Crypto</option>
-          <option>Cash</option>
-          <option>Other</option>
         </select>
         <select id="exp-fcat" onchange="rExp()" style="min-width:130px">
           <option value="">All Categories</option>
@@ -1531,6 +1522,73 @@ function expEP(){
 
 // ── EXPENSE FUNCTIONS ──────────────────────────────────────
 const USD_TO_INR = 84;
+
+// Default payment methods
+const DEFAULT_PAY_METHODS = ['Credit Card','Debit Card','UPI','Bank Transfer','PayPal','Crypto','Cash','Other'];
+
+function getPayMethods(){
+  try{
+    const stored = localStorage.getItem('sv_pay_methods');
+    if(stored) return JSON.parse(stored);
+  }catch(e){}
+  return [...DEFAULT_PAY_METHODS];
+}
+
+function savePayMethods(methods){
+  try{ localStorage.setItem('sv_pay_methods', JSON.stringify(methods)); }catch(e){}
+}
+
+function populatePaySelects(){
+  const methods = getPayMethods();
+  // Form select
+  const sel = document.getElementById('exp-payment');
+  if(sel){
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">-- Select Method --</option>' +
+      methods.map(m=>`<option value="${m}">${m}</option>`).join('');
+    if(cur) sel.value = cur;
+  }
+  // Filter select
+  const fsel = document.getElementById('exp-fpay');
+  if(fsel){
+    const cur2 = fsel.value;
+    fsel.innerHTML = '<option value="">All Payment Methods</option>' +
+      methods.map(m=>`<option value="${m}">${m}</option>`).join('');
+    if(cur2) fsel.value = cur2;
+  }
+}
+
+function showAddPayMethod(){
+  const wrap = document.getElementById('add-pay-wrap');
+  wrap.style.display = 'flex';
+  document.getElementById('new-pay-input').focus();
+}
+
+function hideAddPayMethod(){
+  document.getElementById('add-pay-wrap').style.display = 'none';
+  document.getElementById('new-pay-input').value = '';
+}
+
+function saveNewPayMethod(){
+  const val = document.getElementById('new-pay-input').value.trim();
+  if(!val){ alert('Please enter a payment method name'); return; }
+  const methods = getPayMethods();
+  if(methods.includes(val)){ alert('Already exists!'); return; }
+  // Add before 'Other'
+  const idx = methods.indexOf('Other');
+  if(idx>=0) methods.splice(idx, 0, val);
+  else methods.push(val);
+  savePayMethods(methods);
+  populatePaySelects();
+  // Select the new method
+  document.getElementById('exp-payment').value = val;
+  hideAddPayMethod();
+}
+
+// Init payment selects on page load
+document.addEventListener('DOMContentLoaded', function(){
+  setTimeout(populatePaySelects, 200);
+});
 let currentInvoiceData = null;
 let currentInvoiceName = null;
 
@@ -1780,6 +1838,7 @@ function viewInvoice(id){
 }
 
 function rExp(){
+  populatePaySelects(); // keep dropdowns fresh
   const q    =(document.getElementById('exp-q')?.value||'').toLowerCase();
   const fPart=document.getElementById('exp-fpart')?.value||'';
   const fPay =document.getElementById('exp-fpay')?.value||'';

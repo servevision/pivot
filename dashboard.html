@@ -567,28 +567,21 @@ document.addEventListener('DOMContentLoaded', function() {
               <label>Payment Method <span style="color:var(--red-t)">*</span></label>
               <div style="display:flex;gap:6px">
                 <select id="exp-payment" style="flex:1"></select>
-                <button class="btn btn-sm btn-p" onclick="showAddPayMethod()" title="Add new payment method" style="flex-shrink:0;padding:6px 10px">+</button>
-              </div>
-              <!-- Add new method inline -->
-              <div id="add-pay-wrap" style="display:none;margin-top:6px;display:none;gap:6px;align-items:center">
-                <input type="text" id="new-pay-input" placeholder="e.g. Mercury Card, Wise" style="flex:1;font-size:12px">
-                <button class="btn btn-sm btn-p" onclick="saveNewPayMethod()" style="flex-shrink:0">Save</button>
-                <button class="btn btn-sm" onclick="hideAddPayMethod()" style="flex-shrink:0">✕</button>
+                <button class="btn btn-sm btn-p" onclick="openManageModal('payment')" title="Manage payment methods" style="flex-shrink:0;padding:6px 10px">⚙</button>
               </div>
             </div>
             <div class="fg">
               <label>Category</label>
-              <select id="exp-cat" style="width:100%">
-                <option value="">-- Select Category --</option>
-                <option>Software / SaaS</option>
-                <option>Server / Hosting</option>
-                <option>Domain</option>
-                <option>Marketing</option>
-                <option>Tools</option>
-                <option>Travel</option>
-                <option>Office</option>
-                <option>Other</option>
-              </select>
+              <div style="display:flex;gap:6px">
+                <select id="exp-cat" style="flex:1" onchange="populateSubcat()"></select>
+                <button class="btn btn-sm btn-p" onclick="openManageModal('category')" title="Manage categories" style="flex-shrink:0;padding:6px 10px">⚙</button>
+              </div>
+            </div>
+            <div class="fg" id="subcat-wrap" style="display:none">
+              <label>Sub-category</label>
+              <div style="display:flex;gap:6px">
+                <select id="exp-subcat" style="flex:1"></select>
+              </div>
             </div>
           </div>
 
@@ -1523,71 +1516,211 @@ function expEP(){
 // ── EXPENSE FUNCTIONS ──────────────────────────────────────
 const USD_TO_INR = 84;
 
-// Default payment methods
+// ── PAYMENT METHODS + CATEGORIES MANAGEMENT ─────────────────
 const DEFAULT_PAY_METHODS = ['Credit Card','Debit Card','UPI','Bank Transfer','PayPal','Crypto','Cash','Other'];
+const DEFAULT_CATEGORIES = {
+  'Software / SaaS':   ['Subscription','One-time License','Plugin'],
+  'Server / Hosting':  ['VPS','Cloud','Shared Hosting','CDN'],
+  'Domain':            ['Registration','Renewal','Transfer'],
+  'Marketing':         ['Ads','SEO','Content'],
+  'Tools':             ['Design','Dev Tools','Analytics'],
+  'Travel':            ['Flight','Hotel','Transport'],
+  'Office':            ['Supplies','Equipment','Internet'],
+  'Other':             []
+};
 
 function getPayMethods(){
-  try{
-    const stored = localStorage.getItem('sv_pay_methods');
-    if(stored) return JSON.parse(stored);
-  }catch(e){}
+  try{ const s=localStorage.getItem('sv_pay_methods'); if(s) return JSON.parse(s); }catch(e){}
   return [...DEFAULT_PAY_METHODS];
 }
+function savePayMethods(m){ try{ localStorage.setItem('sv_pay_methods',JSON.stringify(m)); }catch(e){} }
 
-function savePayMethods(methods){
-  try{ localStorage.setItem('sv_pay_methods', JSON.stringify(methods)); }catch(e){}
+function getCategories(){
+  try{ const s=localStorage.getItem('sv_categories'); if(s) return JSON.parse(s); }catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
 }
+function saveCategories(c){ try{ localStorage.setItem('sv_categories',JSON.stringify(c)); }catch(e){} }
 
 function populatePaySelects(){
-  const methods = getPayMethods();
-  // Form select
-  const sel = document.getElementById('exp-payment');
-  if(sel){
-    const cur = sel.value;
-    sel.innerHTML = '<option value="">-- Select Method --</option>' +
-      methods.map(m=>`<option value="${m}">${m}</option>`).join('');
-    if(cur) sel.value = cur;
-  }
-  // Filter select
-  const fsel = document.getElementById('exp-fpay');
+  const methods=getPayMethods();
+  ['exp-payment'].forEach(id=>{
+    const sel=document.getElementById(id);
+    if(!sel) return;
+    const cur=sel.value;
+    sel.innerHTML='<option value="">-- Select Method --</option>'+methods.map(m=>`<option>${m}</option>`).join('');
+    if(cur) sel.value=cur;
+  });
+  const fsel=document.getElementById('exp-fpay');
   if(fsel){
-    const cur2 = fsel.value;
-    fsel.innerHTML = '<option value="">All Payment Methods</option>' +
-      methods.map(m=>`<option value="${m}">${m}</option>`).join('');
-    if(cur2) fsel.value = cur2;
+    const cur=fsel.value;
+    fsel.innerHTML='<option value="">All Payment Methods</option>'+methods.map(m=>`<option>${m}</option>`).join('');
+    if(cur) fsel.value=cur;
   }
 }
 
-function showAddPayMethod(){
-  const wrap = document.getElementById('add-pay-wrap');
-  wrap.style.display = 'flex';
-  document.getElementById('new-pay-input').focus();
+function populateCatSelects(){
+  const cats=getCategories();
+  const catNames=Object.keys(cats);
+  ['exp-cat'].forEach(id=>{
+    const sel=document.getElementById(id);
+    if(!sel) return;
+    const cur=sel.value;
+    sel.innerHTML='<option value="">-- Select Category --</option>'+catNames.map(c=>`<option>${c}</option>`).join('');
+    if(cur) sel.value=cur;
+  });
+  const fcat=document.getElementById('exp-fcat');
+  if(fcat){
+    const cur=fcat.value;
+    fcat.innerHTML='<option value="">All Categories</option>'+catNames.map(c=>`<option>${c}</option>`).join('');
+    if(cur) fcat.value=cur;
+  }
+  populateSubcat();
 }
 
-function hideAddPayMethod(){
-  document.getElementById('add-pay-wrap').style.display = 'none';
-  document.getElementById('new-pay-input').value = '';
+function populateSubcat(){
+  const cat=document.getElementById('exp-cat')?.value;
+  const cats=getCategories();
+  const subs=cats[cat]||[];
+  const wrap=document.getElementById('subcat-wrap');
+  const sel=document.getElementById('exp-subcat');
+  if(!wrap||!sel) return;
+  if(cat&&subs.length>0){
+    sel.innerHTML='<option value="">-- Select Sub-category --</option>'+subs.map(s=>`<option>${s}</option>`).join('');
+    wrap.style.display='block';
+  } else {
+    wrap.style.display='none';
+    sel.value='';
+  }
 }
 
-function saveNewPayMethod(){
-  const val = document.getElementById('new-pay-input').value.trim();
-  if(!val){ alert('Please enter a payment method name'); return; }
-  const methods = getPayMethods();
-  if(methods.includes(val)){ alert('Already exists!'); return; }
-  // Add before 'Other'
-  const idx = methods.indexOf('Other');
-  if(idx>=0) methods.splice(idx, 0, val);
-  else methods.push(val);
-  savePayMethods(methods);
+// ── Manage Modal ──────────────────────────────────────────
+let _modalType='';
+
+function openManageModal(type){
+  _modalType=type;
+  const modal=document.getElementById('manage-modal');
+  modal.style.display='flex';
+
+  if(type==='payment'){
+    document.getElementById('modal-title').textContent='Manage Payment Methods';
+    document.getElementById('modal-add-label').textContent='New Payment Method';
+    document.getElementById('modal-new-item').placeholder='e.g. Mercury Card, Wise...';
+    document.getElementById('modal-parent-wrap').style.display='none';
+  } else {
+    document.getElementById('modal-title').textContent='Manage Categories & Sub-categories';
+    document.getElementById('modal-add-label').textContent='New Category / Sub-category';
+    document.getElementById('modal-new-item').placeholder='Enter name...';
+    document.getElementById('modal-parent-wrap').style.display='block';
+    // Populate parent dropdown
+    const cats=getCategories();
+    const pSel=document.getElementById('modal-parent-cat');
+    pSel.innerHTML='<option value="">-- Top-level Category --</option>'+
+      Object.keys(cats).map(c=>`<option>${c}</option>`).join('');
+  }
+  renderModalItems();
+}
+
+function closeManageModal(){
+  document.getElementById('manage-modal').style.display='none';
+  document.getElementById('modal-new-item').value='';
   populatePaySelects();
-  // Select the new method
-  document.getElementById('exp-payment').value = val;
-  hideAddPayMethod();
+  populateCatSelects();
 }
 
-// Init payment selects on page load
+function addModalItem(){
+  const val=document.getElementById('modal-new-item').value.trim();
+  if(!val){ alert('Enter a name first'); return; }
+
+  if(_modalType==='payment'){
+    const methods=getPayMethods();
+    if(methods.includes(val)){ alert('Already exists!'); return; }
+    const idx=methods.indexOf('Other');
+    if(idx>=0) methods.splice(idx,0,val); else methods.push(val);
+    savePayMethods(methods);
+    document.getElementById('exp-payment').value='';
+
+  } else {
+    const cats=getCategories();
+    const parent=document.getElementById('modal-parent-cat').value;
+    if(parent){
+      // Add subcategory
+      if(!cats[parent]) cats[parent]=[];
+      if(cats[parent].includes(val)){ alert('Already exists!'); return; }
+      cats[parent].push(val);
+    } else {
+      // Add top-level category
+      if(cats[val]!==undefined){ alert('Already exists!'); return; }
+      cats[val]=[];
+    }
+    saveCategories(cats);
+    // Refresh parent dropdown
+    const pSel=document.getElementById('modal-parent-cat');
+    const cur=pSel.value;
+    pSel.innerHTML='<option value="">-- Top-level Category --</option>'+
+      Object.keys(cats).map(c=>`<option>${c}</option>`).join('');
+    pSel.value=cur;
+  }
+
+  document.getElementById('modal-new-item').value='';
+  renderModalItems();
+}
+
+function deleteModalItem(val, parent){
+  if(_modalType==='payment'){
+    if(!confirm(`Remove "${val}"?`)) return;
+    const methods=getPayMethods().filter(m=>m!==val);
+    savePayMethods(methods);
+  } else {
+    if(!confirm(`Remove "${val}"?`)) return;
+    const cats=getCategories();
+    if(parent){
+      if(cats[parent]) cats[parent]=cats[parent].filter(s=>s!==val);
+    } else {
+      delete cats[val];
+    }
+    saveCategories(cats);
+  }
+  renderModalItems();
+}
+
+function renderModalItems(){
+  const list=document.getElementById('modal-items-list');
+  if(_modalType==='payment'){
+    const methods=getPayMethods();
+    list.innerHTML=methods.map(m=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;
+                  padding:8px 12px;border-radius:var(--r);margin-bottom:4px;
+                  background:var(--bg2);border:1px solid var(--border)">
+        <span style="font-size:13px;font-weight:500">${m}</span>
+        <button class="btn btn-sm btn-d" onclick="deleteModalItem('${m.replace(/'/g,"\'")}',null)"
+          style="padding:2px 8px;font-size:11px">✕ Remove</button>
+      </div>`).join('');
+  } else {
+    const cats=getCategories();
+    list.innerHTML=Object.entries(cats).map(([cat,subs])=>`
+      <div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;
+                    padding:8px 12px;border-radius:var(--r);
+                    background:var(--blue-bg);border:1px solid var(--border);margin-bottom:4px">
+          <span style="font-size:13px;font-weight:700;color:var(--blue-t)">📁 ${cat}</span>
+          <button class="btn btn-sm btn-d" onclick="deleteModalItem('${cat.replace(/'/g,"\'")}',null)"
+            style="padding:2px 8px;font-size:11px">✕</button>
+        </div>
+        ${subs.map(s=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;
+                      padding:6px 12px 6px 28px;border-radius:var(--r);margin-bottom:3px;
+                      background:var(--bg2);border:1px solid var(--border)">
+            <span style="font-size:12px;color:var(--text2)">└ ${s}</span>
+            <button class="btn btn-sm btn-d" onclick="deleteModalItem('${s.replace(/'/g,"\'")}','${cat.replace(/'/g,"\'")}')"
+              style="padding:2px 8px;font-size:11px">✕</button>
+          </div>`).join('')}
+      </div>`).join('');
+  }
+}
+
+// Init on page load
 document.addEventListener('DOMContentLoaded', function(){
-  setTimeout(populatePaySelects, 200);
+  setTimeout(()=>{ populatePaySelects(); populateCatSelects(); }, 200);
 });
 let currentInvoiceData = null;
 let currentInvoiceName = null;
@@ -1769,9 +1902,10 @@ async function saveExpense(){
   if(!partner){setMsg('exp-msg','Please select a partner!','red');return;}
   if(!payment){setMsg('exp-msg','Please select payment method!','red');return;}
 
+  const subcat=document.getElementById('exp-subcat')?.value||'';
   const expense={
     id:editId||Date.now().toString(36)+Math.random().toString(36).substr(2,4),
-    name,usd,inr,date,partner,payment,cat,notes,
+    name,usd,inr,date,partner,payment,cat,subcat,notes,
     file:currentInvoiceData,
     fileName:currentInvoiceName,
     createdAt:editId?undefined:new Date().toISOString(),
@@ -1808,6 +1942,7 @@ function editExpense(id){
   document.getElementById('exp-partner').value=exp.partner||'';
   document.getElementById('exp-payment').value=exp.payment||'';
   document.getElementById('exp-cat').value=exp.cat||'';
+  setTimeout(()=>{ populateSubcat(); if(exp.subcat) document.getElementById('exp-subcat').value=exp.subcat||''; },50);
   document.getElementById('exp-notes').value=exp.notes||'';
   document.getElementById('exp-edit-id').value=exp.id;
   document.getElementById('ai-badge').style.display='none';
@@ -1838,7 +1973,8 @@ function viewInvoice(id){
 }
 
 function rExp(){
-  populatePaySelects(); // keep dropdowns fresh
+  populatePaySelects();
+  populateCatSelects();
   const q    =(document.getElementById('exp-q')?.value||'').toLowerCase();
   const fPart=document.getElementById('exp-fpart')?.value||'';
   const fPay =document.getElementById('exp-fpay')?.value||'';
@@ -1890,7 +2026,7 @@ function rExp(){
       <td style="padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text2)">${fmtDate(e.date)}</td>
       <td style="padding:9px 14px;border-bottom:1px solid var(--border)">${e.partner?`<span class="badge b-blue">${e.partner}</span>`:'—'}</td>
       <td style="padding:9px 14px;border-bottom:1px solid var(--border)">${e.payment?`<span class="badge ${payColors[e.payment]||'b-gray'}">${e.payment}</span>`:'—'}</td>
-      <td style="padding:9px 14px;border-bottom:1px solid var(--border)">${e.cat?`<span class="badge b-gray">${e.cat}</span>`:'—'}</td>
+      <td style="padding:9px 14px;border-bottom:1px solid var(--border)">${e.cat?`<span class="badge b-gray">${e.cat}${e.subcat?' › '+e.subcat:''}</span>`:'—'}</td>
       <td style="padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text2);font-size:12px">${e.notes||'—'}</td>
       <td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:center">
         ${e.file?`<button class="btn btn-sm" onclick="viewInvoice('${e.id}')" style="background:var(--green-bg);color:var(--green-t);border-color:var(--green-bg)">📎 View</button>`:`<span style="color:var(--text3);font-size:11px">—</span>`}

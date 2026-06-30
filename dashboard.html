@@ -660,10 +660,23 @@ document.addEventListener('DOMContentLoaded', function() {
         <button class="btn" onclick="copyTable('wr-tb','Work Record')">📋 Copy Table</button>
         <button class="btn" onclick="expWR()">↓ Export CSV</button>
       </div>
-      <div class="tw" style="max-height:calc(100vh - 180px)"><table>
-        <thead><tr><th>Month</th><th>UK(DW)</th><th>Name</th><th>Date</th><th>Partner</th><th>Project</th><th>Website / Work</th><th>Working</th><th style="text-align:right">Days</th><th style="text-align:right">Salary</th></tr></thead>
-        <tbody id="wr-tb"></tbody>
-      </table></div>
+      <div style="overflow-y:auto;overflow-x:auto;max-height:calc(100vh - 170px);border-radius:var(--rl);border:1px solid var(--border);box-shadow:var(--sh);background:var(--bg)">
+        <table style="width:100%;border-collapse:separate;border-spacing:0">
+          <thead><tr>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Month</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px">UK(DW)</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Name</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Date</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Partner</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Project</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Website / Work</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Working</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;text-align:right">Days</th>
+            <th style="position:sticky;top:0;background:var(--bg2);box-shadow:0 2px 0 var(--border2);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;text-align:right">Salary</th>
+          </tr></thead>
+          <tbody id="wr-tb"></tbody>
+        </table>
+      </div>
     </div>
 
   </div>

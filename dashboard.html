@@ -2139,5 +2139,33 @@ setInterval(()=>{if(SHEETS.some(s=>s.url&&s.status==='ok'))syncAll();},5*60*1000
   const _el=document.getElementById('sv-user-email');
   if(_el) _el.textContent=sessionStorage.getItem('sv_email')||'';
 </script>
+
+<!-- Manage Modal: Payment Methods & Categories -->
+<div id="manage-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.5);align-items:center;justify-content:center">
+  <div style="background:var(--bg);border-radius:var(--rl);width:500px;max-width:95vw;max-height:82vh;display:flex;flex-direction:column;box-shadow:var(--sh2)">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
+      <div style="font-size:14px;font-weight:800" id="modal-title">Manage</div>
+      <button class="btn btn-sm" onclick="closeManageModal()">✕ Close</button>
+    </div>
+    <div style="padding:16px 20px;flex:1;overflow-y:auto">
+      <div style="display:flex;gap:8px;margin-bottom:14px;align-items:flex-end;flex-wrap:wrap">
+        <div class="fg" style="flex:1;min-width:140px">
+          <label id="modal-add-label">New Item</label>
+          <input type="text" id="modal-new-item" placeholder="Enter name..." style="width:100%" onkeydown="if(event.key==='Enter')addModalItem()">
+        </div>
+        <div class="fg" id="modal-parent-wrap" style="flex:1;min-width:140px;display:none">
+          <label>Parent Category (for sub-category)</label>
+          <select id="modal-parent-cat" style="width:100%"></select>
+        </div>
+        <button class="btn btn-p" onclick="addModalItem()" style="height:35px;flex-shrink:0">+ Add</button>
+      </div>
+      <div id="modal-items-list"></div>
+    </div>
+    <div style="padding:12px 20px;border-top:1px solid var(--border);text-align:right;flex-shrink:0">
+      <button class="btn btn-p" onclick="closeManageModal()">✓ Done</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

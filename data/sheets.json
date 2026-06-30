@@ -4,9 +4,9 @@
     "name": "Ansh",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbw5wcr-BJaE6qkBFv0IqIADPEnVHPEtben4HYYK0wKQKbfL2pwSKz6o5JFios1buZqT-g/exec",
-    "status": "loading",
+    "status": "ok",
     "rows": 106,
-    "lastSync": "4:17:03 pm"
+    "lastSync": "4:27:49 pm"
   },
   {
     "id": "s2",
@@ -76,8 +76,8 @@
     "name": "Payal",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbws-YI_t1sJ6pDxLcRCWHWi7FfZC6ZS1O9SgcNBLXNbmLmqI43ApNfA4DBY92-tpzLQrQ/exec",
-    "status": "loading",
+    "status": "ok",
     "rows": 172,
-    "lastSync": "4:17:27 pm"
+    "lastSync": "4:28:04 pm"
   }
 ]

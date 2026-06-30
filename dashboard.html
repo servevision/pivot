@@ -420,6 +420,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="card" style="margin-bottom:0"><div class="card-t">Partner-wise Salary</div><div style="position:relative;height:195px"><canvas id="ch2" role="img" aria-label="Partner wise salary">data</canvas></div></div>
       </div>
       <div class="card"><div class="card-t">Employee Summary</div><div id="emp-ov"></div></div>
+      <div class="card"><div class="card-t">Leave Bank — Carry Forward Balance</div><div class="card-sub" style="font-size:11px;color:var(--text2);margin-bottom:10px">Cumulative leave balance per employee (1.5 days earned per month)</div><div id="leave-bank-ov"></div></div>
     </div>
 
     <!-- SALARIES -->
@@ -746,23 +747,18 @@ function getPaidLeaveDays(emp,month){
 
 function recalc(){
   // ============================================================
-  // SALARY = FIXED MONTHLY (deduction-based)
-  //
-  // Daily Rate = Monthly Salary ÷ Calendar Days of that month
-  //   Apr=30, May=31, Jun=30, Jul=31, Feb=28/29
-  //
-  // All sheet entries (work + sunday + holiday + leave) = present
-  // Manually added paid holidays = also present
-  // Truly absent days = Calendar days - all sheet entries - paid holidays
-  //
-  // Salary = Monthly - (Daily Rate × Absent Days)
-  // Leave rule: 1.5 days paid, extra leave = deduction
-  // Cap: salary never exceeds monthly amount
-  //
-  // Partner split: proportional to days worked per partner
+  // SALARY FORMULA — Deduction based + Leave Bank (Carry Forward)
+  // Daily Rate = Monthly ÷ Calendar Days
+  // Present = all sheet entries (work+sun+hol+leave)
+  // Leave Bank: 1.5 days earned/month, carries forward
+  // Absent = Calendar - sheet entries + unpaid leave (from bank)
+  // Final = Monthly - (Daily Rate × Absent)
+  // Cap = never exceed Monthly Salary
   // ============================================================
 
-  // Step 1: All unique dates per emp+month from sheet (any entry type)
+  const MONTHLY_LEAVE_EARN = 1.5;
+
+  // Step 1: All unique dates per emp+month (any entry)
   const empMonthAllDates={};
   ALL.forEach(r=>{
     if(!r.name||!r.month||!r.date)return;
@@ -771,28 +767,58 @@ function recalc(){
     empMonthAllDates[mk].add(r.date);
   });
 
-  // Step 2: Count leave days per emp+month
-  const empMonthLeaveDays={};
+  // Step 2: Leave dates per emp+month
+  const empMonthLeaveTaken={};
   ALL.forEach(r=>{
     if(!r.name||!r.month||!r.date||!r.isLeave)return;
     const mk=r.name+'|'+r.month;
-    if(!empMonthLeaveDays[mk])empMonthLeaveDays[mk]=new Set();
-    empMonthLeaveDays[mk].add(r.date);
+    if(!empMonthLeaveTaken[mk])empMonthLeaveTaken[mk]=new Set();
+    empMonthLeaveTaken[mk].add(r.date);
   });
 
-  // Step 3: Count partners per date (for salary split)
+  // Step 3: All months sorted chronologically
+  const allMonths=[...new Set(ALL.filter(r=>r.month).map(r=>r.month))];
+  const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  allMonths.sort((a,b)=>{
+    const [ma,ya]=a.split('-'), [mb,yb]=b.split('-');
+    return (parseInt(ya)*12+MN.indexOf(ma))-(parseInt(yb)*12+MN.indexOf(mb));
+  });
+
+  // Step 4: Leave bank per employee (running balance)
+  const empLeaveBank={};
+  const empMonthUnpaid={};
+  const allEmps=[...new Set(ALL.filter(r=>r.name&&SAL[r.name]).map(r=>r.name))];
+
+  allEmps.forEach(emp=>{
+    let bank=0;
+    allMonths.forEach(month=>{
+      const mk=emp+'|'+month;
+      if(!(empMonthAllDates[mk]||empMonthLeaveTaken[mk])){
+        if(SAL[emp]&&getMonthSal(emp,month)) bank+=MONTHLY_LEAVE_EARN;
+        empMonthUnpaid[mk]=0;
+        return;
+      }
+      if(SAL[emp]&&getMonthSal(emp,month)) bank+=MONTHLY_LEAVE_EARN;
+      const taken=(empMonthLeaveTaken[mk]||new Set()).size;
+      if(taken>0){
+        if(taken<=bank){ bank-=taken; empMonthUnpaid[mk]=0; }
+        else{ const unpaid=taken-bank; bank=0; empMonthUnpaid[mk]=unpaid; }
+      } else { empMonthUnpaid[mk]=0; }
+    });
+    empLeaveBank[emp]=bank;
+  });
+
+  // Step 5: Partner days per date
   const datePartnerCount={};
   ALL.forEach(r=>{
-    if(!r.name||!r.month||!r.date)return;
-    if(r.isHol||r.isLeave||r.isSun)return;
+    if(!r.name||!r.month||!r.date||r.isHol||r.isLeave||r.isSun)return;
     const dk=r.name+'|'+r.month+'|'+r.date;
     datePartnerCount[dk]=(datePartnerCount[dk]||0)+1;
   });
 
-  // Step 4: Calculate final salary per emp+month
+  // Step 6: Final salary per emp+month using leave bank
   const empMonthFinalSal={};
   const empMonthDailyRate={};
-
   const empMonthSet=new Set(ALL.filter(r=>r.name&&r.month).map(r=>r.name+'|'+r.month));
 
   empMonthSet.forEach(mk=>{
@@ -805,30 +831,15 @@ function recalc(){
     const dailyRate=ms/calDays;
     empMonthDailyRate[mk]=dailyRate;
 
-    // Days accounted in sheet
     const sheetDays=(empMonthAllDates[mk]||new Set()).size;
+    const unpaidLeave=empMonthUnpaid[mk]||0;
+    const absentDays=Math.max(0, calDays-sheetDays)+unpaidLeave;
 
-    // Leave days taken
-    const leaveTaken=(empMonthLeaveDays[mk]||new Set()).size;
-    // 1.5 days paid leave — rest is unpaid deduction
-    const PAID_LEAVE_LIMIT=1.5;
-    const unpaidLeave=Math.max(0, leaveTaken-PAID_LEAVE_LIMIT);
-
-    // Extra paid holidays added manually in dashboard
-    const paidH=getPaidHolDays(emp,month);
-
-    // Total accounted days (sheet has leave entries already, so no double count)
-    const accountedDays=sheetDays+paidH;
-
-    // Absent = truly missing days + unpaid leave portion
-    const absentDays=Math.max(0, calDays-accountedDays)+unpaidLeave;
-
-    // Final salary
     const finalSal=Math.min(ms, Math.max(0, ms-(dailyRate*absentDays)));
     empMonthFinalSal[mk]=finalSal;
   });
 
-  // Step 5: Build partner days map for proportional split
+  // Step 7: Partner days map for proportional split
   const empMonthPartnerDays={};
   ALL.forEach(r=>{
     if(!r.name||!r.month||!r.date||r.isHol||r.isLeave||r.isSun||!r.partner)return;
@@ -841,7 +852,15 @@ function recalc(){
     }
   });
 
-  // Step 6: Assign _sal to each work row proportionally
+  // Step 8: Row counts per emp+month+partner
+  const empMonthPartnerRowCount={};
+  ALL.forEach(r=>{
+    if(r.isHol||r.isLeave||r.isSun||!r.name||!r.month||!r.partner)return;
+    const k=r.name+'|'+r.month+'|'+r.partner;
+    empMonthPartnerRowCount[k]=(empMonthPartnerRowCount[k]||0)+1;
+  });
+
+  // Step 9: Assign _sal to each row
   ALL.forEach(r=>{
     if(r.isHol||r.isLeave||r.isSun){r._sal=0;return;}
     if(!SAL[r.name]||!r.date){r._sal=0;return;}
@@ -856,19 +875,40 @@ function recalc(){
     const partnerDays=pd[r.partner]||0;
     const partnerSal=(finalSal*partnerDays)/totalWorkDays;
 
-    // Split among all rows for this partner in this month
-    const totalRowsForPartner=ALL.filter(x=>
-      x.name===r.name&&x.month===r.month&&x.partner===r.partner&&
-      !x.isHol&&!x.isLeave&&!x.isSun
-    ).length;
-
-    r._sal=totalRowsForPartner>0?partnerSal/totalRowsForPartner:0;
+    const rowKey=r.name+'|'+r.month+'|'+r.partner;
+    const totalRows=empMonthPartnerRowCount[rowKey]||1;
+    r._sal=partnerSal/totalRows;
   });
 
   sv();
 }
 
-// Total salary = sum of _sal (already deduction-based & capped)
+// Leave bank summary for display
+function getLeaveBankSummary(emp){
+  const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const months=[...new Set(ALL.filter(r=>r.name===emp&&r.month).map(r=>r.month))];
+  months.sort((a,b)=>{
+    const [ma,ya]=a.split('-'),[mb,yb]=b.split('-');
+    return(parseInt(ya)*12+MN.indexOf(ma))-(parseInt(yb)*12+MN.indexOf(mb));
+  });
+  const EARN=1.5;
+  let bank=0;
+  const rows=[];
+  months.forEach(month=>{
+    const ms=getMonthSal(emp,month);
+    if(!ms)return;
+    bank+=EARN;
+    const taken=[...new Set(ALL.filter(r=>r.name===emp&&r.month===month&&r.isLeave&&r.date).map(r=>r.date))].length;
+    let paid=0,unpaid=0;
+    if(taken>0){
+      if(taken<=bank){paid=taken;bank-=taken;}
+      else{paid=bank;unpaid=taken-bank;bank=0;}
+    }
+    rows.push({month,earned:EARN,taken,paid,unpaid,bank:Math.round(bank*10)/10});
+  });
+  return rows;
+}
+
 function getTotalSalary(emp,month,baseSalFromRows){
   if(!SAL[emp])return baseSalFromRows;
   const ms=getMonthSal(emp,month);

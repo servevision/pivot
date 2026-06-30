@@ -420,7 +420,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="card" style="margin-bottom:0"><div class="card-t">Partner-wise Salary</div><div style="position:relative;height:195px"><canvas id="ch2" role="img" aria-label="Partner wise salary">data</canvas></div></div>
       </div>
       <div class="card"><div class="card-t">Employee Summary</div><div id="emp-ov"></div></div>
-      <div class="card"><div class="card-t">Leave Bank — Carry Forward Balance</div><div class="card-sub" style="font-size:11px;color:var(--text2);margin-bottom:10px">Cumulative leave balance per employee (1.5 days earned per month)</div><div id="leave-bank-ov"></div></div>
+      <div class="card"><div class="card-t">Leave Balance — Casual & Sick Leave</div><div class="card-sub" style="font-size:11px;color:var(--text2);margin-bottom:10px">CL: 1.5 days/month, carries forward · SL: 6 days/year, resets each financial year</div><div id="leave-bank-ov"></div></div>
     </div>
 
     <!-- SALARIES -->
@@ -1377,26 +1377,43 @@ function rOv(){
     return`<div class="er"><div class="av" style="background:${bg};color:${tc}">${ini}</div><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700">${nm}</div><div style="font-size:11px;color:var(--text2)">${d.days} working entries · ${[...d.partners].slice(0,3).join(', ')}</div><div class="bw"><div class="bf" style="width:${Math.round(d.sal/maxS*100)}%;background:${tc}"></div></div></div><div style="font-size:14px;font-weight:800;min-width:90px;text-align:right">${fmt(d.sal)}</div></div>`;
   }).join('')||'<div style="padding:24px;text-align:center;color:var(--text2)">No data. Sync sheets and set salaries first.</div>';
 
-  // Leave bank summary
+  // Leave balance summary — CL (carry forward) + SL (yearly limit)
   const allEmpsForLB=[...new Set(ALL.filter(r=>r.name&&SAL[r.name]).map(r=>r.name))].sort();
   const lbEl=document.getElementById('leave-bank-ov');
   if(lbEl){
     lbEl.innerHTML=allEmpsForLB.length?allEmpsForLB.map(emp=>{
-      const rows=getLeaveBankSummary(emp);
-      if(!rows.length)return'';
-      const last=rows[rows.length-1];
+      const clRows=getCLBankSummary(emp);
+      const slRows=getSLYearlySummary(emp);
       const ini=emp.split(' ').map(x=>x[0]).join('').substr(0,2).toUpperCase();
-      return`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
-        <div class="av" style="background:var(--blue-bg);color:var(--blue-t);flex-shrink:0">${ini}</div>
-        <div style="flex:1">
-          <div style="font-size:12px;font-weight:700">${emp}</div>
-          <div style="font-size:11px;color:var(--text2);margin-top:2px">
-            ${rows.map(r=>`<span style="margin-right:8px">${r.month}: ${r.taken>0?`<b>${r.paid}d paid${r.unpaid>0?`, <span style="color:var(--red-t)">${r.unpaid}d unpaid</span>`:''}</b>`:'0 taken'}</span>`).join('')}
-          </div>
+
+      const clLast = clRows.length ? clRows[clRows.length-1] : {bank:0};
+      const slLast = slRows.length ? slRows[slRows.length-1] : {remaining:6,used:0,unpaid:0};
+
+      const clHasUnpaid = clRows.some(r=>r.unpaid>0);
+      const slHasUnpaid = slRows.some(r=>r.unpaid>0);
+
+      return`<div style="padding:12px 0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <div class="av" style="background:var(--blue-bg);color:var(--blue-t);flex-shrink:0">${ini}</div>
+          <div style="font-size:13px;font-weight:700">${emp}</div>
         </div>
-        <div style="text-align:right;flex-shrink:0">
-          <div style="font-size:16px;font-weight:800;color:var(--green-t)">${last.bank}</div>
-          <div style="font-size:10px;color:var(--text3)">days balance</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-left:42px">
+          <div style="background:var(--bg2);border-radius:var(--r);padding:8px 12px;border:1px solid var(--border)">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase">Casual Leave</span>
+              <span style="font-size:15px;font-weight:800;color:${clHasUnpaid?'var(--red-t)':'var(--green-t)'}">${clLast.bank}d</span>
+            </div>
+            <div style="font-size:10px;color:var(--text3);margin-top:2px">balance (carries forward)</div>
+            ${clHasUnpaid?`<div style="font-size:10px;color:var(--red-t);margin-top:3px;font-weight:600">⚠ Has unpaid CL days</div>`:''}
+          </div>
+          <div style="background:var(--bg2);border-radius:var(--r);padding:8px 12px;border:1px solid var(--border)">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase">Sick Leave</span>
+              <span style="font-size:15px;font-weight:800;color:${slHasUnpaid?'var(--red-t)':'var(--green-t)'}">${slLast.remaining}/${slLast.used+slLast.remaining||6}d</span>
+            </div>
+            <div style="font-size:10px;color:var(--text3);margin-top:2px">remaining this FY (resets yearly)</div>
+            ${slHasUnpaid?`<div style="font-size:10px;color:var(--red-t);margin-top:3px;font-weight:600">⚠ ${slLast.unpaid}d unpaid (exceeded 6/yr)</div>`:''}
+          </div>
         </div>
       </div>`;
     }).join(''):'<div style="padding:16px;color:var(--text2);text-align:center">No data</div>';

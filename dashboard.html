@@ -1058,9 +1058,8 @@ function parseRows(arr,sheet){
     const isLeave=pl==='leave'||prl==='leave';
     const isSun=wl==='sunday'||(isHol&&wl==='sunday')||(pl==='holiday'&&prl==='holiday'&&wl==='sunday');
     const workingVal=v(c.working);
-    const workingL=workingVal.toLowerCase().trim();
-    // Detect leave sub-type from Working column text
-    const isSickLeave = isLeave && (workingL.includes('sick'));
+    // Detect leave sub-type from Website column text (e.g. "Sick Leave", "Casual Leave")
+    const isSickLeave = isLeave && (wl.includes('sick'));
     const isCasualLeave = isLeave && !isSickLeave; // default to casual if not explicitly sick
     return{_i:i,_sid:sheet.id,_sal:0,month,uk:v(c.uk),name:sheet.name,date:cleanD(dateRaw)||dateRaw,partner,project,website,working:workingVal,isHol,isLeave,isSun,isSickLeave,isCasualLeave};
   });

@@ -22,11 +22,12 @@
   --sh2:0 4px 12px rgba(0,0,0,.09),0 2px 4px rgba(0,0,0,.06);
 }
 *{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;background:var(--bg3);color:var(--text);font-size:13px;line-height:1.5}
 .sidebar{position:fixed;left:0;top:0;bottom:0;width:214px;background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;box-shadow:2px 0 8px rgba(0,0,0,.04)}
-.main{margin-left:214px;min-height:100vh}
-.topbar{background:var(--bg);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50;gap:10px;flex-wrap:wrap;box-shadow:0 1px 4px rgba(0,0,0,.05)}
-.content{padding:20px 24px}
+.main{position:fixed;left:214px;top:0;right:0;bottom:0;display:flex;flex-direction:column}
+.topbar{background:var(--bg);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;z-index:50;gap:10px;flex-wrap:wrap;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.content{flex:1;overflow-y:auto;overflow-x:hidden;padding:20px 24px 40px}
 .sb-brand{padding:18px 16px 14px;border-bottom:1px solid var(--border)}
 .sb-co{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:700}
 .sb-nm{font-size:16px;font-weight:800;color:var(--text);margin-top:3px;letter-spacing:-.4px}
@@ -55,7 +56,8 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(23,8
 .card{background:var(--bg);border:1px solid var(--border);border-radius:var(--rl);padding:16px 18px;box-shadow:var(--sh);margin-bottom:14px}
 .card-t{font-size:13px;font-weight:700;margin-bottom:12px;letter-spacing:-.1px}
 .card-sub{font-size:11px;color:var(--text2);margin-top:-8px;margin-bottom:12px}
-.tw{overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 180px);border-radius:var(--rl);border:1px solid var(--border);box-shadow:var(--sh);background:var(--bg);margin-bottom:14px}
+.tw{overflow-x:auto;border-radius:var(--rl);border:1px solid var(--border);box-shadow:var(--sh);background:var(--bg);margin-bottom:14px}
+.tw table{border-collapse:separate;border-spacing:0}
 .tw thead th{position:sticky;top:0;z-index:10;background:var(--bg2);box-shadow:0 1px 0 var(--border2)}
 table{width:100%;border-collapse:collapse;font-size:12px}
 th{text-align:left;padding:9px 12px;font-size:10px;color:var(--text2);border-bottom:1px solid var(--border);font-weight:700;background:var(--bg2);white-space:nowrap;text-transform:uppercase;letter-spacing:.4px}
@@ -452,7 +454,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <button class="btn btn-sm" onclick="expPP()">↓ Export CSV</button>
         </div>
       </div>
-      <div class="tw"><table id="pp-table"><thead><tr><th style="min-width:160px">Partner</th><th style="min-width:140px">Project</th><th style="min-width:200px">Website / Work</th><th style="min-width:130px">Employee</th><th style="text-align:right;min-width:70px">Days</th><th style="text-align:right;min-width:100px">Salary</th></tr></thead><tbody id="pp-tb"></tbody></table></div>
+      <div style="overflow-y:auto;overflow-x:auto;max-height:calc(100vh - 170px);border-radius:var(--rl);border:1px solid var(--border);box-shadow:var(--sh);background:var(--bg)"><table id="pp-table"><thead><tr><th style="min-width:160px">Partner</th><th style="min-width:140px">Project</th><th style="min-width:200px">Website / Work</th><th style="min-width:130px">Employee</th><th style="text-align:right;min-width:70px">Days</th><th style="text-align:right;min-width:100px">Salary</th></tr></thead><tbody id="pp-tb"></tbody></table></div>
       <div id="copy-msg" style="font-size:12px;color:var(--green-t);margin-top:4px;font-weight:600"></div>
     </div>
 
@@ -465,7 +467,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <button class="btn btn-sm" onclick="expEP()">↓ Export CSV</button>
         </div>
       </div>
-      <div class="tw" style="max-height:calc(100vh - 180px)"><table><thead style="position:sticky;top:0;z-index:10"><tr><th style="min-width:160px">Employee</th><th style="min-width:160px">Partner</th><th style="text-align:right;min-width:70px">Days</th><th style="text-align:right;min-width:100px">Salary</th></tr></thead><tbody id="ep-tb"></tbody></table></div>
+      <div style="overflow-y:auto;overflow-x:auto;max-height:calc(100vh - 170px);border-radius:var(--rl);border:1px solid var(--border);box-shadow:var(--sh);background:var(--bg)"><table><thead style="position:sticky;top:0;z-index:10"><tr><th style="min-width:160px">Employee</th><th style="min-width:160px">Partner</th><th style="text-align:right;min-width:70px">Days</th><th style="text-align:right;min-width:100px">Salary</th></tr></thead><tbody id="ep-tb"></tbody></table></div>
     </div>
 
     <!-- EXPENSES -->

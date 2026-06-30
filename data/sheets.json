@@ -40,7 +40,7 @@
     "name": "Sunita Mahata",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbx99TDIA2OdkP-bG02go1nXhXFoscmxoEb5YMc58MCqwR_BbL1fnvknDuZM5XCN6jDE/exec",
-    "status": "pending",
+    "status": "loading",
     "rows": 1057,
     "lastSync": "10:31:18 am"
   },
@@ -49,18 +49,18 @@
     "name": "Gourav Madaan",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbxgauMxVYptoIPrnXJoHqTaHX8SAuTjvwfKsFE0P9QNL4f4fZqQqQMhjEJ-Od6X1MVn/exec",
-    "status": "loading",
+    "status": "ok",
     "rows": 109,
-    "lastSync": "10:31:23 am"
+    "lastSync": "10:35:34 am"
   },
   {
     "id": "s7",
     "name": "Joydeep Mahata",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbzQOcj6Au_p3k6q87p5i3gfhhuXeKwRIc1_5cC9s4Dq6dsIEh0FEwZIZcySaM_dtxs-fA/exec",
-    "status": "loading",
+    "status": "ok",
     "rows": 854,
-    "lastSync": "10:31:28 am"
+    "lastSync": "10:35:31 am"
   },
   {
     "id": "s8",

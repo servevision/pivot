@@ -1845,45 +1845,46 @@ let SIGNUP_REQUESTS = [];
 
 async function rSignupRequests(){
   const el=document.getElementById('signup-requests-list');
-  if(!el){ console.error('signup-requests-list not found'); return; }
+  if(!el) return;
   el.innerHTML='<div style="padding:20px;color:var(--text2)">Loading...</div>';
-  
   const data = await apiCall('GET','/data/signup-requests');
   SIGNUP_REQUESTS = Array.isArray(data) ? data : [];
-  
   const pending = SIGNUP_REQUESTS.filter(function(x){ return x.status==='pending'; });
   const badge = document.getElementById('signup-badge');
   if(badge){ badge.textContent=pending.length; badge.style.display=pending.length?'inline':'none'; }
-
   if(!SIGNUP_REQUESTS.length){
     el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text2)">No signup requests yet.</div>';
     return;
   }
-
   var html = '';
-  for(var i=0; i<SIGNUP_REQUESTS.length; i++){
-    var req = SIGNUP_REQUESTS[i];
-    var dt = req.requestedAt ? new Date(req.requestedAt).toLocaleString('en-IN') : '';
-    var btns = '';
+  for(var i=0;i<SIGNUP_REQUESTS.length;i++){
+    var req=SIGNUP_REQUESTS[i];
+    var dt=req.requestedAt?new Date(req.requestedAt).toLocaleString('en-IN'):'';
+    var actionHtml='';
     if(req.status==='pending'){
-      btns = '<button class="btn btn-sm btn-p" onclick="decideSignup(\'' + req.id + '\',\'approve\')">✓ Approve</button>'
-           + ' <button class="btn btn-sm btn-d" onclick="decideSignup(\'' + req.id + '\',\'reject\')" style="margin-left:6px">✕ Reject</button>';
+      actionHtml='<button class="btn btn-sm btn-p" data-id="'+req.id+'" data-action="approve" onclick="decideSignupBtn(this)">✓ Approve</button>'
+               +' <button class="btn btn-sm btn-d" data-id="'+req.id+'" data-action="reject" onclick="decideSignupBtn(this)" style="margin-left:6px">✕ Reject</button>';
     } else {
-      var bc = req.status==='approved' ? 'b-green' : 'b-red';
-      btns = '<span class="badge '+bc+'">'+req.status+'</span>';
+      actionHtml='<span class="badge '+(req.status==='approved'?'b-green':'b-red')+'">'+req.status+'</span>';
     }
-    html += '<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">'
-          + '<div>'
-          + '<div style="font-weight:700;font-size:14px">'+req.name+'</div>'
-          + '<div style="font-size:12px;color:var(--text2);margin-top:3px">📧 '+req.email+'</div>'
-          + '<div style="font-size:12px;color:var(--text2);margin-top:2px">💼 '+(req.designation||'—')+' &nbsp;|&nbsp; 🏢 '+(req.department||'—')+'</div>'
-          + '<div style="font-size:12px;color:var(--text2);margin-top:2px">📞 '+(req.phone||'—')+'</div>'
-          + '<div style="font-size:11px;color:var(--text3);margin-top:4px">Requested: '+dt+'</div>'
-          + '</div>'
-          + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'+btns+'</div>'
-          + '</div>';
+    html+='<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">'
+        +'<div>'
+        +'<div style="font-weight:700;font-size:14px">'+req.name+'</div>'
+        +'<div style="font-size:12px;color:var(--text2);margin-top:3px">📧 '+req.email+'</div>'
+        +'<div style="font-size:12px;color:var(--text2);margin-top:2px">💼 '+(req.designation||'—')+' | 🏢 '+(req.department||'—')+'</div>'
+        +'<div style="font-size:12px;color:var(--text2);margin-top:2px">📞 '+(req.phone||'—')+'</div>'
+        +'<div style="font-size:11px;color:var(--text3);margin-top:4px">'+dt+'</div>'
+        +'</div>'
+        +'<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'+actionHtml+'</div>'
+        +'</div>';
   }
-  el.innerHTML = html;
+  el.innerHTML=html;
+}
+
+async function decideSignupBtn(btn){
+  var id=btn.getAttribute('data-id');
+  var decision=btn.getAttribute('data-action');
+  decideSignup(id,decision);
 }
 
 
@@ -1910,790 +1911,49 @@ async function rLeaveApprovals(){
   const el=document.getElementById('leave-approvals-list');
   if(!el) return;
   el.innerHTML='<div style="padding:20px;color:var(--text2)">Loading...</div>';
-
   const data = await apiCall('GET','/data/leave-requests');
   LEAVE_REQUESTS = Array.isArray(data) ? data : [];
-
   const pending = LEAVE_REQUESTS.filter(function(x){ return x.status==='pending'; });
   const badge = document.getElementById('leave-badge');
   if(badge){ badge.textContent=pending.length; badge.style.display=pending.length?'inline':'none'; }
-
   if(!LEAVE_REQUESTS.length){
     el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text2)">No leave requests yet.</div>';
     return;
   }
-
-  var leaveColors = {CL:'b-blue',SL:'b-green',WFH:'b-amber',HalfDay:'b-purple'};
-  var html = '';
-  for(var i=0; i<LEAVE_REQUESTS.length; i++){
-    var lv = LEAVE_REQUESTS[i];
-    var lvColor = leaveColors[lv.leaveType] || 'b-gray';
-    var toDateStr = (lv.toDate && lv.toDate!==lv.fromDate) ? ' → '+lv.toDate : '';
-    var applied = lv.appliedAt ? new Date(lv.appliedAt).toLocaleString('en-IN') : '';
-    var hdStr = lv.isHalfDay ? ' · Half Day' : '';
-    var btns = '';
+  var leaveColors={CL:'b-blue',SL:'b-green',WFH:'b-amber',HalfDay:'b-purple'};
+  var html='';
+  for(var i=0;i<LEAVE_REQUESTS.length;i++){
+    var lv=LEAVE_REQUESTS[i];
+    var lvColor=leaveColors[lv.leaveType]||'b-gray';
+    var toStr=(lv.toDate&&lv.toDate!==lv.fromDate)?' → '+lv.toDate:'';
+    var applied=lv.appliedAt?new Date(lv.appliedAt).toLocaleString('en-IN'):'';
+    var actionHtml='';
     if(lv.status==='pending'){
-      btns = '<button class="btn btn-sm btn-p" onclick="decideLeave(\'' + lv.id + '\',\'approve\')">✓ Approve</button>'
-           + ' <button class="btn btn-sm btn-d" onclick="decideLeave(\'' + lv.id + '\',\'reject\')" style="margin-left:6px">✕ Reject</button>';
+      actionHtml='<button class="btn btn-sm btn-p" data-id="'+lv.id+'" data-action="approve" onclick="decideLeaveBtn(this)">✓ Approve</button>'
+               +' <button class="btn btn-sm btn-d" data-id="'+lv.id+'" data-action="reject" onclick="decideLeaveBtn(this)" style="margin-left:6px">✕ Reject</button>';
     } else {
-      var bc = lv.status==='approved' ? 'b-green' : 'b-red';
-      btns = '<span class="badge '+bc+'">'+lv.status+'</span>';
+      actionHtml='<span class="badge '+(lv.status==='approved'?'b-green':'b-red')+'">'+lv.status+'</span>';
     }
-    html += '<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">'
-          + '<div>'
-          + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
-          + '<span style="font-weight:700;font-size:13px">'+(lv.employeeName||'—')+'</span>'
-          + '<span class="badge '+lvColor+'">'+lv.leaveType+hdStr+'</span>'
-          + '</div>'
-          + '<div style="font-size:12px;color:var(--text2)">'+lv.fromDate+toDateStr+'</div>'
-          + '<div style="font-size:12px;color:var(--text2);margin-top:2px">Reason: '+(lv.reason||'—')+'</div>'
-          + '<div style="font-size:11px;color:var(--text3);margin-top:3px">Applied: '+applied+'</div>'
-          + '</div>'
-          + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'+btns+'</div>'
-          + '</div>';
+    html+='<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">'
+        +'<div>'
+        +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
+        +'<span style="font-weight:700;font-size:13px">'+(lv.employeeName||'—')+'</span>'
+        +'<span class="badge '+lvColor+'">'+lv.leaveType+(lv.isHalfDay?' · Half Day':'')+'</span>'
+        +'</div>'
+        +'<div style="font-size:12px;color:var(--text2)">'+lv.fromDate+toStr+'</div>'
+        +'<div style="font-size:12px;color:var(--text2);margin-top:2px">Reason: '+(lv.reason||'—')+'</div>'
+        +'<div style="font-size:11px;color:var(--text3);margin-top:3px">Applied: '+applied+'</div>'
+        +'</div>'
+        +'<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'+actionHtml+'</div>'
+        +'</div>';
   }
-  el.innerHTML = html;
+  el.innerHTML=html;
 }
 
-
-// Load employee data on startup + check pending counts
-document.addEventListener('DOMContentLoaded',function(){
-  setTimeout(async()=>{
-    await loadEmpData();
-    // Check pending counts for badges
-    const sr = await apiCall('GET','/data/signup-requests');
-    if(Array.isArray(sr)){
-      const p=sr.filter(r=>r.status==='pending').length;
-      const b=document.getElementById('signup-badge');
-      if(b){b.textContent=p;b.style.display=p?'inline':'none';}
-    }
-    const lr = await apiCall('GET','/data/leave-requests');
-    if(Array.isArray(lr)){
-      const p=lr.filter(r=>r.status==='pending').length;
-      const b=document.getElementById('leave-badge');
-      if(b){b.textContent=p;b.style.display=p?'inline':'none';}
-    }
-  },600);
-});
-
-// ── EXPENSE FUNCTIONS ──────────────────────────────────────
-const USD_TO_INR = 84;
-
-// ── PAYMENT METHODS + CATEGORIES MANAGEMENT ─────────────────
-const DEFAULT_PAY_METHODS = ['Credit Card','Debit Card','UPI','Bank Transfer','PayPal','Crypto','Cash','Other'];
-const DEFAULT_CATEGORIES = {
-  'Software / SaaS':   ['Subscription','One-time License','Plugin'],
-  'Server / Hosting':  ['VPS','Cloud','Shared Hosting','CDN'],
-  'Domain':            ['Registration','Renewal','Transfer'],
-  'Marketing':         ['Ads','SEO','Content'],
-  'Tools':             ['Design','Dev Tools','Analytics'],
-  'Travel':            ['Flight','Hotel','Transport'],
-  'Office':            ['Supplies','Equipment','Internet'],
-  'Other':             []
-};
-
-function getPayMethods(){
-  try{ const s=localStorage.getItem('sv_pay_methods'); if(s) return JSON.parse(s); }catch(e){}
-  return [...DEFAULT_PAY_METHODS];
-}
-function savePayMethods(m){ try{ localStorage.setItem('sv_pay_methods',JSON.stringify(m)); }catch(e){} }
-
-function getCategories(){
-  try{ const s=localStorage.getItem('sv_categories'); if(s) return JSON.parse(s); }catch(e){}
-  return JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
-}
-function saveCategories(c){ try{ localStorage.setItem('sv_categories',JSON.stringify(c)); }catch(e){} }
-
-function populatePaySelects(){
-  const methods=getPayMethods();
-  ['exp-payment'].forEach(id=>{
-    const sel=document.getElementById(id);
-    if(!sel) return;
-    const cur=sel.value;
-    sel.innerHTML='<option value="">-- Select Method --</option>'+methods.map(m=>`<option>${m}</option>`).join('');
-    if(cur) sel.value=cur;
-  });
-  const fsel=document.getElementById('exp-fpay');
-  if(fsel){
-    const cur=fsel.value;
-    fsel.innerHTML='<option value="">All Payment Methods</option>'+methods.map(m=>`<option>${m}</option>`).join('');
-    if(cur) fsel.value=cur;
-  }
+async function decideLeaveBtn(btn){
+  var id=btn.getAttribute('data-id');
+  var decision=btn.getAttribute('data-action');
+  decideLeave(id,decision);
 }
 
-function populateCatSelects(){
-  const cats=getCategories();
-  const catNames=Object.keys(cats);
-  ['exp-cat'].forEach(id=>{
-    const sel=document.getElementById(id);
-    if(!sel) return;
-    const cur=sel.value;
-    sel.innerHTML='<option value="">-- Select Category --</option>'+catNames.map(c=>`<option>${c}</option>`).join('');
-    if(cur) sel.value=cur;
-  });
-  const fcat=document.getElementById('exp-fcat');
-  if(fcat){
-    const cur=fcat.value;
-    fcat.innerHTML='<option value="">All Categories</option>'+catNames.map(c=>`<option>${c}</option>`).join('');
-    if(cur) fcat.value=cur;
-  }
-  populateSubcat();
-}
-
-function populateSubcat(){
-  const cat=document.getElementById('exp-cat')?.value;
-  const cats=getCategories();
-  const subs=cats[cat]||[];
-  const wrap=document.getElementById('subcat-wrap');
-  const sel=document.getElementById('exp-subcat');
-  if(!wrap||!sel) return;
-  if(cat&&subs.length>0){
-    sel.innerHTML='<option value="">-- Select Sub-category --</option>'+subs.map(s=>`<option>${s}</option>`).join('');
-    wrap.style.display='block';
-  } else {
-    wrap.style.display='none';
-    sel.value='';
-  }
-}
-
-// ── Manage Modal ──────────────────────────────────────────
-let _modalType='';
-
-function openManageModal(type){
-  _modalType=type;
-  const modal=document.getElementById('manage-modal');
-  modal.style.display='flex';
-
-  if(type==='payment'){
-    document.getElementById('modal-title').textContent='Manage Payment Methods';
-    document.getElementById('modal-add-label').textContent='New Payment Method';
-    document.getElementById('modal-new-item').placeholder='e.g. Mercury Card, Wise...';
-    document.getElementById('modal-parent-wrap').style.display='none';
-  } else {
-    document.getElementById('modal-title').textContent='Manage Categories & Sub-categories';
-    document.getElementById('modal-add-label').textContent='New Category / Sub-category';
-    document.getElementById('modal-new-item').placeholder='Enter name...';
-    document.getElementById('modal-parent-wrap').style.display='block';
-    // Populate parent dropdown
-    const cats=getCategories();
-    const pSel=document.getElementById('modal-parent-cat');
-    pSel.innerHTML='<option value="">-- Top-level Category --</option>'+
-      Object.keys(cats).map(c=>`<option>${c}</option>`).join('');
-  }
-  renderModalItems();
-}
-
-function closeManageModal(){
-  document.getElementById('manage-modal').style.display='none';
-  document.getElementById('modal-new-item').value='';
-  populatePaySelects();
-  populateCatSelects();
-}
-
-function addModalItem(){
-  const val=document.getElementById('modal-new-item').value.trim();
-  if(!val){ alert('Enter a name first'); return; }
-
-  if(_modalType==='payment'){
-    const methods=getPayMethods();
-    if(methods.includes(val)){ alert('Already exists!'); return; }
-    const idx=methods.indexOf('Other');
-    if(idx>=0) methods.splice(idx,0,val); else methods.push(val);
-    savePayMethods(methods);
-    document.getElementById('exp-payment').value='';
-
-  } else {
-    const cats=getCategories();
-    const parent=document.getElementById('modal-parent-cat').value;
-    if(parent){
-      // Add subcategory
-      if(!cats[parent]) cats[parent]=[];
-      if(cats[parent].includes(val)){ alert('Already exists!'); return; }
-      cats[parent].push(val);
-    } else {
-      // Add top-level category
-      if(cats[val]!==undefined){ alert('Already exists!'); return; }
-      cats[val]=[];
-    }
-    saveCategories(cats);
-    // Refresh parent dropdown
-    const pSel=document.getElementById('modal-parent-cat');
-    const cur=pSel.value;
-    pSel.innerHTML='<option value="">-- Top-level Category --</option>'+
-      Object.keys(cats).map(c=>`<option>${c}</option>`).join('');
-    pSel.value=cur;
-  }
-
-  document.getElementById('modal-new-item').value='';
-  renderModalItems();
-}
-
-function deleteModalItem(val, parent){
-  if(_modalType==='payment'){
-    if(!confirm(`Remove "${val}"?`)) return;
-    const methods=getPayMethods().filter(m=>m!==val);
-    savePayMethods(methods);
-  } else {
-    if(!confirm(`Remove "${val}"?`)) return;
-    const cats=getCategories();
-    if(parent){
-      if(cats[parent]) cats[parent]=cats[parent].filter(s=>s!==val);
-    } else {
-      delete cats[val];
-    }
-    saveCategories(cats);
-  }
-  renderModalItems();
-}
-
-function renderModalItems(){
-  const list=document.getElementById('modal-items-list');
-  if(_modalType==='payment'){
-    const methods=getPayMethods();
-    list.innerHTML=methods.map(m=>`
-      <div style="display:flex;justify-content:space-between;align-items:center;
-                  padding:8px 12px;border-radius:var(--r);margin-bottom:4px;
-                  background:var(--bg2);border:1px solid var(--border)">
-        <span style="font-size:13px;font-weight:500">${m}</span>
-        <button class="btn btn-sm btn-d" onclick="deleteModalItem('${m.replace(/'/g,"\'")}',null)"
-          style="padding:2px 8px;font-size:11px">✕ Remove</button>
-      </div>`).join('');
-  } else {
-    const cats=getCategories();
-    list.innerHTML=Object.entries(cats).map(([cat,subs])=>`
-      <div style="margin-bottom:12px">
-        <div style="display:flex;justify-content:space-between;align-items:center;
-                    padding:8px 12px;border-radius:var(--r);
-                    background:var(--blue-bg);border:1px solid var(--border);margin-bottom:4px">
-          <span style="font-size:13px;font-weight:700;color:var(--blue-t)">📁 ${cat}</span>
-          <button class="btn btn-sm btn-d" onclick="deleteModalItem('${cat.replace(/'/g,"\'")}',null)"
-            style="padding:2px 8px;font-size:11px">✕</button>
-        </div>
-        ${subs.map(s=>`
-          <div style="display:flex;justify-content:space-between;align-items:center;
-                      padding:6px 12px 6px 28px;border-radius:var(--r);margin-bottom:3px;
-                      background:var(--bg2);border:1px solid var(--border)">
-            <span style="font-size:12px;color:var(--text2)">└ ${s}</span>
-            <button class="btn btn-sm btn-d" onclick="deleteModalItem('${s.replace(/'/g,"\'")}','${cat.replace(/'/g,"\'")}')"
-              style="padding:2px 8px;font-size:11px">✕</button>
-          </div>`).join('')}
-      </div>`).join('');
-  }
-}
-
-// Init on page load
-document.addEventListener('DOMContentLoaded', function(){
-  setTimeout(()=>{ populatePaySelects(); populateCatSelects(); }, 200);
-});
-let currentInvoiceData = null;
-let currentInvoiceName = null;
-
-function autoConvert(){
-  // INR is manual — no auto-convert
-}
-
-function showInvoicePreview(b64Data, mediaType){
-  const box  = document.getElementById('invoice-preview-box');
-  const empty= document.getElementById('invoice-preview-empty');
-  const img  = document.getElementById('invoice-preview-img');
-  const pdf  = document.getElementById('invoice-preview-pdf');
-
-  empty.style.display='none';
-
-  if(mediaType && mediaType.startsWith('image/')){
-    img.src = b64Data;
-    img.style.display='block';
-    pdf.style.display='none';
-  } else {
-    pdf.src = b64Data;
-    pdf.style.display='block';
-    img.style.display='none';
-  }
-}
-
-function clearInvoicePreview(){
-  document.getElementById('invoice-preview-empty').style.display='block';
-  document.getElementById('invoice-preview-img').style.display='none';
-  document.getElementById('invoice-preview-img').src='';
-  document.getElementById('invoice-preview-pdf').style.display='none';
-  document.getElementById('invoice-preview-pdf').src='';
-}
-
-function toggleAIUpload(){
-  const zone=document.getElementById('ai-upload-zone');
-  const isVisible=zone.style.display!=='none';
-  zone.style.display=isVisible?'none':'block';
-  document.getElementById('ai-upload-btn').textContent=isVisible?'🤖 Scan with AI (auto-fill)':'✕ Close Scanner';
-}
-
-function handleAIDrop(event){
-  event.preventDefault();
-  event.currentTarget.style.background='var(--blue-bg)';
-  const file=event.dataTransfer.files[0];
-  if(file) scanWithAI(file);
-}
-
-async function toBase64(file){
-  return new Promise((res,rej)=>{
-    const reader=new FileReader();
-    reader.onload=()=>res(reader.result);
-    reader.onerror=rej;
-    reader.readAsDataURL(file);
-  });
-}
-
-async function scanWithAI(file){
-  if(!file) return;
-  const zone=document.getElementById('ai-upload-zone');
-  const status=document.getElementById('ai-status');
-  const statusMsg=document.getElementById('ai-status-msg');
-
-  zone.style.display='none';
-  status.style.display='block';
-  statusMsg.textContent='Reading invoice...';
-
-  try{
-    // Convert file to base64
-    const b64=await toBase64(file);
-    currentInvoiceData=b64;
-    currentInvoiceName=file.name;
-    document.getElementById('ai-preview-name').textContent='📎 '+file.name;
-
-    // Show invoice preview in panel immediately
-    showInvoicePreview(b64, file.type);
-
-    statusMsg.textContent='Claude AI is analyzing your invoice...';
-
-    // Determine media type
-    const mediaType=file.type||'image/jpeg';
-    const isImage=mediaType.startsWith('image/');
-    const isPDF=mediaType==='application/pdf';
-
-    // Call Claude API via Cloudflare Worker (no CORS issue)
-    const b64Data=b64.split(',')[1];
-
-    const resp=await fetch('/api/scan',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'Authorization':'Bearer sv_api_2026_karnal_pivot'
-      },
-      body:JSON.stringify({mediaType,b64Data})
-    });
-
-    if(!resp.ok) throw new Error('Scan API error: '+resp.status);
-    const result=await resp.json();
-    if(!result.ok) throw new Error(result.error||'AI scan failed');
-    const parsed=result.data;
-
-    // Auto-fill form
-    if(parsed.name)  document.getElementById('exp-name').value=parsed.name;
-    if(parsed.usd)   document.getElementById('exp-usd').value=Number(parsed.usd).toFixed(2);
-    // INR left blank — user will enter manually
-    if(parsed.date)  document.getElementById('exp-date').value=parsed.date;
-    if(parsed.notes) document.getElementById('exp-notes').value=parsed.notes;
-    if(parsed.category){
-      const catSel=document.getElementById('exp-cat');
-      for(let i=0;i<catSel.options.length;i++){
-        if(catSel.options[i].text===parsed.category){catSel.selectedIndex=i;break;}
-      }
-    }
-
-    status.style.display='none';
-    document.getElementById('ai-badge').style.display='block';
-    document.getElementById('ai-upload-btn').textContent='🤖 Scan with AI (auto-fill)';
-
-    // Show form
-    document.getElementById('exp-form-wrap').style.display='block';
-    document.getElementById('exp-form-title').textContent='Review & Save Expense';
-
-    // Scroll to form
-    document.getElementById('exp-form-wrap').scrollIntoView({behavior:'smooth',block:'start'});
-
-  }catch(e){
-    status.style.display='none';
-    document.getElementById('ai-upload-zone').style.display='block';
-    alert('AI scan failed: '+e.message+'\n\nPlease fill the form manually.');
-    console.error('AI scan error:',e);
-  }
-}
-
-function toggleExpForm(){
-  const w=document.getElementById('exp-form-wrap');
-  const zone=document.getElementById('ai-upload-zone');
-  const isOpen=w.style.display!=='none';
-  if(isOpen){
-    w.style.display='none';
-    zone.style.display='none';
-    clearExpForm();
-  } else {
-    w.style.display='block';
-    zone.style.display='block';
-    document.getElementById('exp-date').value=new Date().toISOString().split('T')[0];
-    document.getElementById('exp-form-title').textContent='Add New Expense';
-    document.getElementById('exp-edit-id').value='';
-    document.getElementById('ai-badge').style.display='none';
-    document.getElementById('ai-upload-btn').textContent='🤖 Scan with AI (auto-fill)';
-  }
-}
-
-function clearExpForm(){
-  ['exp-name','exp-usd','exp-inr','exp-notes'].forEach(id=>document.getElementById(id).value='');
-  ['exp-partner','exp-payment','exp-cat'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('exp-edit-id').value='';
-  document.getElementById('exp-msg').textContent='';
-  document.getElementById('ai-badge').style.display='none';
-  document.getElementById('ai-preview-name').textContent='';
-  clearInvoicePreview();
-  currentInvoiceData=null;
-  currentInvoiceName=null;
-}
-
-async function saveExpense(){
-  const name   =document.getElementById('exp-name').value.trim();
-  const usd    =parseFloat(document.getElementById('exp-usd').value)||0;
-  const inr    =parseFloat(document.getElementById('exp-inr').value)||0;
-  const date   =document.getElementById('exp-date').value;
-  const partner=document.getElementById('exp-partner').value;
-  const payment=document.getElementById('exp-payment').value;
-  const cat    =document.getElementById('exp-cat').value;
-  const notes  =document.getElementById('exp-notes').value.trim();
-  const editId =document.getElementById('exp-edit-id').value;
-
-  if(!name||!date){setMsg('exp-msg','Name and date required!','red');return;}
-  if(!usd&&!inr){setMsg('exp-msg','Enter at least one amount!','red');return;}
-  if(!partner){setMsg('exp-msg','Please select a partner!','red');return;}
-  if(!payment){setMsg('exp-msg','Please select payment method!','red');return;}
-
-  const subcat=document.getElementById('exp-subcat')?.value||'';
-  const expense={
-    id:editId||Date.now().toString(36)+Math.random().toString(36).substr(2,4),
-    name,usd,inr,date,partner,payment,cat,subcat,notes,
-    file:currentInvoiceData,
-    fileName:currentInvoiceName,
-    createdAt:editId?undefined:new Date().toISOString(),
-    updatedAt:new Date().toISOString(),
-  };
-
-  if(editId){
-    const idx=EXP.findIndex(e=>e.id===editId);
-    if(idx>=0){
-      if(!currentInvoiceData&&EXP[idx].file) expense.file=EXP[idx].file;
-      if(!currentInvoiceName&&EXP[idx].fileName) expense.fileName=EXP[idx].fileName;
-      expense.createdAt=EXP[idx].createdAt;
-      EXP[idx]=expense;
-    }
-  } else {
-    EXP.unshift(expense);
-  }
-
-  svE();
-  if(typeof dbWrite!=='undefined') dbWrite('expenses',EXP);
-  rExp();
-  toggleExpForm();
-}
-
-function editExpense(id){
-  const exp=EXP.find(e=>e.id===id);
-  if(!exp) return;
-  document.getElementById('exp-form-wrap').style.display='block';
-  document.getElementById('exp-form-title').textContent='Edit Expense';
-  document.getElementById('exp-name').value=exp.name||'';
-  document.getElementById('exp-usd').value=exp.usd||'';
-  document.getElementById('exp-inr').value=exp.inr||'';
-  document.getElementById('exp-date').value=exp.date||'';
-  document.getElementById('exp-partner').value=exp.partner||'';
-  document.getElementById('exp-payment').value=exp.payment||'';
-  document.getElementById('exp-cat').value=exp.cat||'';
-  setTimeout(()=>{ populateSubcat(); if(exp.subcat) document.getElementById('exp-subcat').value=exp.subcat||''; },50);
-  document.getElementById('exp-notes').value=exp.notes||'';
-  document.getElementById('exp-edit-id').value=exp.id;
-  document.getElementById('ai-badge').style.display='none';
-  currentInvoiceData=exp.file||null;
-  currentInvoiceName=exp.fileName||null;
-  if(exp.fileName) document.getElementById('ai-preview-name').textContent='📎 '+exp.fileName;
-  if(exp.file) showInvoicePreview(exp.file, exp.file.startsWith('data:image')?'image/jpeg':'application/pdf');
-  document.getElementById('exp-form-wrap').scrollIntoView({behavior:'smooth'});
-}
-
-function deleteExpense(id){
-  if(!confirm('Delete this expense?')) return;
-  EXP=EXP.filter(e=>e.id!==id);
-  svE();
-  if(typeof dbWrite!=='undefined') dbWrite('expenses',EXP);
-  rExp();
-}
-
-function viewInvoice(id){
-  const exp=EXP.find(e=>e.id===id);
-  if(!exp||!exp.file) return;
-  const win=window.open();
-  if(exp.file.startsWith('data:image')){
-    win.document.write(`<img src="${exp.file}" style="max-width:100%;height:auto">`);
-  } else {
-    win.document.write(`<iframe src="${exp.file}" style="width:100%;height:100vh;border:none"></iframe>`);
-  }
-}
-
-function rExp(){
-  populatePaySelects();
-  populateCatSelects();
-  const q    =(document.getElementById('exp-q')?.value||'').toLowerCase();
-  const fPart=document.getElementById('exp-fpart')?.value||'';
-  const fPay =document.getElementById('exp-fpay')?.value||'';
-  const fCat =document.getElementById('exp-fcat')?.value||'';
-
-  let filtered=EXP.filter(e=>{
-    const matchQ=!q||[e.name,e.partner,e.cat,e.notes,e.date,e.payment].some(v=>(v||'').toLowerCase().includes(q));
-    const matchP=!fPart||e.partner===fPart;
-    const matchPay=!fPay||e.payment===fPay;
-    const matchC=!fCat||e.cat===fCat;
-    return matchQ&&matchP&&matchPay&&matchC;
-  });
-
-  filtered.sort((a,b)=>new Date(b.date)-new Date(a.date));
-
-  const totalUSD=filtered.reduce((s,e)=>s+(Number(e.usd)||0),0);
-  const totalINR=filtered.reduce((s,e)=>s+(Number(e.inr)||0),0);
-  const payMap={};
-  filtered.forEach(e=>{if(e.payment)payMap[e.payment]=(payMap[e.payment]||0)+(Number(e.inr)||0);});
-  const topPay=Object.entries(payMap).sort((a,b)=>b[1]-a[1])[0];
-
-  document.getElementById('exp-summary').innerHTML=`
-    <div class="met"><div class="met-bar" style="background:var(--blue)"></div>
-      <div class="lb">Total (USD)</div>
-      <div class="vl">$${totalUSD.toFixed(2)}</div></div>
-    <div class="met"><div class="met-bar" style="background:var(--green)"></div>
-      <div class="lb">Total (INR)</div>
-      <div class="vl">₹${Math.round(totalINR).toLocaleString('en-IN')}</div></div>
-    <div class="met"><div class="met-bar" style="background:var(--purple)"></div>
-      <div class="lb">Count</div>
-      <div class="vl">${filtered.length}</div>
-      <div class="sb">expenses</div></div>
-    <div class="met"><div class="met-bar" style="background:var(--amber)"></div>
-      <div class="lb">Top Payment</div>
-      <div class="vl" style="font-size:14px">${topPay?topPay[0]:'—'}</div></div>
-  `;
-
-  const fmtUSD=n=>n?`$${Number(n).toFixed(2)}`:'—';
-  const fmtINR=n=>n?`₹${Math.round(Number(n)).toLocaleString('en-IN')}`:'—';
-  const fmtDate=d=>d?new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'—';
-
-  const payColors={'Credit Card':'b-blue','Debit Card':'b-purple','UPI':'b-green','Bank Transfer':'b-teal','PayPal':'b-blue','Crypto':'b-amber','Cash':'b-gray','Other':'b-gray'};
-
-  document.getElementById('exp-tb').innerHTML=filtered.length?filtered.map(e=>`
-    <tr>
-      <td style="padding:9px 14px;font-weight:600;border-bottom:1px solid var(--border)">${e.name||'—'}</td>
-      <td style="padding:9px 14px;text-align:right;border-bottom:1px solid var(--border);font-weight:600;color:var(--blue-t)">${fmtUSD(e.usd)}</td>
-      <td style="padding:9px 14px;text-align:right;border-bottom:1px solid var(--border);font-weight:600">${fmtINR(e.inr)}</td>
-      <td style="padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text2)">${fmtDate(e.date)}</td>
-      <td style="padding:9px 14px;border-bottom:1px solid var(--border)">${e.partner?`<span class="badge b-blue">${e.partner}</span>`:'—'}</td>
-      <td style="padding:9px 14px;border-bottom:1px solid var(--border)">${e.payment?`<span class="badge ${payColors[e.payment]||'b-gray'}">${e.payment}</span>`:'—'}</td>
-      <td style="padding:9px 14px;border-bottom:1px solid var(--border)">${e.cat?`<span class="badge b-gray">${e.cat}${e.subcat?' › '+e.subcat:''}</span>`:'—'}</td>
-      <td style="padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text2);font-size:12px">${e.notes||'—'}</td>
-      <td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:center">
-        ${e.file?`<button class="btn btn-sm" onclick="viewInvoice('${e.id}')" style="background:var(--green-bg);color:var(--green-t);border-color:var(--green-bg)">📎 View</button>`:`<span style="color:var(--text3);font-size:11px">—</span>`}
-      </td>
-      <td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:center">
-        <div style="display:flex;gap:4px;justify-content:center">
-          <button class="btn btn-sm" onclick="editExpense('${e.id}')">✏️</button>
-          <button class="btn btn-sm btn-d" onclick="deleteExpense('${e.id}')">✕</button>
-        </div>
-      </td>
-    </tr>`).join('')
-    :'<tr><td colspan="10" style="padding:32px;text-align:center;color:var(--text2)">No expenses yet. Click &quot;+ Add Expense&quot; to add one.</td></tr>';
-}
-
-function expExpCSV(){
-  const rows = [['Name','USD','INR','Date','Partner','Category','Notes','Has Invoice']];
-  EXP.forEach(e=>rows.push([e.name,e.usd,e.inr,e.date,e.partner,e.cat,e.notes,e.file?'Yes':'No']));
-  dlC(rows,'expenses.csv');
-}
-
-// Exports
-function expWR(){dlC([['Month','UK(DW)','Name','Date','Partner','Project','Website','Working','Days','Salary'],...gF().map(r=>[r.month,r.uk,r.name,r.date,r.partner,r.project,r.website,r.working,1,Math.round(r._sal||0)])],'work_record.csv');}
-function expSal(){
-  const work=ALL.filter(r=>!r.isHol&&!r.isLeave&&!r.isSun&&r.name&&r.month);
-  const months=sortMonths([...new Set(work.map(r=>r.month))]);
-  const emps=[...new Set(work.map(r=>r.name))].sort();
-  const bM={};work.forEach(r=>{if(!bM[r.name])bM[r.name]={};bM[r.name][r.month]=(bM[r.name][r.month]||0)+(r._sal||0);});
-  dlC([['Person Name',...months,'Total'],...emps.map(e=>[e,...months.map(m=>Math.round(getTotalSalary(e,m,(bM[e]&&bM[e][m])||0))),Math.round(months.reduce((s,m)=>s+getTotalSalary(e,m,(bM[e]&&bM[e][m])||0),0))])],'salaries.csv');
-}
-function dlC(rows,name){const csv=rows.map(r=>r.map(x=>'"'+String(x||'').replace(/"/g,'""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);a.download=name;a.click();}
-function setMsg(id,msg,type){const el=document.getElementById(id);if(el){el.textContent=msg;el.style.color=type==='green'?'var(--green-t)':type==='red'?'var(--red-t)':'var(--text2)';}}
-
-// ============================================================
-// DATA START DATE — Sirf is month se aage ka data dikhega
-// Change karne ke liye: 'Apr-2026' ki jagah apna month likho
-// ============================================================
-const START_MONTH = 'Apr-2026';
-const MONTH_ORDER_LIST = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
-function monthToNum(m){
-  if(!m)return 0;
-  const parts=m.split('-');
-  if(parts.length!==2)return 0;
-  const mi=MONTH_ORDER_LIST.indexOf(parts[0]);
-  const yr=parseInt(parts[1]);
-  if(mi<0||isNaN(yr))return 0;
-  return yr*12+mi;
-}
-
-const START_NUM=monthToNum(START_MONTH);
-
-// Filter rows before start month
-function filterByStartMonth(rows){
-  if(!START_NUM)return rows;
-  return rows.filter(r=>{
-    if(!r.month)return true; // keep rows without month (will be filtered later)
-    return monthToNum(r.month)>=START_NUM;
-  });
-}
-
-// Init
-ldS();ldH();ld();ldE();
-// Apply start month filter to loaded data
-if(ALL.length) ALL=filterByStartMonth(ALL);
-recalc();rSheets();rFilters();uFoot();
-setInterval(()=>{if(SHEETS.some(s=>s.url&&s.status==='ok'))syncAll();},5*60*1000);
-</script>
-
-<div id="sv-userbar" style="position:fixed;bottom:0;left:0;right:0;z-index:9999;
-  background:linear-gradient(90deg,#0a3570,#1758a8);color:#fff;font-size:11px;
-  padding:6px 20px;display:flex;justify-content:space-between;align-items:center;
-  box-shadow:0 -2px 10px rgba(0,0,0,.2)">
-  <div style="display:flex;align-items:center;gap:10px">
-    <span style="background:rgba(255,255,255,.2);border-radius:10px;padding:2px 10px;
-                 font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:.7px">Admin</span>
-    <span id="sv-user-email" style="font-size:11px;opacity:.9"></span>
-    <span style="opacity:.4">·</span>
-    <span id="db-status-txt" style="font-size:11px;font-weight:600"></span>
-  </div>
-  <div style="display:flex;align-items:center;gap:14px">
-    <button onclick="pushAllToGitHub()"
-      style="background:rgba(255,255,255,.15);color:#fff;border:none;padding:4px 12px;
-             border-radius:10px;font-weight:700;font-size:11px;cursor:pointer"
-      onmouseover="this.style.background='rgba(255,255,255,.3)'"
-      onmouseout="this.style.background='rgba(255,255,255,.15)'">↑ Push to GitHub</button>
-    <a href="/" onclick="sessionStorage.clear();return true;"
-       style="background:rgba(255,255,255,.15);color:#fff;text-decoration:none;
-              padding:4px 14px;border-radius:10px;font-weight:700;font-size:11px"
-       onmouseover="this.style.background='rgba(255,255,255,.3)'"
-       onmouseout="this.style.background='rgba(255,255,255,.15)'">Logout →</a>
-  </div>
-</div>
-<style>.content{padding-bottom:46px!important}</style>
-<script>
-  const _el=document.getElementById('sv-user-email');
-  if(_el) _el.textContent=sessionStorage.getItem('sv_email')||'';
-</script>
-
-    <!-- EMPLOYEE RECORDS -->
-    <div class="page" id="page-emp-records">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-        <div><div style="font-size:14px;font-weight:800">Employee Records</div>
-        <div style="font-size:11px;color:var(--text2);margin-top:2px">Master data — auto-generated Employee IDs</div></div>
-        <button class="btn btn-p" onclick="openEmpForm()">+ Add Employee</button>
-      </div>
-      <div id="emp-form-area" style="display:none;margin-bottom:16px">
-        <div class="card">
-          <div class="card-t" id="emp-form-title">Add Employee</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
-            <div class="fg"><label>Full Name *</label><input type="text" id="ef-name" placeholder="Full name"></div>
-            <div class="fg"><label>Email *</label><input type="email" id="ef-email" placeholder="email@example.com"></div>
-            <div class="fg"><label>Phone</label><input type="text" id="ef-phone" placeholder="9876543210"></div>
-            <div class="fg"><label>Designation</label><input type="text" id="ef-desig" placeholder="e.g. Developer"></div>
-            <div class="fg"><label>Department</label>
-              <select id="ef-dept" style="width:100%">
-                <option value="">-- Select --</option>
-                <option>Technology</option><option>Design</option><option>Marketing</option>
-                <option>Operations</option><option>HR</option><option>Finance</option><option>Content</option><option>Other</option>
-              </select>
-            </div>
-            <div class="fg"><label>Date of Joining</label><input type="date" id="ef-doj"></div>
-            <div class="fg"><label>Exit Date (if applicable)</label><input type="date" id="ef-exit"></div>
-            <div class="fg"><label>Monthly Salary (₹)</label><input type="number" id="ef-sal" placeholder="0"></div>
-            <div class="fg"><label>Status</label>
-              <select id="ef-status" style="width:100%"><option value="active">Active</option><option value="inactive">Inactive</option></select>
-            </div>
-          </div>
-          <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Bank Details</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
-            <div class="fg"><label>Account Number</label><input type="text" id="ef-acc" placeholder="Account No."></div>
-            <div class="fg"><label>IFSC Code</label><input type="text" id="ef-ifsc" placeholder="IFSC"></div>
-            <div class="fg"><label>Bank Name</label><input type="text" id="ef-bank" placeholder="Bank Name"></div>
-          </div>
-          <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Documents</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
-            <div class="fg"><label>Aadhar (PDF/Image)</label><input type="file" id="ef-aadhar" accept=".pdf,.jpg,.jpeg,.png" style="border:1px dashed var(--border2);border-radius:var(--r);padding:6px;font-size:11px;width:100%"></div>
-            <div class="fg"><label>PAN Card</label><input type="file" id="ef-pan" accept=".pdf,.jpg,.jpeg,.png" style="border:1px dashed var(--border2);border-radius:var(--r);padding:6px;font-size:11px;width:100%"></div>
-            <div class="fg"><label>Resume / CV</label><input type="file" id="ef-resume" accept=".pdf,.doc,.docx" style="border:1px dashed var(--border2);border-radius:var(--r);padding:6px;font-size:11px;width:100%"></div>
-            <div class="fg"><label>Other Document</label><input type="file" id="ef-other" accept=".pdf,.jpg,.jpeg,.png" style="border:1px dashed var(--border2);border-radius:var(--r);padding:6px;font-size:11px;width:100%"></div>
-          </div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <button class="btn btn-p" onclick="saveEmpRecord()">Save Employee</button>
-            <button class="btn" onclick="closeEmpForm()">Cancel</button>
-            <span id="emp-form-msg" style="font-size:12px;font-weight:600"></span>
-          </div>
-          <input type="hidden" id="ef-edit-id" value="">
-        </div>
-      </div>
-      <div id="emp-records-list">Loading...</div>
-    </div>
-
-    <!-- SIGNUP REQUESTS -->
-    <div class="page" id="page-signup-requests">
-      <div style="margin-bottom:14px"><div style="font-size:14px;font-weight:800">Signup Requests</div>
-      <div style="font-size:11px;color:var(--text2);margin-top:2px">Pending employee account requests</div></div>
-      <div id="signup-requests-list">Loading...</div>
-    </div>
-
-    <!-- LEAVE APPROVALS -->
-    <div class="page" id="page-leave-approvals">
-      <div style="margin-bottom:14px"><div style="font-size:14px;font-weight:800">Leave Approvals</div>
-      <div style="font-size:11px;color:var(--text2);margin-top:2px">Approve or reject employee leave requests</div></div>
-      <div id="leave-approvals-list">Loading...</div>
-    </div>
-
-<!-- Manage Modal: Payment Methods & Categories -->
-<div id="manage-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.5);align-items:center;justify-content:center">
-  <div style="background:var(--bg);border-radius:var(--rl);width:500px;max-width:95vw;max-height:82vh;display:flex;flex-direction:column;box-shadow:var(--sh2)">
-    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
-      <div style="font-size:14px;font-weight:800" id="modal-title">Manage</div>
-      <button class="btn btn-sm" onclick="closeManageModal()">✕ Close</button>
-    </div>
-    <div style="padding:16px 20px;flex:1;overflow-y:auto">
-      <div style="display:flex;gap:8px;margin-bottom:14px;align-items:flex-end;flex-wrap:wrap">
-        <div class="fg" style="flex:1;min-width:140px">
-          <label id="modal-add-label">New Item</label>
-          <input type="text" id="modal-new-item" placeholder="Enter name..." style="width:100%" onkeydown="if(event.key==='Enter')addModalItem()">
-        </div>
-        <div class="fg" id="modal-parent-wrap" style="flex:1;min-width:140px;display:none">
-          <label>Parent Category (for sub-category)</label>
-          <select id="modal-parent-cat" style="width:100%"></select>
-        </div>
-        <button class="btn btn-p" onclick="addModalItem()" style="height:35px;flex-shrink:0">+ Add</button>
-      </div>
-      <div id="modal-items-list"></div>
-    </div>
-    <div style="padding:12px 20px;border-top:1px solid var(--border);text-align:right;flex-shrink:0">
-      <button class="btn btn-p" onclick="closeManageModal()">✓ Done</button>
-    </div>
-  </div>
-</div>
-
-</body>
-</html// Load data after all scripts ready
-document.addEventListener('DOMContentLoaded', function() {
-  setTimeout(function() {
-    // Patch sv/svS/svH/svE to also write to GitHub
-    if(typeof sv==='function'){ const _sv=sv; window.sv=function(){ _sv(); if(typeof dbWrite==='function') dbWrite('sheets',SHEETS); }; }
-    if(typeof svS==='function'){ const _svS=svS; window.svS=function(){ _svS(); if(typeof dbWrite==='function') dbWrite('salary',SAL); }; }
-    if(typeof svH==='function'){ const _svH=svH; window.svH=function(){ _svH(); if(typeof dbWrite==='function') dbWrite('holiday',HOL); }; }
-    if(typeof svE==='function'){ const _svE=svE; window.svE=function(){ _svE(); if(typeof dbWrite==='function') dbWrite('expenses',EXP||[]); }; }
-    // Load from GitHub
-    loadFromDB();
-    // Auto sync every 3 min
-    setInterval(loadFromDB, 3*60*1000);
-  }, 800);
-});>
+>

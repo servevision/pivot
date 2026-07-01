@@ -1866,8 +1866,8 @@ async function rSignupRequests(){
     var dt = req.requestedAt ? new Date(req.requestedAt).toLocaleString('en-IN') : '';
     var btns = '';
     if(req.status==='pending'){
-      btns = '<button class="btn btn-sm btn-p" onclick="decideSignup(''+req.id+'','approve')">✓ Approve</button>'
-           + ' <button class="btn btn-sm btn-d" onclick="decideSignup(''+req.id+'','reject')" style="margin-left:6px">✕ Reject</button>';
+      btns = '<button class="btn btn-sm btn-p" onclick="decideSignup(\'' + req.id + '\',\'approve\')">✓ Approve</button>'
+           + ' <button class="btn btn-sm btn-d" onclick="decideSignup(\'' + req.id + '\',\'reject\')" style="margin-left:6px">✕ Reject</button>';
     } else {
       var bc = req.status==='approved' ? 'b-green' : 'b-red';
       btns = '<span class="badge '+bc+'">'+req.status+'</span>';
@@ -1933,8 +1933,8 @@ async function rLeaveApprovals(){
     var hdStr = lv.isHalfDay ? ' · Half Day' : '';
     var btns = '';
     if(lv.status==='pending'){
-      btns = '<button class="btn btn-sm btn-p" onclick="decideLeave(''+lv.id+'','approve')">✓ Approve</button>'
-           + ' <button class="btn btn-sm btn-d" onclick="decideLeave(''+lv.id+'','reject')" style="margin-left:6px">✕ Reject</button>';
+      btns = '<button class="btn btn-sm btn-p" onclick="decideLeave(\'' + lv.id + '\',\'approve\')">✓ Approve</button>'
+           + ' <button class="btn btn-sm btn-d" onclick="decideLeave(\'' + lv.id + '\',\'reject\')" style="margin-left:6px">✕ Reject</button>';
     } else {
       var bc = lv.status==='approved' ? 'b-green' : 'b-red';
       btns = '<span class="badge '+bc+'">'+lv.status+'</span>';

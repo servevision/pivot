@@ -1853,42 +1853,47 @@ let SIGNUP_REQUESTS = [];
 
 async function rSignupRequests(){
   const el=document.getElementById('signup-requests-list');
-  if(!el) return;
+  if(!el){ console.error('signup-requests-list not found'); return; }
   el.innerHTML='<div style="padding:20px;color:var(--text2)">Loading...</div>';
-  try{
-    const r = await apiCall('GET','/data/signup-requests');
-    SIGNUP_REQUESTS = Array.isArray(r)?r:[];
-    const pending = SIGNUP_REQUESTS.filter(x=>x.status==='pending');
-    const badge=document.getElementById('signup-badge');
-    if(badge){ badge.textContent=pending.length; badge.style.display=pending.length?'inline':'none'; }
+  
+  const data = await apiCall('GET','/data/signup-requests');
+  SIGNUP_REQUESTS = Array.isArray(data) ? data : [];
+  
+  const pending = SIGNUP_REQUESTS.filter(function(x){ return x.status==='pending'; });
+  const badge = document.getElementById('signup-badge');
+  if(badge){ badge.textContent=pending.length; badge.style.display=pending.length?'inline':'none'; }
 
-    if(!SIGNUP_REQUESTS.length){
-      el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text2)">No signup requests yet.</div>';
-      return;
-    }
-
-    el.innerHTML=SIGNUP_REQUESTS.map(function(req){
-      const statusBadge = req.status==='pending'
-        ? `<button class="btn btn-sm btn-p" onclick="decideSignup('`+req.id+`','approve')">✓ Approve</button>
-           <button class="btn btn-sm btn-d" onclick="decideSignup('`+req.id+`','reject')" style="margin-left:6px">✕ Reject</button>`
-        : `<span class="badge ${req.status==='approved'?'b-green':'b-red'}">`+req.status+`</span>`;
-      const dt = req.requestedAt ? new Date(req.requestedAt).toLocaleString('en-IN') : '';
-      return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
-        <div>
-          <div style="font-weight:700;font-size:14px">`+req.name+`</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:3px">📧 `+req.email+`</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:2px">💼 `+(req.designation||'—')+` &nbsp;|&nbsp; 🏢 `+(req.department||'—')+`</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:2px">📞 `+(req.phone||'—')+`</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:4px">Requested: `+dt+`</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">`+statusBadge+`</div>
-      </div>`;
-    }).join('');
-  }catch(e){
-    console.error('rSignupRequests error:',e);
-    el.innerHTML='<div style="padding:20px;color:var(--text2)">Error: '+e.message+'</div>';
+  if(!SIGNUP_REQUESTS.length){
+    el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text2)">No signup requests yet.</div>';
+    return;
   }
+
+  var html = '';
+  for(var i=0; i<SIGNUP_REQUESTS.length; i++){
+    var req = SIGNUP_REQUESTS[i];
+    var dt = req.requestedAt ? new Date(req.requestedAt).toLocaleString('en-IN') : '';
+    var btns = '';
+    if(req.status==='pending'){
+      btns = '<button class="btn btn-sm btn-p" onclick="decideSignup(''+req.id+'','approve')">✓ Approve</button>'
+           + ' <button class="btn btn-sm btn-d" onclick="decideSignup(''+req.id+'','reject')" style="margin-left:6px">✕ Reject</button>';
+    } else {
+      var bc = req.status==='approved' ? 'b-green' : 'b-red';
+      btns = '<span class="badge '+bc+'">'+req.status+'</span>';
+    }
+    html += '<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">'
+          + '<div>'
+          + '<div style="font-weight:700;font-size:14px">'+req.name+'</div>'
+          + '<div style="font-size:12px;color:var(--text2);margin-top:3px">📧 '+req.email+'</div>'
+          + '<div style="font-size:12px;color:var(--text2);margin-top:2px">💼 '+(req.designation||'—')+' &nbsp;|&nbsp; 🏢 '+(req.department||'—')+'</div>'
+          + '<div style="font-size:12px;color:var(--text2);margin-top:2px">📞 '+(req.phone||'—')+'</div>'
+          + '<div style="font-size:11px;color:var(--text3);margin-top:4px">Requested: '+dt+'</div>'
+          + '</div>'
+          + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'+btns+'</div>'
+          + '</div>';
+  }
+  el.innerHTML = html;
 }
+
 
 async function decideSignup(id, decision){
   if(!confirm(decision==='approve'?'Approve this signup request?':'Reject this request?')) return;
@@ -1913,53 +1918,51 @@ async function rLeaveApprovals(){
   const el=document.getElementById('leave-approvals-list');
   if(!el) return;
   el.innerHTML='<div style="padding:20px;color:var(--text2)">Loading...</div>';
-  try{
-    const r = await apiCall('GET','/leave?scope=all');
-    LEAVE_REQUESTS = Array.isArray(r)?r:[];
-    const pending = LEAVE_REQUESTS.filter(l=>l.status==='pending');
-    const badge=document.getElementById('leave-badge');
-    if(badge){ badge.textContent=pending.length; badge.style.display=pending.length?'inline':'none'; }
 
-    if(!LEAVE_REQUESTS.length){
-      el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text2)">No leave requests yet.</div>';
-      return;
+  const data = await apiCall('GET','/data/leave-requests');
+  LEAVE_REQUESTS = Array.isArray(data) ? data : [];
+
+  const pending = LEAVE_REQUESTS.filter(function(x){ return x.status==='pending'; });
+  const badge = document.getElementById('leave-badge');
+  if(badge){ badge.textContent=pending.length; badge.style.display=pending.length?'inline':'none'; }
+
+  if(!LEAVE_REQUESTS.length){
+    el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text2)">No leave requests yet.</div>';
+    return;
+  }
+
+  var leaveColors = {CL:'b-blue',SL:'b-green',WFH:'b-amber',HalfDay:'b-purple'};
+  var html = '';
+  for(var i=0; i<LEAVE_REQUESTS.length; i++){
+    var lv = LEAVE_REQUESTS[i];
+    var lvColor = leaveColors[lv.leaveType] || 'b-gray';
+    var toDateStr = (lv.toDate && lv.toDate!==lv.fromDate) ? ' → '+lv.toDate : '';
+    var applied = lv.appliedAt ? new Date(lv.appliedAt).toLocaleString('en-IN') : '';
+    var hdStr = lv.isHalfDay ? ' · Half Day' : '';
+    var btns = '';
+    if(lv.status==='pending'){
+      btns = '<button class="btn btn-sm btn-p" onclick="decideLeave(''+lv.id+'','approve')">✓ Approve</button>'
+           + ' <button class="btn btn-sm btn-d" onclick="decideLeave(''+lv.id+'','reject')" style="margin-left:6px">✕ Reject</button>';
+    } else {
+      var bc = lv.status==='approved' ? 'b-green' : 'b-red';
+      btns = '<span class="badge '+bc+'">'+lv.status+'</span>';
     }
-    const leaveColors={'CL':'b-blue','SL':'b-green','WFH':'b-amber','HalfDay':'b-purple'};
-    el.innerHTML=LEAVE_REQUESTS.map(function(lv){
-      const lvColor=leaveColors[lv.leaveType]||'b-gray';
-      const actionBtns = lv.status==='pending'
-        ? `<button class="btn btn-sm btn-p" onclick="decideLeave('`+lv.id+`','approve')">✓ Approve</button>
-           <button class="btn btn-sm btn-d" onclick="decideLeave('`+lv.id+`','reject')" style="margin-left:6px">✕ Reject</button>`
-        : `<span class="badge `+(lv.status==='approved'?'b-green':'b-red')+`">`+lv.status+`</span>`;
-      const toDateStr = lv.toDate&&lv.toDate!==lv.fromDate?' → '+lv.toDate:'';
-      const applied = lv.appliedAt?new Date(lv.appliedAt).toLocaleString('en-IN'):'';
-      return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
-        <div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-            <span style="font-weight:700;font-size:13px">`+lv.employeeName+`</span>
-            <span class="badge `+lvColor+`">`+lv.leaveType+(lv.isHalfDay?' · Half Day':'')+`</span>
-          </div>
-          <div style="font-size:12px;color:var(--text2)">`+lv.fromDate+toDateStr+`</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:2px">Reason: `+(lv.reason||'—')+`</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:3px">Applied: `+applied+`</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">`+actionBtns+`</div>
-      </div>`;
-    }).join('');
-  }catch(e){
-    el.innerHTML='<div style="padding:20px;color:var(--text2)">Error loading requests</div>';
+    html += '<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">'
+          + '<div>'
+          + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
+          + '<span style="font-weight:700;font-size:13px">'+(lv.employeeName||'—')+'</span>'
+          + '<span class="badge '+lvColor+'">'+lv.leaveType+hdStr+'</span>'
+          + '</div>'
+          + '<div style="font-size:12px;color:var(--text2)">'+lv.fromDate+toDateStr+'</div>'
+          + '<div style="font-size:12px;color:var(--text2);margin-top:2px">Reason: '+(lv.reason||'—')+'</div>'
+          + '<div style="font-size:11px;color:var(--text3);margin-top:3px">Applied: '+applied+'</div>'
+          + '</div>'
+          + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'+btns+'</div>'
+          + '</div>';
   }
+  el.innerHTML = html;
 }
 
-async function decideLeave(id, decision){
-  if(!confirm(decision==='approve'?'Approve this leave request?':'Reject this request?')) return;
-  const r = await apiCall('POST','/leave',{action:'decide',requestId:id,decision});
-  if(r&&r.ok){
-    rLeaveApprovals();
-  } else {
-    alert('Error: '+(r&&r.error||'Unknown error'));
-  }
-}
 
 // Load employee data on startup + check pending counts
 document.addEventListener('DOMContentLoaded',function(){

@@ -199,12 +199,10 @@ async function loadFromDB() {
     const [sheetsData, salData, holData, expData] = await Promise.all([
       dbRead('sheets'), dbRead('salary'), dbRead('holiday'), dbRead('expenses')
     ]);
+    if(expData && Array.isArray(expData)) EXP = expData;
     let changed = false;
     if (sheetsData && Array.isArray(sheetsData) && sheetsData.length) {
-      SHEETS = sheetsData.map(s => ({
-        ...s, rows: Number(s.rows)||0,
-        status: s.url ? 'pending' : 'no-url'
-      }));
+      SHEETS = sheetsData.map(s => ({...s, rows: Number(s.rows)||0, status: s.url ? 'pending' : 'no-url'}));
       changed = true;
     }
     if (salData && typeof salData==='object' && Object.keys(salData).length) {
@@ -213,12 +211,17 @@ async function loadFromDB() {
     if (holData && typeof holData==='object' && Object.keys(holData).length) {
       HOL = holData; changed = true;
     }
-    if (expData && Array.isArray(expData)) {
-      EXP = expData;
-    }
     if (changed) {
-      recalc(); rSheets(); rFilters(); uFoot();
-      if (typeof curP!=='undefined' && curP!=='sheets') doR(curP);
+      // Use setTimeout to ensure dashboard functions are defined
+      setTimeout(function(){
+        try{
+          if(typeof recalc==='function') recalc();
+          if(typeof rSheets==='function') rSheets();
+          if(typeof rFilters==='function') rFilters();
+          if(typeof uFoot==='function') uFoot();
+          if(typeof curP!=='undefined' && curP!=='sheets' && typeof doR==='function') doR(curP);
+        }catch(e2){ console.error('UI refresh error:', e2); }
+      }, 100);
     }
     showDbStatus('✓ Synced', 'ok');
   } catch(e) {
@@ -226,7 +229,6 @@ async function loadFromDB() {
     console.error('loadFromDB error:', e);
   }
 }
-
 async function pushAllToGitHub() {
   showDbStatus('Pushing...', 'info');
   try {
@@ -2691,4 +2693,17 @@ setInterval(()=>{if(SHEETS.some(s=>s.url&&s.status==='ok'))syncAll();},5*60*1000
 </div>
 
 </body>
-</html>
+</html// Load data after all scripts ready
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    // Patch sv/svS/svH/svE to also write to GitHub
+    if(typeof sv==='function'){ const _sv=sv; window.sv=function(){ _sv(); if(typeof dbWrite==='function') dbWrite('sheets',SHEETS); }; }
+    if(typeof svS==='function'){ const _svS=svS; window.svS=function(){ _svS(); if(typeof dbWrite==='function') dbWrite('salary',SAL); }; }
+    if(typeof svH==='function'){ const _svH=svH; window.svH=function(){ _svH(); if(typeof dbWrite==='function') dbWrite('holiday',HOL); }; }
+    if(typeof svE==='function'){ const _svE=svE; window.svE=function(){ _svE(); if(typeof dbWrite==='function') dbWrite('expenses',EXP||[]); }; }
+    // Load from GitHub
+    loadFromDB();
+    // Auto sync every 3 min
+    setInterval(loadFromDB, 3*60*1000);
+  }, 800);
+});>

@@ -5,7 +5,7 @@ const GH_TOKEN  = _t1 + _t2;
 const GH_OWNER  = 'servevision';
 const GH_REPO   = 'pivot';
 const GH_BRANCH = 'main';
-const ALLOWED   = ['sheets','salary','holiday','expenses'];
+const ALLOWED   = ['sheets','salary','holiday','expenses','employees','signup-requests','leave-requests','employee-logins'];
 
 const CORS = {'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET,POST,OPTIONS','Access-Control-Allow-Headers':'Content-Type,Authorization'};
 
@@ -38,9 +38,9 @@ export async function onRequestGet(context){
   const auth=(request.headers.get('Authorization')||'').replace('Bearer ','').trim();
   if(auth!==API_KEY) return respond({error:'Unauthorized'},401);
   const table=params.table;
-  if(!ALLOWED.includes(table)) return respond({error:'Unknown'},400);
+  if(!ALLOWED.includes(table)) return respond({error:'Unknown table'},400);
   const {content}=await ghRead(table);
-  return respond(content??(table==='sheets'||table==='expenses'?[]:{}) );
+  return respond(content??(['sheets','expenses','employees','signup-requests','leave-requests'].includes(table)?[]:{}) );
 }
 
 export async function onRequestPost(context){
@@ -48,7 +48,7 @@ export async function onRequestPost(context){
   const auth=(request.headers.get('Authorization')||'').replace('Bearer ','').trim();
   if(auth!==API_KEY) return respond({error:'Unauthorized'},401);
   const table=params.table;
-  if(!ALLOWED.includes(table)) return respond({error:'Unknown'},400);
+  if(!ALLOWED.includes(table)) return respond({error:'Unknown table'},400);
   const data=await request.json();
   const {sha}=await ghRead(table);
   const ok=await ghWrite(table,data,sha);

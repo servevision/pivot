@@ -246,17 +246,7 @@ async function pushAllToGitHub() {
 }
 
 // Patch save functions after dashboard loads
-document.addEventListener('DOMContentLoaded', function() {
-  setTimeout(function() {
-    if(typeof sv  !=='undefined'){ const _sv =sv;  window.sv =function(){ _sv(); dbWrite('sheets', SHEETS); }; }
-    if(typeof svS !=='undefined'){ const _svS=svS; window.svS=function(){ _svS(); dbWrite('salary', SAL); }; }
-    if(typeof svH !=='undefined'){ const _svH=svH; window.svH=function(){ _svH(); dbWrite('holiday', HOL); }; }
-    if(typeof svE !=='undefined'){ const _svE=svE; window.svE=function(){ _svE(); dbWrite('expenses', EXP||[]); }; }
-    console.log('✓ GitHub save functions connected');
-    loadFromDB();
-    setInterval(loadFromDB, 3*60*1000);
-  }, 100);
-});
+// save patch moved to bottom
 </script>
 </head>
 <body>

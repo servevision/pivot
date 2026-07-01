@@ -278,6 +278,10 @@ document.addEventListener('DOMContentLoaded', function() {
     <button class="ni" onclick="gp('workrecord',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Work Record</button>
     <div class="ns">Finance</div>
     <button class="ni" onclick="gp('expenses',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Expenses</button>
+    <div class="ns">People</div>
+    <button class="ni" onclick="gp('emp-records',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Employee Records</button>
+    <button class="ni" onclick="gp('signup-requests',this)" id="ni-signup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>Signup Requests <span id="signup-badge" style="background:#ef4444;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px;display:none">0</span></button>
+    <button class="ni" onclick="gp('leave-approvals',this)" id="ni-leave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Leave Approvals <span id="leave-badge" style="background:#ef4444;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px;display:none">0</span></button>
   </nav>
   <div class="sb-foot" id="sb-foot">
     <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:5px">Sync Status</div>
@@ -687,7 +691,7 @@ document.addEventListener('DOMContentLoaded', function() {
 const ST='sv_v6',SC='sv_sal_v4',SH='sv_hol_v2';
 const AV=[['#dbeafe','#1e3a8a'],['#d1fae5','#064e3b'],['#ede9fe','#2e1065'],['#fef3c7','#451a03'],['#fce7f3','#500724'],['#ecfdf5','#022c22'],['#fef2f2','#450a0a'],['#fff7ed','#431407']];
 let SHEETS=[],ALL=[],SAL={},HOL={},EXP=[],C1=null,C2=null;
-const PT={'sheets':'Sheet Registry','salary-setup':'Salary Setup','holiday-setup':'Paid Holidays & Leave','overview':'Overview','salaries':'Salaries','partner-pivot':'Partner Pivot','emp-pivot':'Employee Pivot','workrecord':'Work Record','expenses':'Expenses'};
+const PT={'sheets':'Sheet Registry','salary-setup':'Salary Setup','holiday-setup':'Paid Holidays & Leave','overview':'Overview','salaries':'Salaries','partner-pivot':'Partner Pivot','emp-pivot':'Employee Pivot','workrecord':'Work Record','expenses':'Expenses','emp-records':'Employee Records','signup-requests':'Signup Requests','leave-approvals':'Leave Approvals'};
 const MONTH_ORDER=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 const fmt=n=>'₹'+Math.round(Number(n)||0).toLocaleString('en-IN');
@@ -1326,6 +1330,9 @@ function doR(id){
   else if(id==='emp-pivot')rEP();
   else if(id==='workrecord')rWR();
   else if(id==='expenses')rExp();
+  else if(id==='emp-records')rEmpRecords();
+  else if(id==='signup-requests')rSignupRequests();
+  else if(id==='leave-approvals')rLeaveApprovals();
   else if(id==='sheets')rSheets();
   else if(id==='salary-setup'){popSEmpSels();rSalCfg();}
   else if(id==='holiday-setup'){popSEmpSels();rHolCfg();}
@@ -1700,6 +1707,268 @@ function expEP(){
   });
   dlC(rows,'employee_pivot.csv');
 }
+
+// ── EMPLOYEE RECORDS ─────────────────────────────────────────
+let EMP_RECORDS = [];
+
+async function loadEmpData(){
+  try{
+    const r = await apiCall('GET','/data/employees');
+    EMP_RECORDS = Array.isArray(r)?r:[];
+    rEmpRecords();
+  }catch(e){ console.error(e); }
+}
+
+function openEmpForm(){
+  document.getElementById('emp-form-area').style.display='block';
+  document.getElementById('emp-form-title').textContent='Add New Employee';
+  document.getElementById('ef-edit-id').value='';
+  document.getElementById('ef-doj').value=new Date().toISOString().split('T')[0];
+  document.getElementById('emp-form-msg').textContent='';
+  ['ef-name','ef-email','ef-phone','ef-desig','ef-sal','ef-acc','ef-ifsc','ef-bank'].forEach(id=>document.getElementById(id).value='');
+}
+
+function closeEmpForm(){
+  document.getElementById('emp-form-area').style.display='none';
+}
+
+async function fileToB64(input){
+  if(!input.files||!input.files[0]) return null;
+  return new Promise(res=>{
+    const r=new FileReader();
+    r.onload=()=>res({data:r.result,name:input.files[0].name});
+    r.readAsDataURL(input.files[0]);
+  });
+}
+
+async function saveEmpRecord(){
+  const editId = document.getElementById('ef-edit-id').value;
+  const emp = {
+    name:     document.getElementById('ef-name').value.trim(),
+    email:    document.getElementById('ef-email').value.trim().toLowerCase(),
+    phone:    document.getElementById('ef-phone').value.trim(),
+    designation: document.getElementById('ef-desig').value.trim(),
+    department:  document.getElementById('ef-dept').value,
+    dateOfJoining: document.getElementById('ef-doj').value,
+    exitDate:    document.getElementById('ef-exit').value,
+    salary:      parseFloat(document.getElementById('ef-sal').value)||0,
+    status:      document.getElementById('ef-status').value,
+    bankAccountNo: document.getElementById('ef-acc').value.trim(),
+    bankIFSC:      document.getElementById('ef-ifsc').value.trim(),
+    bankName:      document.getElementById('ef-bank').value.trim(),
+  };
+  if(!emp.name||!emp.email){ setMsg('emp-form-msg','Name and email required','red'); return; }
+
+  setMsg('emp-form-msg','Uploading documents...','info');
+  // Upload docs
+  const docs = {};
+  const docFields = [{id:'ef-aadhar',key:'aadhar'},{id:'ef-pan',key:'pan'},{id:'ef-resume',key:'resume'},{id:'ef-other',key:'other'}];
+  for(const {id,key} of docFields){
+    const d = await fileToB64(document.getElementById(id));
+    if(d) docs[key]=d;
+  }
+  if(Object.keys(docs).length) emp.documents=docs;
+
+  setMsg('emp-form-msg','Saving...','info');
+  let result;
+  if(editId){
+    result = await apiCall('POST','/data/employees',{action:'update',employeeId:editId,employee:emp});
+  } else {
+    result = await apiCall('POST','/data/employees',{action:'create',employee:emp});
+  }
+
+  if(result&&result.ok){
+    setMsg('emp-form-msg',editId?'Updated!':'Employee added! ID: '+(result.employeeId||''),'green');
+    closeEmpForm();
+    loadEmpData();
+  } else {
+    setMsg('emp-form-msg','Save failed','red');
+  }
+}
+
+function editEmpRecord(id){
+  const emp = EMP_RECORDS.find(e=>e.employeeId===id);
+  if(!emp) return;
+  document.getElementById('emp-form-area').style.display='block';
+  document.getElementById('emp-form-title').textContent='Edit Employee — '+emp.employeeId;
+  document.getElementById('ef-edit-id').value=emp.employeeId;
+  document.getElementById('ef-name').value=emp.name||'';
+  document.getElementById('ef-email').value=emp.email||'';
+  document.getElementById('ef-phone').value=emp.phone||'';
+  document.getElementById('ef-desig').value=emp.designation||'';
+  document.getElementById('ef-dept').value=emp.department||'';
+  document.getElementById('ef-doj').value=emp.dateOfJoining||'';
+  document.getElementById('ef-exit').value=emp.exitDate||'';
+  document.getElementById('ef-sal').value=emp.salary||'';
+  document.getElementById('ef-status').value=emp.status||'active';
+  document.getElementById('ef-acc').value=emp.bankAccountNo||'';
+  document.getElementById('ef-ifsc').value=emp.bankIFSC||'';
+  document.getElementById('ef-bank').value=emp.bankName||'';
+  document.getElementById('emp-form-msg').textContent='';
+  document.getElementById('emp-form-area').scrollIntoView({behavior:'smooth'});
+}
+
+function rEmpRecords(){
+  const el=document.getElementById('emp-records-list');
+  if(!el)return;
+  if(!EMP_RECORDS.length){
+    el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text2)">No employees yet. Click "+ Add Employee" to create one.</div>';
+    return;
+  }
+  el.innerHTML=`<div style="overflow-x:auto;border-radius:var(--rl);border:1px solid var(--border);background:var(--bg)">
+  <table style="width:100%;border-collapse:collapse;font-size:13px">
+    <thead><tr>
+      <th style="padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;background:var(--bg2);border-bottom:1px solid var(--border)">Emp ID</th>
+      <th style="padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;background:var(--bg2);border-bottom:1px solid var(--border)">Name</th>
+      <th style="padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;background:var(--bg2);border-bottom:1px solid var(--border)">Email</th>
+      <th style="padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;background:var(--bg2);border-bottom:1px solid var(--border)">Designation</th>
+      <th style="padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;background:var(--bg2);border-bottom:1px solid var(--border)">Dept</th>
+      <th style="padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;background:var(--bg2);border-bottom:1px solid var(--border)">DOJ</th>
+      <th style="padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;background:var(--bg2);border-bottom:1px solid var(--border)">Status</th>
+      <th style="padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;background:var(--bg2);border-bottom:1px solid var(--border)">Documents</th>
+      <th style="padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;background:var(--bg2);border-bottom:1px solid var(--border)">Actions</th>
+    </tr></thead>
+    <tbody>${EMP_RECORDS.map(emp=>`<tr>
+      <td style="padding:9px 14px;border-bottom:1px solid var(--border);font-weight:700;color:var(--blue-t)">${emp.employeeId}</td>
+      <td style="padding:9px 14px;border-bottom:1px solid var(--border);font-weight:600">${emp.name}</td>
+      <td style="padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text2)">${emp.email}</td>
+      <td style="padding:9px 14px;border-bottom:1px solid var(--border)">${emp.designation||'—'}</td>
+      <td style="padding:9px 14px;border-bottom:1px solid var(--border)">${emp.department||'—'}</td>
+      <td style="padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text2)">${emp.dateOfJoining||'—'}</td>
+      <td style="padding:9px 14px;border-bottom:1px solid var(--border)">
+        <span class="badge ${emp.status==='active'?'b-green':'b-gray'}">${emp.status||'active'}</span>
+      </td>
+      <td style="padding:9px 14px;border-bottom:1px solid var(--border)">
+        ${emp.documents?Object.keys(emp.documents).map(k=>`<a href="${emp.documents[k].data}" download="${emp.documents[k].name}" style="font-size:10px;color:var(--blue-t);margin-right:6px;text-decoration:none">📎${k}</a>`).join(''):'—'}
+      </td>
+      <td style="padding:9px 14px;border-bottom:1px solid var(--border)">
+        <button class="btn btn-sm" onclick="editEmpRecord('${emp.employeeId}')">✏️ Edit</button>
+      </td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+// ── SIGNUP REQUESTS ───────────────────────────────────────
+let SIGNUP_REQUESTS = [];
+
+async function rSignupRequests(){
+  const el=document.getElementById('signup-requests-list');
+  if(!el) return;
+  el.innerHTML='<div style="padding:20px;color:var(--text2)">Loading...</div>';
+  try{
+    const r = await apiCall('GET','/data/signup-requests');
+    SIGNUP_REQUESTS = Array.isArray(r)?r:[];
+    const pending = SIGNUP_REQUESTS.filter(r=>r.status==='pending');
+    // Update badge
+    const badge=document.getElementById('signup-badge');
+    if(badge){ badge.textContent=pending.length; badge.style.display=pending.length?'inline':'none'; }
+
+    if(!SIGNUP_REQUESTS.length){
+      el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text2)">No signup requests yet.</div>';
+      return;
+    }
+    el.innerHTML=SIGNUP_REQUESTS.map(req=>`
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-weight:700;font-size:13px">${req.name}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px">${req.email} · ${req.designation||''} · ${req.department||''}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:3px">Requested: ${new Date(req.requestedAt).toLocaleString('en-IN')}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          ${req.status==='pending'?`
+            <button class="btn btn-sm btn-p" onclick="decideSignup('${req.id}','approve')">✓ Approve</button>
+            <button class="btn btn-sm btn-d" onclick="decideSignup('${req.id}','reject')">✕ Reject</button>
+          `:`<span class="badge ${req.status==='approved'?'b-green':'b-red'}">${req.status}</span>`}
+        </div>
+      </div>`).join('');
+  }catch(e){
+    el.innerHTML='<div style="padding:20px;color:var(--text2)">Error loading requests</div>';
+  }
+}
+
+async function decideSignup(id, decision){
+  if(!confirm(decision==='approve'?'Approve this signup request?':'Reject this request?')) return;
+  const r = await apiCall('POST','/admin-signup-action',{requestId:id,decision});
+  if(r&&r.ok){
+    alert(decision==='approve'?`✓ Approved! Employee ID: ${r.employeeId}`:'Request rejected. Employee notified.');
+    rSignupRequests();
+    loadEmpData();
+  } else {
+    alert('Error: '+(r&&r.error||'Unknown error'));
+  }
+}
+
+// ── LEAVE APPROVALS ──────────────────────────────────────
+let LEAVE_REQUESTS = [];
+
+async function rLeaveApprovals(){
+  const el=document.getElementById('leave-approvals-list');
+  if(!el) return;
+  el.innerHTML='<div style="padding:20px;color:var(--text2)">Loading...</div>';
+  try{
+    const r = await apiCall('GET','/leave?scope=all');
+    LEAVE_REQUESTS = Array.isArray(r)?r:[];
+    const pending = LEAVE_REQUESTS.filter(l=>l.status==='pending');
+    const badge=document.getElementById('leave-badge');
+    if(badge){ badge.textContent=pending.length; badge.style.display=pending.length?'inline':'none'; }
+
+    if(!LEAVE_REQUESTS.length){
+      el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text2)">No leave requests yet.</div>';
+      return;
+    }
+    const leaveColors={'CL':'b-blue','SL':'b-green','WFH':'b-amber','HalfDay':'b-purple'};
+    el.innerHTML=LEAVE_REQUESTS.map(lv=>`
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="font-weight:700;font-size:13px">${lv.employeeName}</span>
+            <span class="badge ${leaveColors[lv.leaveType]||'b-gray'}">${lv.leaveType}${lv.isHalfDay?' · Half Day':''}</span>
+          </div>
+          <div style="font-size:12px;color:var(--text2)">${lv.fromDate}${lv.toDate&&lv.toDate!==lv.fromDate?' → '+lv.toDate:''}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px">Reason: ${lv.reason||'—'}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:3px">Applied: ${new Date(lv.appliedAt).toLocaleString('en-IN')}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          ${lv.status==='pending'?`
+            <button class="btn btn-sm btn-p" onclick="decideLeave('${lv.id}','approve')">✓ Approve</button>
+            <button class="btn btn-sm btn-d" onclick="decideLeave('${lv.id}','reject')">✕ Reject</button>
+          `:`<span class="badge ${lv.status==='approved'?'b-green':'b-red'}">${lv.status}</span>`}
+        </div>
+      </div>`).join('');
+  }catch(e){
+    el.innerHTML='<div style="padding:20px;color:var(--text2)">Error loading requests</div>';
+  }
+}
+
+async function decideLeave(id, decision){
+  if(!confirm(decision==='approve'?'Approve this leave request?':'Reject this request?')) return;
+  const r = await apiCall('POST','/leave',{action:'decide',requestId:id,decision});
+  if(r&&r.ok){
+    rLeaveApprovals();
+  } else {
+    alert('Error: '+(r&&r.error||'Unknown error'));
+  }
+}
+
+// Load employee data on startup + check pending counts
+document.addEventListener('DOMContentLoaded',function(){
+  setTimeout(async()=>{
+    await loadEmpData();
+    // Check pending counts for badges
+    const sr = await apiCall('GET','/data/signup-requests');
+    if(Array.isArray(sr)){
+      const p=sr.filter(r=>r.status==='pending').length;
+      const b=document.getElementById('signup-badge');
+      if(b){b.textContent=p;b.style.display=p?'inline':'none';}
+    }
+    const lr = await apiCall('GET','/data/leave-requests');
+    if(Array.isArray(lr)){
+      const p=lr.filter(r=>r.status==='pending').length;
+      const b=document.getElementById('leave-badge');
+      if(b){b.textContent=p;b.style.display=p?'inline':'none';}
+    }
+  },600);
+});
 
 // ── EXPENSE FUNCTIONS ──────────────────────────────────────
 const USD_TO_INR = 84;
@@ -2312,6 +2581,73 @@ setInterval(()=>{if(SHEETS.some(s=>s.url&&s.status==='ok'))syncAll();},5*60*1000
   const _el=document.getElementById('sv-user-email');
   if(_el) _el.textContent=sessionStorage.getItem('sv_email')||'';
 </script>
+
+    <!-- EMPLOYEE RECORDS -->
+    <div class="page" id="page-emp-records">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div><div style="font-size:14px;font-weight:800">Employee Records</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px">Master data — auto-generated Employee IDs</div></div>
+        <button class="btn btn-p" onclick="openEmpForm()">+ Add Employee</button>
+      </div>
+      <div id="emp-form-area" style="display:none;margin-bottom:16px">
+        <div class="card">
+          <div class="card-t" id="emp-form-title">Add Employee</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+            <div class="fg"><label>Full Name *</label><input type="text" id="ef-name" placeholder="Full name"></div>
+            <div class="fg"><label>Email *</label><input type="email" id="ef-email" placeholder="email@example.com"></div>
+            <div class="fg"><label>Phone</label><input type="text" id="ef-phone" placeholder="9876543210"></div>
+            <div class="fg"><label>Designation</label><input type="text" id="ef-desig" placeholder="e.g. Developer"></div>
+            <div class="fg"><label>Department</label>
+              <select id="ef-dept" style="width:100%">
+                <option value="">-- Select --</option>
+                <option>Technology</option><option>Design</option><option>Marketing</option>
+                <option>Operations</option><option>HR</option><option>Finance</option><option>Content</option><option>Other</option>
+              </select>
+            </div>
+            <div class="fg"><label>Date of Joining</label><input type="date" id="ef-doj"></div>
+            <div class="fg"><label>Exit Date (if applicable)</label><input type="date" id="ef-exit"></div>
+            <div class="fg"><label>Monthly Salary (₹)</label><input type="number" id="ef-sal" placeholder="0"></div>
+            <div class="fg"><label>Status</label>
+              <select id="ef-status" style="width:100%"><option value="active">Active</option><option value="inactive">Inactive</option></select>
+            </div>
+          </div>
+          <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Bank Details</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+            <div class="fg"><label>Account Number</label><input type="text" id="ef-acc" placeholder="Account No."></div>
+            <div class="fg"><label>IFSC Code</label><input type="text" id="ef-ifsc" placeholder="IFSC"></div>
+            <div class="fg"><label>Bank Name</label><input type="text" id="ef-bank" placeholder="Bank Name"></div>
+          </div>
+          <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Documents</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+            <div class="fg"><label>Aadhar (PDF/Image)</label><input type="file" id="ef-aadhar" accept=".pdf,.jpg,.jpeg,.png" style="border:1px dashed var(--border2);border-radius:var(--r);padding:6px;font-size:11px;width:100%"></div>
+            <div class="fg"><label>PAN Card</label><input type="file" id="ef-pan" accept=".pdf,.jpg,.jpeg,.png" style="border:1px dashed var(--border2);border-radius:var(--r);padding:6px;font-size:11px;width:100%"></div>
+            <div class="fg"><label>Resume / CV</label><input type="file" id="ef-resume" accept=".pdf,.doc,.docx" style="border:1px dashed var(--border2);border-radius:var(--r);padding:6px;font-size:11px;width:100%"></div>
+            <div class="fg"><label>Other Document</label><input type="file" id="ef-other" accept=".pdf,.jpg,.jpeg,.png" style="border:1px dashed var(--border2);border-radius:var(--r);padding:6px;font-size:11px;width:100%"></div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn btn-p" onclick="saveEmpRecord()">Save Employee</button>
+            <button class="btn" onclick="closeEmpForm()">Cancel</button>
+            <span id="emp-form-msg" style="font-size:12px;font-weight:600"></span>
+          </div>
+          <input type="hidden" id="ef-edit-id" value="">
+        </div>
+      </div>
+      <div id="emp-records-list">Loading...</div>
+    </div>
+
+    <!-- SIGNUP REQUESTS -->
+    <div class="page" id="page-signup-requests">
+      <div style="margin-bottom:14px"><div style="font-size:14px;font-weight:800">Signup Requests</div>
+      <div style="font-size:11px;color:var(--text2);margin-top:2px">Pending employee account requests</div></div>
+      <div id="signup-requests-list">Loading...</div>
+    </div>
+
+    <!-- LEAVE APPROVALS -->
+    <div class="page" id="page-leave-approvals">
+      <div style="margin-bottom:14px"><div style="font-size:14px;font-weight:800">Leave Approvals</div>
+      <div style="font-size:11px;color:var(--text2);margin-top:2px">Approve or reject employee leave requests</div></div>
+      <div id="leave-approvals-list">Loading...</div>
+    </div>
 
 <!-- Manage Modal: Payment Methods & Categories -->
 <div id="manage-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.5);align-items:center;justify-content:center">

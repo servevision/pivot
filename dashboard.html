@@ -1956,4 +1956,25 @@ async function decideLeaveBtn(btn){
   decideLeave(id,decision);
 }
 
->
+// ── BOOTSTRAP: load data on page open + auto-refresh ────────
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    // Patch sv/svS/svH/svE to also write to GitHub
+    if (typeof sv === 'function') { const _sv = sv; window.sv = function(){ _sv(); if (typeof dbWrite === 'function') dbWrite('sheets', SHEETS); }; }
+    if (typeof svS === 'function') { const _svS = svS; window.svS = function(){ _svS(); if (typeof dbWrite === 'function') dbWrite('salary', SAL); }; }
+    if (typeof svH === 'function') { const _svH = svH; window.svH = function(){ _svH(); if (typeof dbWrite === 'function') dbWrite('holiday', HOL); }; }
+    if (typeof svE === 'function') { const _svE = svE; window.svE = function(){ _svE(); if (typeof dbWrite === 'function') dbWrite('expenses', EXP || []); }; }
+
+    // Render the current page shell first (so UI isn't blank while syncing)
+    if (typeof curP !== 'undefined' && typeof doR === 'function') doR(curP);
+
+    // Pull latest data from GitHub
+    if (typeof loadFromDB === 'function') loadFromDB();
+
+    // Auto-sync every 3 minutes
+    if (typeof loadFromDB === 'function') setInterval(loadFromDB, 3 * 60 * 1000);
+  }, 800);
+});
+</script>
+</body>
+</html>

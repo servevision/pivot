@@ -7,8 +7,9 @@
     "designation": "Web Designer",
     "department": "Design",
     "phone": "9050728768",
-    "status": "pending",
-    "requestedAt": "2026-07-02T11:38:09.598Z"
+    "status": "approved",
+    "requestedAt": "2026-07-02T11:38:09.598Z",
+    "decidedAt": "2026-07-02T11:38:36.140Z"
   },
   {
     "id": "mr37ur70s1j9",

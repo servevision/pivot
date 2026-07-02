@@ -1,5 +1,18 @@
 [
   {
+    "id": "mr3ffpj5p72f",
+    "employeeId": "SV-EMP-002",
+    "employeeName": "Tst",
+    "employeeEmail": "test@gmail.com",
+    "leaveType": "HalfDay",
+    "fromDate": "2026-07-02",
+    "toDate": "2026-07-02",
+    "isHalfDay": true,
+    "reason": "for testing",
+    "status": "pending",
+    "appliedAt": "2026-07-02T11:34:18.881Z"
+  },
+  {
     "id": "mr3feknn3fxv",
     "employeeId": "SV-EMP-002",
     "employeeName": "Tst",

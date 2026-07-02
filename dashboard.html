@@ -270,6 +270,7 @@ async function pushAllToGitHub() {
     <button class="ni" onclick="gp('emp-records',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Employee Records</button>
     <button class="ni" onclick="gp('signup-requests',this)" id="ni-signup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>Signup Requests <span id="signup-badge" style="background:#ef4444;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px;display:none">0</span></button>
     <button class="ni" onclick="gp('leave-approvals',this)" id="ni-leave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Leave Approvals <span id="leave-badge" style="background:#ef4444;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px;display:none">0</span></button>
+    <button class="ni" onclick="gp('attendance',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Attendance</button>
   </nav>
   <div class="sb-foot" id="sb-foot">
     <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:5px">Sync Status</div>
@@ -741,6 +742,41 @@ async function pushAllToGitHub() {
       <div id="leave-approvals-list">Loading...</div>
     </div>
 
+    <!-- ATTENDANCE -->
+    <div class="page" id="page-attendance">
+      <div style="margin-bottom:14px"><div style="font-size:14px;font-weight:800">Attendance</div>
+      <div style="font-size:11px;color:var(--text2);margin-top:2px">Employee check-ins, verified against your office WiFi</div></div>
+
+      <div class="card">
+        <div class="card-t">🛰️ Office WiFi Verification</div>
+        <div class="card-sub">Attendance marked from these IP addresses is flagged as "On Office WiFi". Ask an employee to check in once from the office, then add the IP shown below to this list.</div>
+        <div id="att-your-ip" style="font-size:12px;background:var(--bg2);border:1px dashed var(--border2);border-radius:var(--r);padding:8px 12px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <span>Loading current IP…</span>
+        </div>
+        <div id="att-ip-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input type="text" id="att-new-ip" placeholder="Add office IP e.g. 103.211.24.5" style="flex:1;min-width:220px">
+          <button class="btn btn-p" onclick="addOfficeIP()">+ Add IP</button>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+        <input type="text" id="att-q" placeholder="Search by employee name..." oninput="rAttendance()" style="flex:1;min-width:200px">
+        <select id="att-fmonth" onchange="rAttendance()" style="min-width:140px">
+          <option value="">All Months</option>
+        </select>
+        <select id="att-fverify" onchange="rAttendance()" style="min-width:160px">
+          <option value="">All Records</option>
+          <option value="yes">✓ On Office WiFi</option>
+          <option value="no">⚠ Off Network</option>
+        </select>
+      </div>
+
+      <div class="cards-grid" id="att-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:14px"></div>
+
+      <div id="att-list">Loading...</div>
+    </div>
+
   </div>
 </div>
 
@@ -748,7 +784,7 @@ async function pushAllToGitHub() {
 const ST='sv_v6',SC='sv_sal_v4',SH='sv_hol_v2';
 const AV=[['#dbeafe','#1e3a8a'],['#d1fae5','#064e3b'],['#ede9fe','#2e1065'],['#fef3c7','#451a03'],['#fce7f3','#500724'],['#ecfdf5','#022c22'],['#fef2f2','#450a0a'],['#fff7ed','#431407']];
 let SHEETS=[],ALL=[],SAL={},HOL={},EXP=[],C1=null,C2=null;
-const PT={'sheets':'Sheet Registry','salary-setup':'Salary Setup','holiday-setup':'Paid Holidays & Leave','overview':'Overview','salaries':'Salaries','partner-pivot':'Partner Pivot','emp-pivot':'Employee Pivot','workrecord':'Work Record','expenses':'Expenses','emp-records':'Employee Records','signup-requests':'Signup Requests','leave-approvals':'Leave Approvals'};
+const PT={'sheets':'Sheet Registry','salary-setup':'Salary Setup','holiday-setup':'Paid Holidays & Leave','overview':'Overview','salaries':'Salaries','partner-pivot':'Partner Pivot','emp-pivot':'Employee Pivot','workrecord':'Work Record','expenses':'Expenses','emp-records':'Employee Records','signup-requests':'Signup Requests','leave-approvals':'Leave Approvals','attendance':'Attendance'};
 const MONTH_ORDER=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 // DATA START DATE — Sirf is month se aage ka data dikhega
@@ -1410,6 +1446,7 @@ function doR(id){
   else if(id==='emp-records')loadEmpData();
   else if(id==='signup-requests')rSignupRequests();
   else if(id==='leave-approvals')rLeaveApprovals();
+  else if(id==='attendance')loadAttendance();
   else if(id==='sheets')rSheets();
   else if(id==='salary-setup'){popSEmpSels();rSalCfg();}
   else if(id==='holiday-setup'){popSEmpSels();rHolCfg();}
@@ -2051,7 +2088,113 @@ async function decideLeave(id, decision){
   }
 }
 
-// ── EXPENSE TRACKER MODULE (payment methods, categories, AI scan, CRUD) ──
+// ── ATTENDANCE MODULE ────────────────────────────────────
+let ATT_RECORDS = [];
+let ATT_OFFICE_IPS = [];
+
+async function fetchAttendance(){
+  const d = await apiCall('GET','/attendance?scope=all');
+  if(d && Array.isArray(d.records)){
+    ATT_RECORDS = d.records;
+    ATT_OFFICE_IPS = d.officeIPs || [];
+    const ipBox = document.getElementById('att-your-ip');
+    if(ipBox) ipBox.innerHTML = '<span>📍 Your current IP: <b style="font-family:monospace">'+(d.yourIp||'—')+'</b></span>'
+      + '<button class="btn btn-sm" onclick="document.getElementById(\'att-new-ip\').value=\''+(d.yourIp||'')+'\'">Use this IP</button>';
+    renderOfficeIPList();
+  }
+}
+
+function renderOfficeIPList(){
+  const el = document.getElementById('att-ip-list');
+  if(!el) return;
+  el.innerHTML = ATT_OFFICE_IPS.length ? ATT_OFFICE_IPS.map(ip=>
+    '<span class="badge b-blue" style="font-family:monospace;padding:5px 10px">'+ip+
+    ' <span style="cursor:pointer;margin-left:4px;font-weight:800" onclick="removeOfficeIP(\''+ip+'\')">✕</span></span>'
+  ).join('') : '<span style="font-size:12px;color:var(--text2)">No office IPs added yet — all check-ins will show as "Off Network" until you add one.</span>';
+}
+
+async function addOfficeIP(){
+  const inp = document.getElementById('att-new-ip');
+  const ip = inp.value.trim();
+  if(!ip) return;
+  if(!ATT_OFFICE_IPS.includes(ip)) ATT_OFFICE_IPS.push(ip);
+  const r = await apiCall('POST','/attendance',{action:'setOfficeIPs',officeIPs:ATT_OFFICE_IPS});
+  if(r&&r.ok){ inp.value=''; renderOfficeIPList(); rAttendance(); }
+  else alert('Error saving IP');
+}
+
+async function removeOfficeIP(ip){
+  ATT_OFFICE_IPS = ATT_OFFICE_IPS.filter(x=>x!==ip);
+  const r = await apiCall('POST','/attendance',{action:'setOfficeIPs',officeIPs:ATT_OFFICE_IPS});
+  if(r&&r.ok){ renderOfficeIPList(); rAttendance(); }
+}
+
+function populateAttMonths(){
+  const sel=document.getElementById('att-fmonth');
+  if(!sel) return;
+  const cur=sel.value;
+  const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const monthsArr=[...new Set(ATT_RECORDS.map(r=>(r.date||'').slice(0,7)))].filter(Boolean).sort().reverse();
+  sel.innerHTML='<option value="">All Months</option>'+monthsArr.map(m=>{
+    const [y,mo]=m.split('-');
+    return `<option value="${m}">${MN[parseInt(mo,10)-1]} ${y}</option>`;
+  }).join('');
+  if(cur) sel.value=cur;
+}
+
+async function loadAttendance(){
+  document.getElementById('att-list').innerHTML='<div style="padding:20px;color:var(--text2)">Loading...</div>';
+  await fetchAttendance();
+  rAttendance();
+}
+
+function rAttendance(){
+  populateAttMonths();
+
+  const q=(document.getElementById('att-q')?.value||'').toLowerCase();
+  const fMonth=document.getElementById('att-fmonth')?.value||'';
+  const fVerify=document.getElementById('att-fverify')?.value||'';
+
+  let filtered=ATT_RECORDS.filter(r=>{
+    const matchQ=!q||(r.employeeName||'').toLowerCase().includes(q);
+    const matchM=!fMonth||(r.date||'').slice(0,7)===fMonth;
+    const matchV=!fVerify||(fVerify==='yes'?r.officeVerified:!r.officeVerified);
+    return matchQ&&matchM&&matchV;
+  });
+  filtered.sort((a,b)=>new Date(b.checkInTime)-new Date(a.checkInTime));
+
+  // Today's summary
+  const today=new Date().toISOString().split('T')[0];
+  const todayRecs=ATT_RECORDS.filter(r=>r.date===today);
+  const onWifi=todayRecs.filter(r=>r.officeVerified).length;
+
+  document.getElementById('att-summary').innerHTML=`
+    <div class="met"><div class="met-bar" style="background:var(--blue)"></div><div class="lb">Checked In Today</div><div class="vl">${todayRecs.length}</div><div class="sb">employees</div></div>
+    <div class="met"><div class="met-bar" style="background:var(--green)"></div><div class="lb">On Office WiFi</div><div class="vl">${onWifi}</div><div class="sb">verified today</div></div>
+    <div class="met"><div class="met-bar" style="background:var(--amber)"></div><div class="lb">Off Network</div><div class="vl">${todayRecs.length-onWifi}</div><div class="sb">today</div></div>
+    <div class="met"><div class="met-bar" style="background:var(--purple)"></div><div class="lb">Total Records</div><div class="vl">${ATT_RECORDS.length}</div><div class="sb">all time</div></div>`;
+
+  const el=document.getElementById('att-list');
+  if(!filtered.length){
+    el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text2)">No attendance records match your filters.</div>';
+    return;
+  }
+  el.innerHTML=`<div class="tw"><table>
+    <thead><tr><th>Employee</th><th>Date</th><th>Check-in Time</th><th>IP Address</th><th>Network</th></tr></thead>
+    <tbody>${filtered.map(r=>{
+      const t=new Date(r.checkInTime);
+      const timeStr=t.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+      return `<tr>
+        <td style="font-weight:700">${r.employeeName||'—'}</td>
+        <td>${r.date}</td>
+        <td>${timeStr}</td>
+        <td style="font-family:monospace;color:var(--text2)">${r.ip||'—'}</td>
+        <td>${r.officeVerified?'<span class="badge b-green">✓ On Office WiFi</span>':'<span class="badge b-amber">⚠ Off Network</span>'}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+}
+
 const DEFAULT_PAY_METHODS = ['Credit Card','Debit Card','UPI','Bank Transfer','PayPal','Crypto','Cash','Other'];
 const DEFAULT_CATEGORIES = {
   'Software / SaaS':   ['Subscription','One-time License','Plugin'],

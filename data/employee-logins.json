@@ -3,5 +3,10 @@
     "password": "Bhuvan@1122@",
     "employeeId": "SV-EMP-001",
     "name": "Bhuvann Gourr"
+  },
+  "test@gmail.com": {
+    "password": "Test@123",
+    "employeeId": "SV-EMP-002",
+    "name": "Tst"
   }
 }

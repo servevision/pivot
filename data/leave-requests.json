@@ -9,7 +9,8 @@
     "toDate": "2026-07-02",
     "isHalfDay": false,
     "reason": "for personla use",
-    "status": "pending",
-    "appliedAt": "2026-07-02T11:33:25.907Z"
+    "status": "rejected",
+    "appliedAt": "2026-07-02T11:33:25.907Z",
+    "decidedAt": "2026-07-02T11:33:38.210Z"
   }
 ]

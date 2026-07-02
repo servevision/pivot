@@ -15,5 +15,22 @@
     "documents": {},
     "status": "active",
     "createdAt": "2026-07-02T10:49:40.111Z"
+  },
+  {
+    "employeeId": "SV-EMP-002",
+    "name": "Tst",
+    "email": "test@gmail.com",
+    "designation": "a",
+    "department": "Design",
+    "phone": "454894313",
+    "dateOfJoining": "2026-07-02",
+    "exitDate": "",
+    "salary": 0,
+    "bankAccountNo": "",
+    "bankIFSC": "",
+    "bankName": "",
+    "documents": {},
+    "status": "active",
+    "createdAt": "2026-07-02T10:49:44.123Z"
   }
 ]

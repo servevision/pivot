@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "id": "mr3ew3j9jl31",
+    "employeeId": "SV-EMP-002",
+    "employeeName": "Tst",
+    "date": "2026-07-02",
+    "checkInTime": "2026-07-02T11:19:03.909Z",
+    "ip": "146.196.38.79",
+    "officeVerified": true,
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
+  }
+]

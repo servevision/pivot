@@ -603,6 +603,9 @@ async function pushAllToGitHub() {
       <!-- Filters -->
       <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
         <input type="text" id="exp-q" placeholder="Search expenses..." oninput="rExp()" style="flex:1;min-width:200px">
+        <select id="exp-fmonth" onchange="rExp()" style="min-width:140px">
+          <option value="">All Months</option>
+        </select>
         <select id="exp-fpart" onchange="rExp()" style="min-width:140px">
           <option value="">All Partners</option>
           <option>Serve Vision</option>
@@ -2001,6 +2004,21 @@ function getCategories(){
 }
 function saveCategories(c){ try{ localStorage.setItem('sv_categories',JSON.stringify(c)); }catch(e){} }
 
+function populateExpMonths(){
+  const sel=document.getElementById('exp-fmonth');
+  if(!sel) return;
+  const cur=sel.value;
+  const monthsSet=new Set(EXP.map(e=>(e.date||'').slice(0,7)).filter(Boolean));
+  const monthsArr=[...monthsSet].sort().reverse(); // newest first, YYYY-MM
+  const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  sel.innerHTML='<option value="">All Months</option>'+monthsArr.map(m=>{
+    const [y,mo]=m.split('-');
+    const label=MN[parseInt(mo,10)-1]+' '+y;
+    return `<option value="${m}">${label}</option>`;
+  }).join('');
+  if(cur) sel.value=cur;
+}
+
 function populatePaySelects(){
   const methods=getPayMethods();
   ['exp-payment'].forEach(id=>{
@@ -2435,17 +2453,20 @@ function viewInvoice(id){
 function rExp(){
   populatePaySelects();
   populateCatSelects();
-  const q    =(document.getElementById('exp-q')?.value||'').toLowerCase();
-  const fPart=document.getElementById('exp-fpart')?.value||'';
-  const fPay =document.getElementById('exp-fpay')?.value||'';
-  const fCat =document.getElementById('exp-fcat')?.value||'';
+  populateExpMonths();
+  const q     =(document.getElementById('exp-q')?.value||'').toLowerCase();
+  const fMonth=document.getElementById('exp-fmonth')?.value||'';
+  const fPart =document.getElementById('exp-fpart')?.value||'';
+  const fPay  =document.getElementById('exp-fpay')?.value||'';
+  const fCat  =document.getElementById('exp-fcat')?.value||'';
 
   let filtered=EXP.filter(e=>{
     const matchQ=!q||[e.name,e.partner,e.cat,e.notes,e.date,e.payment].some(v=>(v||'').toLowerCase().includes(q));
+    const matchM=!fMonth||(e.date||'').slice(0,7)===fMonth;
     const matchP=!fPart||e.partner===fPart;
     const matchPay=!fPay||e.payment===fPay;
     const matchC=!fCat||e.cat===fCat;
-    return matchQ&&matchP&&matchPay&&matchC;
+    return matchQ&&matchM&&matchP&&matchPay&&matchC;
   });
 
   filtered.sort((a,b)=>new Date(b.date)-new Date(a.date));

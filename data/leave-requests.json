@@ -1,1 +1,15 @@
-[]
+[
+  {
+    "id": "mr3feknn3fxv",
+    "employeeId": "SV-EMP-002",
+    "employeeName": "Tst",
+    "employeeEmail": "test@gmail.com",
+    "leaveType": "CL",
+    "fromDate": "2026-07-02",
+    "toDate": "2026-07-02",
+    "isHalfDay": false,
+    "reason": "for personla use",
+    "status": "pending",
+    "appliedAt": "2026-07-02T11:33:25.907Z"
+  }
+]

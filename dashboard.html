@@ -1345,7 +1345,7 @@ function doR(id){
   else if(id==='emp-pivot')rEP();
   else if(id==='workrecord')rWR();
   else if(id==='expenses')rExp();
-  else if(id==='emp-records')rEmpRecords();
+  else if(id==='emp-records')loadEmpData();
   else if(id==='signup-requests')rSignupRequests();
   else if(id==='leave-approvals')rLeaveApprovals();
   else if(id==='sheets')rSheets();
@@ -1787,9 +1787,9 @@ async function saveEmpRecord(){
   setMsg('emp-form-msg','Saving...','info');
   let result;
   if(editId){
-    result = await apiCall('POST','/data/employees',{action:'update',employeeId:editId,employee:emp});
+    result = await apiCall('POST','/employees',{action:'update',employeeId:editId,employee:emp});
   } else {
-    result = await apiCall('POST','/data/employees',{action:'create',employee:emp});
+    result = await apiCall('POST','/employees',{action:'create',employee:emp});
   }
 
   if(result&&result.ok){
@@ -1977,6 +1977,16 @@ async function decideLeaveBtn(btn){
   var id=btn.getAttribute('data-id');
   var decision=btn.getAttribute('data-action');
   decideLeave(id,decision);
+}
+
+async function decideLeave(id, decision){
+  if(!confirm(decision==='approve'?'Approve this leave request?':'Reject this request?')) return;
+  const r = await apiCall('POST','/leave',{action:'decide',requestId:id,decision});
+  if(r&&r.ok){
+    rLeaveApprovals();
+  } else {
+    alert('Error: '+(r&&r.error||'Unknown error'));
+  }
 }
 
 // ── EXPENSE TRACKER MODULE (payment methods, categories, AI scan, CRUD) ──
@@ -2557,6 +2567,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Auto-sync every 3 minutes
     if (typeof loadFromDB === 'function') setInterval(loadFromDB, 3 * 60 * 1000);
+
+    // Show pending-request counts on sidebar badges right away
+    if (typeof loadEmpData === 'function') loadEmpData();
+    if (typeof apiCall === 'function') {
+      apiCall('GET','/data/signup-requests').then(function(sr){
+        if (Array.isArray(sr)) {
+          var p = sr.filter(function(r){ return r.status==='pending'; }).length;
+          var b = document.getElementById('signup-badge');
+          if (b) { b.textContent = p; b.style.display = p ? 'inline' : 'none'; }
+        }
+      });
+      apiCall('GET','/data/leave-requests').then(function(lr){
+        if (Array.isArray(lr)) {
+          var p = lr.filter(function(r){ return r.status==='pending'; }).length;
+          var b = document.getElementById('leave-badge');
+          if (b) { b.textContent = p; b.style.display = p ? 'inline' : 'none'; }
+        }
+      });
+    }
   }, 800);
 });
 </script>

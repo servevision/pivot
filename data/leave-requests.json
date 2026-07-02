@@ -9,8 +9,9 @@
     "toDate": "2026-07-11",
     "isHalfDay": false,
     "reason": "Test",
-    "status": "pending",
-    "appliedAt": "2026-07-02T11:40:14.104Z"
+    "status": "approved",
+    "appliedAt": "2026-07-02T11:40:14.104Z",
+    "decidedAt": "2026-07-02T11:45:21.943Z"
   },
   {
     "id": "mr3ffpj5p72f",

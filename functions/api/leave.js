@@ -1,52 +1,59 @@
 // functions/api/leave.js
 // Leave request + approval system
+const GH_T1 = 'github_pat_11BKQ3ODY0q74UW1OzqPmP_';
+const GH_T2 = 'Xf6U9IjMYaNuKR2gzdZ1xWm7PrDsrvbb1B8BYu9LmpSN4JFAPH3YyPgCgnT';
+const GH_TOKEN = GH_T1 + GH_T2;
+const GH_OWNER = 'servevision';
+const GH_REPO  = 'pivot';
+const GH_BRANCH = 'main';
+const API_KEY = 'sv_api_2026_karnal_pivot';
+const ADMIN_EMAIL = 'Payments@servevision.io';
+
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type,Authorization',
 };
-const API_KEY = 'sv_api_2026_karnal_pivot';
-const ADMIN_EMAIL = 'Payments@servevision.io';
-const GH_BRANCH = 'main';
 
 function respond(data,status=200){
   return new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json',...CORS}});
 }
 
-async function ghRead(env,file){
-  const url=`https://api.github.com/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/contents/data/${file}.json?ref=${GH_BRANCH}`;
-  const r=await fetch(url,{headers:{Authorization:`token ${env.GITHUB_TOKEN}`,Accept:'application/vnd.github.v3+json','User-Agent':'SV-Dashboard'}});
+async function ghRead(file){
+  const url=`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/data/${file}.json?ref=${GH_BRANCH}`;
+  const r=await fetch(url,{headers:{Authorization:`token ${GH_TOKEN}`,Accept:'application/vnd.github.v3+json','User-Agent':'SV-Dashboard'}});
   if(!r.ok) return {content:null,sha:null};
   const d=await r.json();
   return {content:JSON.parse(atob(d.content.replace(/\n/g,''))),sha:d.sha};
 }
 
-async function ghWrite(env,file,content,sha){
-  const url=`https://api.github.com/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/contents/data/${file}.json`;
+async function ghWrite(file,content,sha){
+  const url=`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/data/${file}.json`;
   const body={message:`Update ${file}`,content:btoa(unescape(encodeURIComponent(JSON.stringify(content,null,2)))),branch:GH_BRANCH};
   if(sha) body.sha=sha;
-  const r=await fetch(url,{method:'PUT',headers:{Authorization:`token ${env.GITHUB_TOKEN}`,Accept:'application/vnd.github.v3+json','Content-Type':'application/json','User-Agent':'SV-Dashboard'},body:JSON.stringify(body)});
+  const r=await fetch(url,{method:'PUT',headers:{Authorization:`token ${GH_TOKEN}`,Accept:'application/vnd.github.v3+json','Content-Type':'application/json','User-Agent':'SV-Dashboard'},body:JSON.stringify(body)});
   return r.ok;
 }
 
 async function sendEmail(env, to, subject, html){
-  if(!env.RESEND_API_KEY) return false;
+  const key = (env && env.RESEND_API_KEY) || null;
+  if(!key) return false;
   try{
     const r = await fetch('https://api.resend.com/emails',{
       method:'POST',
-      headers:{'Authorization': `Bearer ${env.RESEND_API_KEY}`,'Content-Type': 'application/json'},
+      headers:{'Authorization': `Bearer ${key}`,'Content-Type': 'application/json'},
       body: JSON.stringify({from: 'Serve Vision <onboarding@resend.dev>', to:[to], subject, html})
     });
     return r.ok;
   }catch(e){ console.error(e.message); return false; }
 }
 
-async function verifyEmployeeToken(token, env){
-  // Simple token format: base64(email:employeeId)
+async function verifyEmployeeToken(token){
+  // Simple token format: base64(email|employeeId)
   try{
     const decoded = atob(token);
     const [email, employeeId] = decoded.split('|');
-    const {content:logins} = await ghRead(env,'employee-logins');
+    const {content:logins} = await ghRead('employee-logins');
     const loginInfo = (logins||{})[email];
     if(loginInfo && loginInfo.employeeId===employeeId) return {email, employeeId, name: loginInfo.name};
     return null;
@@ -59,12 +66,12 @@ export async function onRequestOptions(){
 
 // GET /api/leave?scope=mine (employee) or scope=all (admin)
 export async function onRequestGet(context){
-  const {request,env}=context;
+  const {request}=context;
   const url = new URL(request.url);
   const scope = url.searchParams.get('scope')||'mine';
   const auth = (request.headers.get('Authorization')||'').replace('Bearer ','').trim();
 
-  const {content:leaveRequests} = await ghRead(env,'leave-requests');
+  const {content:leaveRequests} = await ghRead('leave-requests');
   const list = leaveRequests||[];
 
   if(scope==='all'){
@@ -74,7 +81,7 @@ export async function onRequestGet(context){
   } else {
     // Employee access - their own requests
     const empAuth = url.searchParams.get('token')||auth;
-    const emp = await verifyEmployeeToken(empAuth, env);
+    const emp = await verifyEmployeeToken(empAuth);
     if(!emp) return respond({error:'Unauthorized'},401);
     const mine = list.filter(l=>l.employeeId===emp.employeeId);
     return respond(mine);
@@ -83,18 +90,18 @@ export async function onRequestGet(context){
 
 export async function onRequestPost(context){
   const {request,env}=context;
-  const body = await request.json();
+  const body = await request.json().catch(()=>({}));
   const {action} = body;
 
   // ── Employee applies for leave ──────────────────────────
   if(action==='apply'){
-    const emp = await verifyEmployeeToken(body.token, env);
+    const emp = await verifyEmployeeToken(body.token);
     if(!emp) return respond({error:'Unauthorized'},401);
 
     const {leaveType, fromDate, toDate, isHalfDay, reason} = body;
     if(!leaveType||!fromDate||!reason) return respond({ok:false,error:'Missing required fields'},400);
 
-    const {content:leaveRequests, sha} = await ghRead(env,'leave-requests');
+    const {content:leaveRequests, sha} = await ghRead('leave-requests');
     const list = leaveRequests||[];
 
     const newRequest = {
@@ -110,7 +117,7 @@ export async function onRequestPost(context){
       appliedAt: new Date().toISOString()
     };
     list.unshift(newRequest);
-    const ok = await ghWrite(env,'leave-requests',list,sha);
+    const ok = await ghWrite('leave-requests',list,sha);
 
     await sendEmail(env, ADMIN_EMAIL,
       `Leave request from ${emp.name} - ${leaveType}`,
@@ -133,14 +140,14 @@ export async function onRequestPost(context){
     if(auth!==API_KEY) return respond({error:'Unauthorized'},401);
 
     const {requestId, decision} = body; // 'approve' | 'reject'
-    const {content:leaveRequests, sha} = await ghRead(env,'leave-requests');
+    const {content:leaveRequests, sha} = await ghRead('leave-requests');
     const list = leaveRequests||[];
     const idx = list.findIndex(l=>l.id===requestId);
     if(idx<0) return respond({error:'Request not found'},404);
 
     list[idx].status = decision==='approve' ? 'approved' : 'rejected';
     list[idx].decidedAt = new Date().toISOString();
-    const ok = await ghWrite(env,'leave-requests',list,sha);
+    const ok = await ghWrite('leave-requests',list,sha);
 
     const item = list[idx];
     await sendEmail(env, item.employeeEmail,

@@ -1,1 +1,19 @@
-[]
+[
+  {
+    "employeeId": "SV-EMP-001",
+    "name": "Bhuvann Gourr",
+    "email": "bhuvanngourr@gmail.com",
+    "designation": "FB ads Mangers",
+    "department": "Technology",
+    "phone": "9996713159",
+    "dateOfJoining": "2026-07-02",
+    "exitDate": "",
+    "salary": 0,
+    "bankAccountNo": "",
+    "bankIFSC": "",
+    "bankName": "",
+    "documents": {},
+    "status": "active",
+    "createdAt": "2026-07-02T10:49:40.111Z"
+  }
+]

@@ -349,7 +349,10 @@ function switchTab(id, btn){
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tab-'+id).classList.add('active');
-  if(id==='attendance'){ renderCalendar(); renderAttHistory(); }
+  if(id==='attendance'){
+    try{ renderCalendar(); }catch(e){ console.error('renderCalendar failed',e); }
+    try{ renderAttHistory(); }catch(e){ console.error('renderAttHistory failed',e); }
+  }
 }
 
 async function loadAttendanceStatus(){
@@ -357,7 +360,7 @@ async function loadAttendanceStatus(){
   try{
     const r = await fetch(API+'/attendance?scope=mine&token='+_token,{headers:{'Authorization':'Bearer '+_token}});
     const d = await r.json();
-    MY_ATTENDANCE = d.records || [];
+    MY_ATTENDANCE = Array.isArray(d.records) ? d.records : [];
     TODAY_ATTENDANCE = d.today || null;
     renderAttendanceCard();
   }catch(e){
@@ -439,7 +442,12 @@ async function loadEmployeeData(){
   try{
     const r = await fetch(API+'/leave?scope=mine&token='+_token,{headers:{'Authorization':'Bearer '+_token}});
     const leaves = await r.json();
-    ALL_LEAVES = leaves||[];
+    ALL_LEAVES = Array.isArray(leaves) ? leaves : [];
+    if(!Array.isArray(leaves)){
+      document.getElementById('recent-leaves').innerHTML='<div style="color:var(--red-t);padding:12px 0;text-align:center;font-size:12px">Could not load leave data. Please refresh the page.</div>';
+      document.getElementById('leave-history').innerHTML='<div style="color:var(--red-t);padding:16px;text-align:center;font-size:12px">Could not load leave data. Please refresh the page.</div>';
+      return;
+    }
     renderRecentLeaves(ALL_LEAVES);
     renderLeaveHistory(ALL_LEAVES);
     updateLeaveBalances(ALL_LEAVES);

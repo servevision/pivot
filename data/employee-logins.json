@@ -8,5 +8,10 @@
     "password": "Test@123",
     "employeeId": "SV-EMP-002",
     "name": "Tst"
+  },
+  "aman@servevision.io": {
+    "password": "Aman@123",
+    "employeeId": "SV-EMP-003",
+    "name": "Aman Khokhar"
   }
 }

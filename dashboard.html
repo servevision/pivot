@@ -679,6 +679,72 @@ async function pushAllToGitHub() {
       </div>
     </div>
 
+    <div class="page" id="page-emp-records">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div><div style="font-size:14px;font-weight:800">Employee Records</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px">Master data — auto-generated Employee IDs</div></div>
+        <button class="btn btn-p" onclick="openEmpForm()">+ Add Employee</button>
+      </div>
+      <div id="emp-form-area" style="display:none;margin-bottom:16px">
+        <div class="card">
+          <div class="card-t" id="emp-form-title">Add Employee</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+            <div class="fg"><label>Full Name *</label><input type="text" id="ef-name" placeholder="Full name"></div>
+            <div class="fg"><label>Email *</label><input type="email" id="ef-email" placeholder="email@example.com"></div>
+            <div class="fg"><label>Phone</label><input type="text" id="ef-phone" placeholder="9876543210"></div>
+            <div class="fg"><label>Designation</label><input type="text" id="ef-desig" placeholder="e.g. Developer"></div>
+            <div class="fg"><label>Department</label>
+              <select id="ef-dept" style="width:100%">
+                <option value="">-- Select --</option>
+                <option>Technology</option><option>Design</option><option>Marketing</option>
+                <option>Operations</option><option>HR</option><option>Finance</option><option>Content</option><option>Other</option>
+              </select>
+            </div>
+            <div class="fg"><label>Date of Joining</label><input type="date" id="ef-doj"></div>
+            <div class="fg"><label>Exit Date (if applicable)</label><input type="date" id="ef-exit"></div>
+            <div class="fg"><label>Monthly Salary (₹)</label><input type="number" id="ef-sal" placeholder="0"></div>
+            <div class="fg"><label>Status</label>
+              <select id="ef-status" style="width:100%"><option value="active">Active</option><option value="inactive">Inactive</option></select>
+            </div>
+          </div>
+          <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Bank Details</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+            <div class="fg"><label>Account Number</label><input type="text" id="ef-acc" placeholder="Account No."></div>
+            <div class="fg"><label>IFSC Code</label><input type="text" id="ef-ifsc" placeholder="IFSC"></div>
+            <div class="fg"><label>Bank Name</label><input type="text" id="ef-bank" placeholder="Bank Name"></div>
+          </div>
+          <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Documents</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+            <div class="fg"><label>Aadhar (PDF/Image)</label><input type="file" id="ef-aadhar" accept=".pdf,.jpg,.jpeg,.png" style="border:1px dashed var(--border2);border-radius:var(--r);padding:6px;font-size:11px;width:100%"></div>
+            <div class="fg"><label>PAN Card</label><input type="file" id="ef-pan" accept=".pdf,.jpg,.jpeg,.png" style="border:1px dashed var(--border2);border-radius:var(--r);padding:6px;font-size:11px;width:100%"></div>
+            <div class="fg"><label>Resume / CV</label><input type="file" id="ef-resume" accept=".pdf,.doc,.docx" style="border:1px dashed var(--border2);border-radius:var(--r);padding:6px;font-size:11px;width:100%"></div>
+            <div class="fg"><label>Other Document</label><input type="file" id="ef-other" accept=".pdf,.jpg,.jpeg,.png" style="border:1px dashed var(--border2);border-radius:var(--r);padding:6px;font-size:11px;width:100%"></div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn btn-p" onclick="saveEmpRecord()">Save Employee</button>
+            <button class="btn" onclick="closeEmpForm()">Cancel</button>
+            <span id="emp-form-msg" style="font-size:12px;font-weight:600"></span>
+          </div>
+          <input type="hidden" id="ef-edit-id" value="">
+        </div>
+      </div>
+      <div id="emp-records-list">Loading...</div>
+    </div>
+
+    <!-- SIGNUP REQUESTS -->
+    <div class="page" id="page-signup-requests">
+      <div style="margin-bottom:14px"><div style="font-size:14px;font-weight:800">Signup Requests</div>
+      <div style="font-size:11px;color:var(--text2);margin-top:2px">Pending employee account requests</div></div>
+      <div id="signup-requests-list">Loading...</div>
+    </div>
+
+    <!-- LEAVE APPROVALS -->
+    <div class="page" id="page-leave-approvals">
+      <div style="margin-bottom:14px"><div style="font-size:14px;font-weight:800">Leave Approvals</div>
+      <div style="font-size:11px;color:var(--text2);margin-top:2px">Approve or reject employee leave requests</div></div>
+      <div id="leave-approvals-list">Loading...</div>
+    </div>
+
   </div>
 </div>
 

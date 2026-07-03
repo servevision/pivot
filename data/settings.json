@@ -2,5 +2,7 @@
   "officeIPs": [
     "146.196.38.79",
     "2401:4900:8833:b242:5cec:b38f:c817:6f24"
-  ]
+  ],
+  "officeStartTime": "09:30",
+  "lateGraceMinutes": 15
 }

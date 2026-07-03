@@ -1,5 +1,16 @@
 [
   {
+    "id": "mr4sks4oramq",
+    "name": "Gourav madaan",
+    "email": "gouravsv1@gmail.com",
+    "password": "Waheguru@123",
+    "designation": "Video Editor",
+    "department": "Design",
+    "phone": "9103320212",
+    "status": "pending",
+    "requestedAt": "2026-07-03T10:29:56.712Z"
+  },
+  {
     "id": "mr4sj9vuf4uv",
     "name": "ansh",
     "email": "ansh24.sv@gmail.com",

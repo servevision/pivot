@@ -40,33 +40,5 @@
     "status": "approved",
     "appliedAt": "2026-07-02T11:40:14.104Z",
     "decidedAt": "2026-07-02T11:45:21.943Z"
-  },
-  {
-    "id": "mr3ffpj5p72f",
-    "employeeId": "SV-EMP-002",
-    "employeeName": "Tst",
-    "employeeEmail": "test@gmail.com",
-    "leaveType": "HalfDay",
-    "fromDate": "2026-07-02",
-    "toDate": "2026-07-02",
-    "isHalfDay": true,
-    "reason": "for testing",
-    "status": "approved",
-    "appliedAt": "2026-07-02T11:34:18.881Z",
-    "decidedAt": "2026-07-02T11:34:34.077Z"
-  },
-  {
-    "id": "mr3feknn3fxv",
-    "employeeId": "SV-EMP-002",
-    "employeeName": "Tst",
-    "employeeEmail": "test@gmail.com",
-    "leaveType": "CL",
-    "fromDate": "2026-07-02",
-    "toDate": "2026-07-02",
-    "isHalfDay": false,
-    "reason": "for personla use",
-    "status": "rejected",
-    "appliedAt": "2026-07-02T11:33:25.907Z",
-    "decidedAt": "2026-07-02T11:33:38.210Z"
   }
 ]

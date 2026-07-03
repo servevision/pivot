@@ -104,6 +104,17 @@ export async function onRequestPost(context){
     const {content:leaveRequests, sha} = await ghRead('leave-requests');
     const list = leaveRequests||[];
 
+    // Block duplicate/overlapping requests for the same date(s)
+    const newFrom = fromDate, newTo = toDate||fromDate;
+    const overlap = list.find(l=>
+      l.employeeId===emp.employeeId &&
+      l.status!=='rejected' &&
+      newFrom<=(l.toDate||l.fromDate) && l.fromDate<=newTo
+    );
+    if(overlap){
+      return respond({ok:false, error:`You already have a ${overlap.status} ${overlap.leaveType} request covering ${overlap.fromDate}${overlap.toDate&&overlap.toDate!==overlap.fromDate?' to '+overlap.toDate:''}. Edit that request instead, or wait for a decision.`});
+    }
+
     const newRequest = {
       id: Date.now().toString(36)+Math.random().toString(36).substr(2,4),
       employeeId: emp.employeeId,
@@ -135,6 +146,26 @@ export async function onRequestPost(context){
   }
 
   // ── Admin approves/rejects ──────────────────────────────
+  // ── Employee edits reason on their own pending request ──
+  if(action==='edit'){
+    const emp = await verifyEmployeeToken(body.token);
+    if(!emp) return respond({error:'Unauthorized'},401);
+
+    const {requestId, reason} = body;
+    if(!requestId||!reason) return respond({ok:false,error:'Missing required fields'},400);
+
+    const {content:leaveRequests, sha} = await ghRead('leave-requests');
+    const list = leaveRequests||[];
+    const idx = list.findIndex(l=>l.id===requestId && l.employeeId===emp.employeeId);
+    if(idx<0) return respond({ok:false,error:'Request not found'},404);
+    if(list[idx].status!=='pending') return respond({ok:false,error:'Only pending requests can be edited'},400);
+
+    list[idx].reason = reason;
+    list[idx].editedAt = new Date().toISOString();
+    const ok = await ghWrite('leave-requests',list,sha);
+    return respond({ok, record:list[idx]});
+  }
+
   if(action==='decide'){
     const auth=(request.headers.get('Authorization')||'').replace('Bearer ','').trim();
     if(auth!==API_KEY) return respond({error:'Unauthorized'},401);

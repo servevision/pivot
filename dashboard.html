@@ -780,6 +780,32 @@ async function pushAllToGitHub() {
         </div>
       </div>
 
+      <div class="card">
+        <div class="card-t">📤 Bulk Attendance Upload</div>
+        <div class="card-sub">Download a template for a date range (leave requests are pre-filled with their unique Leave ID), fill in Present/Absent/Holiday for the rest, then upload it back to update everyone at once.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">
+          <div class="fg" style="flex:1;min-width:130px">
+            <label>From Date</label>
+            <input type="date" id="bulk-from">
+          </div>
+          <div class="fg" style="flex:1;min-width:130px">
+            <label>To Date</label>
+            <input type="date" id="bulk-to">
+          </div>
+          <button class="btn" onclick="downloadAttendanceTemplate()">↓ Download Template</button>
+        </div>
+        <hr class="div">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px">
+          <input type="file" id="bulk-file" accept=".csv" style="flex:1;min-width:200px">
+          <button class="btn btn-p" onclick="uploadAttendanceFile()">↑ Upload Filled Template</button>
+        </div>
+        <div id="bulk-upload-msg" style="font-size:11.5px;margin-top:8px;color:var(--text2)"></div>
+        <div style="font-size:10.5px;color:var(--text3);margin-top:10px;line-height:1.6">
+          <b>Status column values:</b> present, late, leave, sick-leave, casual-leave, holiday, absent — leave a row's Status blank to skip that day (e.g. weekends you don't want to touch).<br>
+          <b>Leave ID column:</b> auto-filled for days that already have a leave request — don't edit it, it links the row back to that leave request.
+        </div>
+      </div>
+
       <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
         <input type="text" id="att-q" placeholder="Search by employee name..." oninput="rAttendance()" style="flex:1;min-width:180px">
         <select id="att-view" onchange="onAttViewChange()" style="min-width:140px">
@@ -2358,6 +2384,104 @@ function exportAttendanceCSV(){
     ]);
   });
   dlC(rows,'attendance_report.csv');
+}
+
+function toHHMM(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+
+async function downloadAttendanceTemplate(){
+  const from = document.getElementById('bulk-from').value;
+  const to = document.getElementById('bulk-to').value;
+  if(!from || !to){ alert('Pick both From and To dates first'); return; }
+  if(from > to){ alert('"From" date must be before "To" date'); return; }
+  if(!EMP_RECORDS.length) await loadEmpData();
+  if(!ATT_RECORDS.length) await fetchAttendance();
+
+  const leaveData = await apiCall('GET','/data/leave-requests');
+  const leaves = Array.isArray(leaveData) ? leaveData : [];
+
+  const rows = [['Employee ID','Employee Name','Date','Status','Check-in Time (HH:MM)','Check-out Time (HH:MM)','Leave ID','Leave Type']];
+
+  EMP_RECORDS.forEach(emp=>{
+    let d = new Date(from+'T00:00:00');
+    const endD = new Date(to+'T00:00:00');
+    while(d <= endD){
+      const dateStr = d.toISOString().split('T')[0];
+      const matchLeave = leaves.find(l=>l.employeeId===emp.employeeId && l.status!=='rejected' && l.fromDate<=dateStr && (l.toDate||l.fromDate)>=dateStr);
+      const existing = ATT_RECORDS.find(a=>a.employeeId===emp.employeeId && a.date===dateStr);
+
+      let status = '', leaveId = '', leaveType = '';
+      if(matchLeave){
+        status = matchLeave.leaveType==='SL' ? 'sick-leave' : 'casual-leave';
+        leaveId = matchLeave.id;
+        leaveType = matchLeave.leaveType;
+      } else if(existing){
+        status = existing.status || '';
+      }
+
+      rows.push([
+        emp.employeeId, emp.name, dateStr, status,
+        existing ? toHHMM(existing.checkInTime) : '',
+        existing ? toHHMM(existing.checkOutTime) : '',
+        leaveId, leaveType
+      ]);
+      d.setDate(d.getDate()+1);
+    }
+  });
+
+  dlC(rows, `attendance_template_${from}_to_${to}.csv`);
+}
+
+function uploadAttendanceFile(){
+  const fileInput = document.getElementById('bulk-file');
+  const file = fileInput.files[0];
+  const msgEl = document.getElementById('bulk-upload-msg');
+  if(!file){ msgEl.textContent='Choose a CSV file first'; msgEl.style.color='var(--red-t)'; return; }
+  msgEl.textContent = 'Reading file...'; msgEl.style.color='var(--text2)';
+
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+    complete: async function(results){
+      const rows = [];
+      results.data.forEach(r=>{
+        const empId = (r['Employee ID']||'').trim();
+        const date = (r['Date']||'').trim();
+        let status = (r['Status']||'').trim().toLowerCase();
+        if(!empId || !date || !status) return;
+        const inTime = (r['Check-in Time (HH:MM)']||'').trim();
+        const outTime = (r['Check-out Time (HH:MM)']||'').trim();
+        rows.push({
+          employeeId: empId,
+          employeeName: (r['Employee Name']||'').trim(),
+          date,
+          status,
+          checkInTime: inTime ? new Date(date+'T'+inTime+':00').toISOString() : null,
+          checkOutTime: outTime ? new Date(date+'T'+outTime+':00').toISOString() : null,
+          leaveRequestId: (r['Leave ID']||'').trim() || null
+        });
+      });
+      if(!rows.length){ msgEl.textContent='No valid rows found — make sure Employee ID, Date and Status columns are filled'; msgEl.style.color='var(--red-t)'; return; }
+      msgEl.textContent = `Uploading ${rows.length} rows...`; msgEl.style.color='var(--text2)';
+      const res = await apiCall('POST','/attendance',{action:'bulkUpload', rows});
+      if(res && res.ok){
+        msgEl.textContent = `✓ Done — Added ${res.added}, Updated ${res.updated}${res.skipped?', Skipped '+res.skipped:''}`;
+        msgEl.style.color='var(--green-t)';
+        fileInput.value='';
+        loadAttendance();
+      } else {
+        msgEl.textContent = 'Error: '+(res&&res.error||'Upload failed');
+        msgEl.style.color='var(--red-t)';
+      }
+    },
+    error: function(err){
+      msgEl.textContent = 'Could not read file: '+err.message;
+      msgEl.style.color='var(--red-t)';
+    }
+  });
 }
 
 const DEFAULT_PAY_METHODS = ['Credit Card','Debit Card','UPI','Bank Transfer','PayPal','Crypto','Cash','Other'];

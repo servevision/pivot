@@ -1,5 +1,18 @@
 [
   {
+    "id": "mr4tgp8w4bsi",
+    "employeeId": "SV-EMP-010",
+    "employeeName": "Aman Khokhar",
+    "employeeEmail": "aman@servevision.io",
+    "leaveType": "CL",
+    "fromDate": "2026-07-03",
+    "toDate": "2026-07-02",
+    "isHalfDay": false,
+    "reason": "aefe",
+    "status": "pending",
+    "appliedAt": "2026-07-03T10:54:45.968Z"
+  },
+  {
     "id": "bf_leave_SVEMP001_20260529",
     "employeeId": "SV-EMP-001",
     "employeeName": "Aman Khokhar",

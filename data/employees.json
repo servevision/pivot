@@ -17,23 +17,6 @@
     "createdAt": "2026-07-03T00:00:00.000Z"
   },
   {
-    "employeeId": "SV-EMP-003",
-    "name": "Bhuvan Gaur",
-    "email": "",
-    "designation": "",
-    "department": "",
-    "phone": "",
-    "dateOfJoining": "2026-04-01",
-    "exitDate": "",
-    "salary": 17000,
-    "bankAccountNo": "",
-    "bankIFSC": "",
-    "bankName": "",
-    "documents": {},
-    "status": "active",
-    "createdAt": "2026-07-03T00:00:00.000Z"
-  },
-  {
     "employeeId": "SV-EMP-004",
     "name": "Gourav Madaan",
     "email": "gouravsv1@gmail.com",

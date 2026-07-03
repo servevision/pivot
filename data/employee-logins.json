@@ -38,5 +38,10 @@
     "password": "Waheguru@123",
     "employeeId": "SV-EMP-009",
     "name": "Gourav madaan"
+  },
+  "aman@servevision.io": {
+    "password": "Aman@123",
+    "employeeId": "SV-EMP-010",
+    "name": "Aman Khokhar"
   }
 }

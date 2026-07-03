@@ -134,5 +134,22 @@
     "documents": {},
     "status": "active",
     "createdAt": "2026-07-03T10:29:26.734Z"
+  },
+  {
+    "employeeId": "SV-EMP-009",
+    "name": "Gourav madaan",
+    "email": "gouravsv1@gmail.com",
+    "designation": "Video Editor",
+    "department": "Design",
+    "phone": "9103320212",
+    "dateOfJoining": "2026-07-03",
+    "exitDate": "",
+    "salary": 0,
+    "bankAccountNo": "",
+    "bankIFSC": "",
+    "bankName": "",
+    "documents": {},
+    "status": "active",
+    "createdAt": "2026-07-03T10:30:31.076Z"
   }
 ]

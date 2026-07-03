@@ -100,6 +100,7 @@ export async function onRequestPost(context){
 
     const {leaveType, fromDate, toDate, isHalfDay, reason} = body;
     if(!leaveType||!fromDate||!reason) return respond({ok:false,error:'Missing required fields'},400);
+    if(toDate && !isHalfDay && toDate < fromDate) return respond({ok:false,error:'"To" date cannot be before "From" date'},400);
 
     const {content:leaveRequests, sha} = await ghRead('leave-requests');
     const list = leaveRequests||[];

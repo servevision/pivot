@@ -745,34 +745,65 @@ async function pushAllToGitHub() {
     <!-- ATTENDANCE -->
     <div class="page" id="page-attendance">
       <div style="margin-bottom:14px"><div style="font-size:14px;font-weight:800">Attendance</div>
-      <div style="font-size:11px;color:var(--text2);margin-top:2px">Employee check-ins, verified against your office WiFi</div></div>
+      <div style="font-size:11px;color:var(--text2);margin-top:2px">Daily check-ins, verified against office WiFi, with CP PLUS machine sync support</div></div>
 
-      <div class="card">
-        <div class="card-t">🛰️ Office WiFi Verification</div>
-        <div class="card-sub">Attendance marked from these IP addresses is flagged as "On Office WiFi". Ask an employee to check in once from the office, then add the IP shown below to this list.</div>
-        <div id="att-your-ip" style="font-size:12px;background:var(--bg2);border:1px dashed var(--border2);border-radius:var(--r);padding:8px 12px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-          <span>Loading current IP…</span>
+      <div class="cards-grid" id="att-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:14px"></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px" id="att-settings-grid">
+        <div class="card" style="margin-bottom:0">
+          <div class="card-t">🛰️ Office WiFi Verification</div>
+          <div class="card-sub">Attendance marked from these IPs is flagged "On Office WiFi". Check in once from the office, then add the IP below.</div>
+          <div id="att-your-ip" style="font-size:12px;background:var(--bg2);border:1px dashed var(--border2);border-radius:var(--r);padding:8px 12px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+            <span>Loading current IP…</span>
+          </div>
+          <div id="att-ip-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input type="text" id="att-new-ip" placeholder="Add office IP e.g. 103.211.24.5" style="flex:1;min-width:180px">
+            <button class="btn btn-p" onclick="addOfficeIP()">+ Add</button>
+          </div>
         </div>
-        <div id="att-ip-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px"></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <input type="text" id="att-new-ip" placeholder="Add office IP e.g. 103.211.24.5" style="flex:1;min-width:220px">
-          <button class="btn btn-p" onclick="addOfficeIP()">+ Add IP</button>
+        <div class="card" style="margin-bottom:0">
+          <div class="card-t">🕒 Office Hours</div>
+          <div class="card-sub">Check-ins after start time + grace period are marked "Late" automatically.</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+            <div class="fg" style="flex:1;min-width:120px">
+              <label>Office Start Time</label>
+              <input type="time" id="att-office-start" value="09:30">
+            </div>
+            <div class="fg" style="flex:1;min-width:120px">
+              <label>Grace Period (minutes)</label>
+              <input type="number" id="att-grace-min" value="15" min="0">
+            </div>
+            <button class="btn btn-p" onclick="saveOfficeHours()" style="height:35px">Save</button>
+          </div>
+          <div id="att-hours-msg" style="font-size:11px;margin-top:8px;color:var(--text2)"></div>
         </div>
       </div>
 
       <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
-        <input type="text" id="att-q" placeholder="Search by employee name..." oninput="rAttendance()" style="flex:1;min-width:200px">
+        <input type="text" id="att-q" placeholder="Search by employee name..." oninput="rAttendance()" style="flex:1;min-width:180px">
+        <select id="att-view" onchange="onAttViewChange()" style="min-width:140px">
+          <option value="all">All Records</option>
+          <option value="daily">Daily (pick date)</option>
+          <option value="employee">Employee-wise</option>
+        </select>
+        <input type="date" id="att-fdate" onchange="rAttendance()" style="display:none">
+        <select id="att-femp" onchange="rAttendance()" style="display:none;min-width:160px"></select>
         <select id="att-fmonth" onchange="rAttendance()" style="min-width:140px">
           <option value="">All Months</option>
+        </select>
+        <select id="att-fstatus" onchange="rAttendance()" style="min-width:130px">
+          <option value="">All Status</option>
+          <option value="present">Present</option>
+          <option value="late">Late</option>
         </select>
         <select id="att-fverify" onchange="rAttendance()" style="min-width:160px">
           <option value="">All Records</option>
           <option value="yes">✓ On Office WiFi</option>
           <option value="no">⚠ Off Network</option>
         </select>
+        <button class="btn" onclick="exportAttendanceCSV()">↓ Export CSV</button>
       </div>
-
-      <div class="cards-grid" id="att-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:14px"></div>
 
       <div id="att-list">Loading...</div>
     </div>
@@ -2092,12 +2123,18 @@ async function decideLeave(id, decision){
 // ── ATTENDANCE MODULE ────────────────────────────────────
 let ATT_RECORDS = [];
 let ATT_OFFICE_IPS = [];
+let ATT_OFFICE_START = '';
+let ATT_GRACE_MIN = 15;
 
 async function fetchAttendance(){
   const d = await apiCall('GET','/attendance?scope=all');
   if(d && Array.isArray(d.records)){
     ATT_RECORDS = d.records;
     ATT_OFFICE_IPS = d.officeIPs || [];
+    ATT_OFFICE_START = d.officeStartTime || '';
+    ATT_GRACE_MIN = d.lateGraceMinutes!=null ? d.lateGraceMinutes : 15;
+    if(ATT_OFFICE_START) document.getElementById('att-office-start').value = ATT_OFFICE_START;
+    if(document.getElementById('att-grace-min')) document.getElementById('att-grace-min').value = ATT_GRACE_MIN;
     const ipBox = document.getElementById('att-your-ip');
     if(ipBox) ipBox.innerHTML = '<span>📍 Your current IP: <b style="font-family:monospace">'+(d.yourIp||'—')+'</b></span>'
       + '<button class="btn btn-sm" onclick="document.getElementById(\'att-new-ip\').value=\''+(d.yourIp||'')+'\'">Use this IP</button>';
@@ -2130,6 +2167,21 @@ async function removeOfficeIP(ip){
   if(r&&r.ok){ renderOfficeIPList(); rAttendance(); }
 }
 
+async function saveOfficeHours(){
+  const startTime = document.getElementById('att-office-start').value;
+  const grace = parseInt(document.getElementById('att-grace-min').value,10)||0;
+  const msg = document.getElementById('att-hours-msg');
+  msg.textContent='Saving...'; msg.style.color='var(--text2)';
+  const r = await apiCall('POST','/attendance',{action:'setOfficeHours',officeStartTime:startTime,lateGraceMinutes:grace});
+  if(r&&r.ok){
+    ATT_OFFICE_START=startTime; ATT_GRACE_MIN=grace;
+    msg.textContent='✓ Saved — check-ins after '+startTime+' + '+grace+' min grace will be marked Late.';
+    msg.style.color='var(--green-t)';
+  } else {
+    msg.textContent='Error saving office hours'; msg.style.color='var(--red-t)';
+  }
+}
+
 function populateAttMonths(){
   const sel=document.getElementById('att-fmonth');
   if(!sel) return;
@@ -2143,57 +2195,148 @@ function populateAttMonths(){
   if(cur) sel.value=cur;
 }
 
+function populateAttEmpFilter(){
+  const sel=document.getElementById('att-femp');
+  if(!sel) return;
+  const cur=sel.value;
+  const names=[...new Set(ATT_RECORDS.map(r=>r.employeeName))].filter(Boolean).sort();
+  sel.innerHTML='<option value="">-- Select Employee --</option>'+names.map(n=>`<option value="${n}">${n}</option>`).join('');
+  if(cur) sel.value=cur;
+}
+
 async function loadAttendance(){
   document.getElementById('att-list').innerHTML='<div style="padding:20px;color:var(--text2)">Loading...</div>';
   await fetchAttendance();
+  if(!EMP_RECORDS.length) await loadEmpData();
+  rAttendance();
+}
+
+function onAttViewChange(){
+  const view = document.getElementById('att-view').value;
+  document.getElementById('att-fdate').style.display = view==='daily' ? 'inline-block' : 'none';
+  document.getElementById('att-femp').style.display = view==='employee' ? 'inline-block' : 'none';
+  if(view==='daily' && !document.getElementById('att-fdate').value){
+    document.getElementById('att-fdate').value = new Date().toISOString().split('T')[0];
+  }
   rAttendance();
 }
 
 function rAttendance(){
   populateAttMonths();
+  populateAttEmpFilter();
 
   const q=(document.getElementById('att-q')?.value||'').toLowerCase();
+  const view=document.getElementById('att-view')?.value||'all';
+  const fDate=document.getElementById('att-fdate')?.value||'';
+  const fEmp=document.getElementById('att-femp')?.value||'';
   const fMonth=document.getElementById('att-fmonth')?.value||'';
+  const fStatus=document.getElementById('att-fstatus')?.value||'';
   const fVerify=document.getElementById('att-fverify')?.value||'';
+
+  document.getElementById('att-fdate').style.display = view==='daily' ? 'inline-block' : 'none';
+  document.getElementById('att-femp').style.display = view==='employee' ? 'inline-block' : 'none';
 
   let filtered=ATT_RECORDS.filter(r=>{
     const matchQ=!q||(r.employeeName||'').toLowerCase().includes(q);
+    const matchDate=view!=='daily'||!fDate||r.date===fDate;
+    const matchEmp=view!=='employee'||!fEmp||r.employeeName===fEmp;
     const matchM=!fMonth||(r.date||'').slice(0,7)===fMonth;
+    const matchS=!fStatus||r.status===fStatus;
     const matchV=!fVerify||(fVerify==='yes'?r.officeVerified:!r.officeVerified);
-    return matchQ&&matchM&&matchV;
+    return matchQ&&matchDate&&matchEmp&&matchM&&matchS&&matchV;
   });
   filtered.sort((a,b)=>new Date(b.checkInTime)-new Date(a.checkInTime));
 
-  // Today's summary
+  // ── Stats cards ──
   const today=new Date().toISOString().split('T')[0];
   const todayRecs=ATT_RECORDS.filter(r=>r.date===today);
-  const onWifi=todayRecs.filter(r=>r.officeVerified).length;
+  const totalEmp = EMP_RECORDS.length;
+  const presentToday = todayRecs.length;
+  const lateToday = todayRecs.filter(r=>r.status==='late').length;
+  const absentToday = Math.max(0, totalEmp - presentToday);
+  const attPct = totalEmp ? Math.round((presentToday/totalEmp)*100) : 0;
 
-  document.getElementById('att-summary').innerHTML=`
-    <div class="met"><div class="met-bar" style="background:var(--blue)"></div><div class="lb">Checked In Today</div><div class="vl">${todayRecs.length}</div><div class="sb">employees</div></div>
-    <div class="met"><div class="met-bar" style="background:var(--green)"></div><div class="lb">On Office WiFi</div><div class="vl">${onWifi}</div><div class="sb">verified today</div></div>
-    <div class="met"><div class="met-bar" style="background:var(--amber)"></div><div class="lb">Off Network</div><div class="vl">${todayRecs.length-onWifi}</div><div class="sb">today</div></div>
-    <div class="met"><div class="met-bar" style="background:var(--purple)"></div><div class="lb">Total Records</div><div class="vl">${ATT_RECORDS.length}</div><div class="sb">all time</div></div>`;
+  document.getElementById('att-stats').innerHTML=`
+    <div class="met"><div class="met-bar" style="background:var(--purple)"></div><div class="lb">Total Employees</div><div class="vl">${totalEmp}</div><div class="sb">on record</div></div>
+    <div class="met"><div class="met-bar" style="background:var(--green)"></div><div class="lb">Present Today</div><div class="vl">${presentToday}</div><div class="sb">checked in</div></div>
+    <div class="met"><div class="met-bar" style="background:var(--red)"></div><div class="lb">Absent Today</div><div class="vl">${absentToday}</div><div class="sb">not checked in</div></div>
+    <div class="met"><div class="met-bar" style="background:var(--amber)"></div><div class="lb">Late Today</div><div class="vl">${lateToday}</div><div class="sb">after office start</div></div>
+    <div class="met"><div class="met-bar" style="background:var(--blue)"></div><div class="lb">Attendance %</div><div class="vl">${attPct}%</div><div class="sb">today</div></div>`;
 
   const el=document.getElementById('att-list');
   if(!filtered.length){
     el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text2)">No attendance records match your filters.</div>';
     return;
   }
-  el.innerHTML=`<div class="tw"><table>
-    <thead><tr><th>Employee</th><th>Date</th><th>Check-in Time</th><th>IP Address</th><th>Network</th></tr></thead>
-    <tbody>${filtered.map(r=>{
-      const t=new Date(r.checkInTime);
-      const timeStr=t.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+
+  if(view==='employee' && fEmp){
+    const presentDays = filtered.filter(r=>r.status==='present').length;
+    const lateDays = filtered.filter(r=>r.status==='late').length;
+    const totalHrs = filtered.reduce((s,r)=>s+(r.workingHours||0),0);
+    el.innerHTML = `<div class="cards-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px">
+      <div class="met"><div class="lb">Total Days</div><div class="vl">${filtered.length}</div></div>
+      <div class="met"><div class="lb">On Time</div><div class="vl" style="color:var(--green-t)">${presentDays}</div></div>
+      <div class="met"><div class="lb">Late</div><div class="vl" style="color:var(--amber-t)">${lateDays}</div></div>
+      <div class="met"><div class="lb">Total Hours</div><div class="vl">${totalHrs.toFixed(1)}</div></div>
+    </div>` + attendanceTableHTML(filtered);
+  } else {
+    el.innerHTML = attendanceTableHTML(filtered);
+  }
+}
+
+function attendanceTableHTML(rows){
+  return `<div class="tw"><table>
+    <thead><tr><th>Employee</th><th>Date</th><th>Check-in</th><th>Check-out</th><th>Hours</th><th>Status</th><th>IP</th><th>Network</th></tr></thead>
+    <tbody>${rows.map(r=>{
+      const inT=new Date(r.checkInTime);
+      const inStr=inT.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+      const outStr=r.checkOutTime?new Date(r.checkOutTime).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}):'—';
+      const hrs=r.workingHours!=null?r.workingHours:'—';
       return `<tr>
-        <td style="font-weight:700">${r.employeeName||'—'}</td>
+        <td style="font-weight:700">${r.employeeName||'—'}${r.source==='machine'?' <span class=\"badge b-purple\" style=\"font-size:9px\">Machine</span>':''}</td>
         <td>${r.date}</td>
-        <td>${timeStr}</td>
-        <td style="font-family:monospace;color:var(--text2)">${r.ip||'—'}</td>
-        <td>${r.officeVerified?'<span class="badge b-green">✓ On Office WiFi</span>':'<span class="badge b-amber">⚠ Off Network</span>'}</td>
+        <td>${inStr}</td>
+        <td>${outStr}</td>
+        <td>${hrs}</td>
+        <td>${r.status==='late'?'<span class="badge b-amber">Late</span>':'<span class="badge b-green">Present</span>'}</td>
+        <td style="font-family:monospace;color:var(--text2);font-size:11px">${r.ip||'—'}</td>
+        <td>${r.officeVerified?'<span class="badge b-green">✓ Office</span>':'<span class="badge b-amber">⚠ Off</span>'}</td>
       </tr>`;
     }).join('')}</tbody>
   </table></div>`;
+}
+
+function exportAttendanceCSV(){
+  const q=(document.getElementById('att-q')?.value||'').toLowerCase();
+  const view=document.getElementById('att-view')?.value||'all';
+  const fDate=document.getElementById('att-fdate')?.value||'';
+  const fEmp=document.getElementById('att-femp')?.value||'';
+  const fMonth=document.getElementById('att-fmonth')?.value||'';
+  const fStatus=document.getElementById('att-fstatus')?.value||'';
+  const fVerify=document.getElementById('att-fverify')?.value||'';
+
+  let filtered=ATT_RECORDS.filter(r=>{
+    const matchQ=!q||(r.employeeName||'').toLowerCase().includes(q);
+    const matchDate=view!=='daily'||!fDate||r.date===fDate;
+    const matchEmp=view!=='employee'||!fEmp||r.employeeName===fEmp;
+    const matchM=!fMonth||(r.date||'').slice(0,7)===fMonth;
+    const matchS=!fStatus||r.status===fStatus;
+    const matchV=!fVerify||(fVerify==='yes'?r.officeVerified:!r.officeVerified);
+    return matchQ&&matchDate&&matchEmp&&matchM&&matchS&&matchV;
+  });
+  filtered.sort((a,b)=>new Date(b.checkInTime)-new Date(a.checkInTime));
+
+  const rows=[['Employee Name','Employee ID','Date','Check-in','Check-out','Working Hours','Status','IP Address','Network','Source']];
+  filtered.forEach(r=>{
+    rows.push([
+      r.employeeName||'', r.employeeId||'', r.date||'',
+      r.checkInTime?new Date(r.checkInTime).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}):'',
+      r.checkOutTime?new Date(r.checkOutTime).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}):'',
+      r.workingHours!=null?r.workingHours:'',
+      r.status||'', r.ip||'', r.officeVerified?'On Office WiFi':'Off Network', r.source||'web'
+    ]);
+  });
+  dlC(rows,'attendance_report.csv');
 }
 
 const DEFAULT_PAY_METHODS = ['Credit Card','Debit Card','UPI','Bank Transfer','PayPal','Crypto','Cash','Other'];

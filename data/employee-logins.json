@@ -18,5 +18,10 @@
     "password": "monika@vision",
     "employeeId": "SV-EMP-004",
     "name": "Monika Bhardwaj"
+  },
+  "sunitamahata.servevision.io": {
+    "password": "Sumi23910",
+    "employeeId": "SV-EMP-005",
+    "name": "Sunita Mahata"
   }
 }

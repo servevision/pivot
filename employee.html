@@ -393,13 +393,28 @@ function renderAttendanceCard(){
   const dateStr = today.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
 
   if(TODAY_ATTENDANCE){
-    const t = new Date(TODAY_ATTENDANCE.checkInTime);
-    const timeStr = t.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
-    statEl.innerHTML = '✓ Checked in at '+timeStr;
-    subEl.textContent = dateStr;
-    areaEl.innerHTML = '<div class="att-done-badge">✓ Marked'
-      + '<span class="att-net-badge '+(TODAY_ATTENDANCE.officeVerified?'net-yes':'net-no')+'">'
-      + (TODAY_ATTENDANCE.officeVerified?'On Office WiFi':'Off Network') + '</span></div>';
+    const inT = new Date(TODAY_ATTENDANCE.checkInTime);
+    const inStr = inT.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    const statusBadge = TODAY_ATTENDANCE.status==='late'
+      ? '<span class="att-net-badge" style="background:rgba(184,121,26,.25);color:#f5c988">Late</span>'
+      : '<span class="att-net-badge net-yes">On Time</span>';
+
+    if(TODAY_ATTENDANCE.checkOutTime){
+      const outT = new Date(TODAY_ATTENDANCE.checkOutTime);
+      const outStr = outT.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+      statEl.innerHTML = '✓ '+inStr+' → '+outStr;
+      subEl.textContent = dateStr+' · '+(TODAY_ATTENDANCE.workingHours!=null?TODAY_ATTENDANCE.workingHours+' hrs worked':'');
+      areaEl.innerHTML = '<div class="att-done-badge">✓ Day Complete'+statusBadge+'</div>';
+    } else {
+      statEl.innerHTML = '✓ Checked in at '+inStr;
+      subEl.textContent = dateStr;
+      areaEl.innerHTML = '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">'
+        + '<div class="att-done-badge">✓ Marked'
+        + '<span class="att-net-badge '+(TODAY_ATTENDANCE.officeVerified?'net-yes':'net-no')+'">'
+        + (TODAY_ATTENDANCE.officeVerified?'On Office WiFi':'Off Network') + '</span>'+statusBadge+'</div>'
+        + '<button class="att-checkin-btn" id="att-checkout-btn" onclick="markCheckout()" style="padding:9px 20px;font-size:12.5px">↩ Check Out</button>'
+        + '</div>';
+    }
   } else {
     statEl.textContent = 'Not checked in yet';
     subEl.textContent = dateStr;
@@ -434,6 +449,30 @@ async function markAttendance(){
   }
 }
 
+async function markCheckout(){
+  const btn = document.getElementById('att-checkout-btn');
+  if(btn){ btn.disabled=true; btn.textContent='Marking...'; }
+  try{
+    const r = await fetch(API+'/attendance',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+_token},
+      body:JSON.stringify({action:'checkout',token:_token})
+    });
+    const d = await r.json();
+    if(d.ok || d.record){
+      TODAY_ATTENDANCE = d.record;
+      renderAttendanceCard();
+      loadAttendanceStatus();
+    } else {
+      alert(d.error||'Could not check out');
+      if(btn){ btn.disabled=false; btn.textContent='↩ Check Out'; }
+    }
+  }catch(e){
+    alert('Connection error — please try again');
+    if(btn){ btn.disabled=false; btn.textContent='↩ Check Out'; }
+  }
+}
+
 function renderAttHistory(){
   const el = document.getElementById('att-history-list');
   if(!el) return;
@@ -441,13 +480,15 @@ function renderAttHistory(){
     el.innerHTML='<div style="color:var(--text3);padding:12px 0;text-align:center;font-size:12px">No check-ins yet</div>';
     return;
   }
-  el.innerHTML = MY_ATTENDANCE.slice(0,10).map(r=>{
-    const t=new Date(r.checkInTime);
-    const timeStr=t.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  el.innerHTML = MY_ATTENDANCE.slice(0,15).map(r=>{
+    const inT=new Date(r.checkInTime);
+    const inStr=inT.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    const outStr = r.checkOutTime ? new Date(r.checkOutTime).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}) : '—';
+    const hrs = r.workingHours!=null ? r.workingHours+' hrs' : '—';
     return `<div class="att-history-row">
       <div>
-        <div style="font-size:12.5px;font-weight:600">${r.date}</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:2px">Checked in at ${timeStr}</div>
+        <div style="font-size:12.5px;font-weight:600">${formatDateNice(r.date)} ${r.status==='late'?'<span class=\"badge b-pending\" style=\"margin-left:6px\">Late</span>':''}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">In ${inStr} · Out ${outStr} · ${hrs}${r.source==='machine'?' · Machine':''}</div>
       </div>
       <span class="badge ${r.officeVerified?'b-approved':'b-pending'}">${r.officeVerified?'✓ Office WiFi':'⚠ Off Network'}</span>
     </div>`;

@@ -3,5 +3,10 @@
     "password": "Vivek.hsim@gmail.com",
     "employeeId": "SV-EMP-001",
     "name": "Vivek Attri"
+  },
+  "joydeepservevision@gmail.com": {
+    "password": "1234567890",
+    "employeeId": "SV-EMP-002",
+    "name": "Joydeep Mahata"
   }
 }

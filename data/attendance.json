@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "id": "mr4sehticx4u",
+    "employeeId": "SV-EMP-002",
+    "employeeName": "Joydeep Mahata",
+    "date": "2026-07-03",
+    "checkInTime": "2026-07-03T10:25:03.414Z",
+    "checkOutTime": null,
+    "workingHours": null,
+    "status": "present",
+    "ip": "223.185.59.241",
+    "officeVerified": false,
+    "source": "web",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
+  }
+]

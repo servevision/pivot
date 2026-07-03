@@ -9,8 +9,9 @@
     "toDate": "2026-07-02",
     "isHalfDay": false,
     "reason": "aefe",
-    "status": "pending",
-    "appliedAt": "2026-07-03T10:54:45.968Z"
+    "status": "rejected",
+    "appliedAt": "2026-07-03T10:54:45.968Z",
+    "decidedAt": "2026-07-03T11:35:09.426Z"
   },
   {
     "id": "bf_leave_SVEMP001_20260529",

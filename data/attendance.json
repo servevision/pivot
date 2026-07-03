@@ -1,17 +1,5 @@
 [
   {
-    "id": "mr4ksl1u9gmn",
-    "employeeId": "SV-EMP-002",
-    "employeeName": "Tst",
-    "date": "2026-07-03",
-    "checkInTime": "2026-07-03T06:52:03.858Z",
-    "ip": "146.196.38.79",
-    "officeVerified": true,
-    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
-    "checkOutTime": "2026-07-03T07:40:05.948Z",
-    "workingHours": 0.8
-  },
-  {
     "id": "mr4ht22meu88",
     "employeeId": "SV-EMP-003",
     "employeeName": "Aman Khokhar",
@@ -29,16 +17,6 @@
     "checkInTime": "2026-07-02T11:40:38.533Z",
     "ip": "2401:4900:8831:55e8:7472:cf78:1006:aa8a",
     "officeVerified": false,
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
-  },
-  {
-    "id": "mr3ew3j9jl31",
-    "employeeId": "SV-EMP-002",
-    "employeeName": "Tst",
-    "date": "2026-07-02",
-    "checkInTime": "2026-07-02T11:19:03.909Z",
-    "ip": "146.196.38.79",
-    "officeVerified": true,
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
   }
 ]

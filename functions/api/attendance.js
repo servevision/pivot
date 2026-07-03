@@ -236,5 +236,42 @@ export async function onRequestPost(context){
     return respond({ok, record: rec});
   }
 
+  // ── Admin: bulk upload attendance for many employees/dates at once ──
+  if(action==='bulkUpload'){
+    const auth = (request.headers.get('Authorization')||'').replace('Bearer ','').trim();
+    if(auth!==API_KEY) return respond({error:'Unauthorized'},401);
+    const rows = Array.isArray(body.rows) ? body.rows : [];
+    if(!rows.length) return respond({ok:false,error:'No rows provided'},400);
+
+    const {content: records, sha} = await ghRead('attendance');
+    const list = records || [];
+
+    let added=0, updated=0, skipped=0;
+    for(const row of rows){
+      const { employeeId, employeeName, date, status, checkInTime, checkOutTime, leaveRequestId } = row;
+      if(!employeeId || !date || !status){ skipped++; continue; }
+
+      const idx = list.findIndex(r=>r.employeeId===employeeId && r.date===date);
+      const entry = {
+        id: idx>=0 ? list[idx].id : Date.now().toString(36)+Math.random().toString(36).substr(2,4)+added,
+        employeeId,
+        employeeName: employeeName || (idx>=0 ? list[idx].employeeName : employeeId),
+        date,
+        checkInTime: checkInTime || null,
+        checkOutTime: checkOutTime || null,
+        workingHours: (checkInTime && checkOutTime) ? computeWorkingHours(checkInTime, checkOutTime) : null,
+        status, // 'present' | 'late' | 'leave' | 'sick-leave' | 'casual-leave' | 'holiday' | 'absent'
+        leaveRequestId: leaveRequestId || null,
+        ip: null,
+        officeVerified: false,
+        source: 'manual-bulk'
+      };
+      if(idx>=0){ list[idx]=entry; updated++; } else { list.unshift(entry); added++; }
+    }
+
+    const ok = await ghWrite('attendance', list, sha);
+    return respond({ok, added, updated, skipped, total: rows.length});
+  }
+
   return respond({error:'Unknown action'}, 400);
 }

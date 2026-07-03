@@ -98,6 +98,11 @@ textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3.5px rgba(36,84,214,.1
 .submit-btn{background:linear-gradient(135deg,#2f63e6,#173a91);color:#fff;border:none;border-radius:9px;padding:11px 26px;font-size:13px;font-family:var(--fb);font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(36,84,214,.3);transition:all .15s}
 .submit-btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(36,84,214,.38)}
 .lh-list{display:flex;flex-direction:column;gap:10px}
+.lh-month-group{margin-bottom:18px}
+.lh-month-group:last-child{margin-bottom:0}
+.lh-month-header{display:flex;justify-content:space-between;align-items:center;padding:0 2px 8px;font-family:var(--fd);font-size:12.5px;font-weight:700;color:var(--ink);border-bottom:1.5px solid var(--border2);margin-bottom:10px}
+.lh-month-total{font-family:var(--fb);font-size:10.5px;font-weight:700;color:var(--green-t);background:var(--green-bg);padding:2px 9px;border-radius:20px}
+.lh-days{font-family:var(--fm);font-size:11px;font-weight:600;color:var(--blue-t);background:var(--blue-bg);padding:2px 8px;border-radius:6px}
 .lh-item{border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:var(--bg2);transition:box-shadow .15s,border-color .15s}
 .lh-item:hover{box-shadow:var(--sh);border-color:var(--border2)}
 .lh-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
@@ -480,8 +485,10 @@ function updateLeaveBalances(leaveList){
   },0);
   const approvedHD = leaveList.filter(l=>l.status==='approved'&&l.leaveType==='HalfDay').length * 0.5;
 
-  const clBal = Math.max(0, earned - approvedCL - approvedHD);
-  document.getElementById('cl-balance').textContent = clBal.toFixed(1);
+  const clBal = earned - approvedCL - approvedHD;
+  const clEl = document.getElementById('cl-balance');
+  clEl.textContent = clBal.toFixed(1);
+  clEl.style.color = clBal<0 ? 'var(--red-t)' : '';
 
   const fyStart = curMonth>=3?curYear:curYear-1;
   const approvedSL = leaveList.filter(l=>l.status==='approved'&&l.leaveType==='SL').reduce((s,l)=>{
@@ -489,7 +496,10 @@ function updateLeaveBalances(leaveList){
     const fy = d.getMonth()>=3?d.getFullYear():d.getFullYear()-1;
     return fy===fyStart?s+dateDiff(l.fromDate,l.toDate)+1:s;
   },0);
-  document.getElementById('sl-balance').textContent = Math.max(0,6-approvedSL);
+  const slBal = 6-approvedSL;
+  const slEl = document.getElementById('sl-balance');
+  slEl.textContent = slBal;
+  slEl.style.color = slBal<0 ? 'var(--red-t)' : '';
 
   const thisMonthWFH = leaveList.filter(l=>{
     if(l.leaveType!=='WFH'||l.status!=='approved') return false;
@@ -511,12 +521,24 @@ function dateDiff(from,to){
   return Math.max(0,Math.round((new Date(to)-new Date(from))/(1000*60*60*24)));
 }
 
+const LEAVE_LABELS={CL:'Casual Leave',SL:'Sick Leave',WFH:'Work From Home',HalfDay:'Half Day'};
+const MONTH_FULL=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONTH_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function leaveTypeLabel(l){ return LEAVE_LABELS[l.leaveType] || l.leaveType; }
+function leaveDays(l){ return l.isHalfDay ? 0.5 : dateDiff(l.fromDate,l.toDate)+1; }
+function formatDateNice(dateStr){
+  if(!dateStr) return '';
+  const d = new Date(dateStr+'T00:00:00');
+  return String(d.getDate()).padStart(2,'0')+' '+MONTH_SHORT[d.getMonth()]+' '+d.getFullYear();
+}
+
 function renderRecentLeaves(leaves){
   const recent = leaves.slice(0,3);
   document.getElementById('recent-leaves').innerHTML = recent.length ?
     recent.map(l=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">
       <div>
-        <div style="font-size:12.5px;font-weight:600">${l.leaveType}${l.isHalfDay?' (Half Day)':''} — ${l.fromDate}${l.toDate&&l.toDate!==l.fromDate?' to '+l.toDate:''}</div>
+        <div style="font-size:12.5px;font-weight:600">${leaveTypeLabel(l)} · ${leaveDays(l)} day${leaveDays(l)!==1?'s':''} — ${formatDateNice(l.fromDate)}${l.toDate&&l.toDate!==l.fromDate?' to '+formatDateNice(l.toDate):''}</div>
         <div style="font-size:11px;color:var(--text3);margin-top:3px">${l.reason||''}</div>
       </div>
       <span class="badge b-${l.status}">${l.status}</span>
@@ -525,20 +547,40 @@ function renderRecentLeaves(leaves){
 }
 
 function renderLeaveHistory(leaves){
-  document.getElementById('leave-history').innerHTML = leaves.length ?
-    `<div class="lh-list">${leaves.map(l=>`
-      <div class="lh-item" id="lh-item-${l.id}">
-        <div class="lh-top">
-          <span class="lh-type">${l.leaveType}${l.isHalfDay?' · Half Day':''}</span>
-          <span class="lh-dates">${l.fromDate}${l.toDate&&l.toDate!==l.fromDate?' → '+l.toDate:''}</span>
-          <span class="badge b-${l.status} lh-status">${l.status}</span>
-        </div>
-        <div class="lh-reason" id="lh-reason-${l.id}">${l.reason||'-'}</div>
-        ${l.status==='pending'?`<div class="lh-actions" id="lh-actions-${l.id}">
-          <button class="lh-edit-btn" onclick="startEditLeave('${l.id}')">✎ Edit Reason</button>
-        </div>`:''}
-      </div>`).join('')}</div>`
-    : '<div style="color:var(--text3);padding:16px;text-align:center;font-size:12px">No leave requests</div>';
+  const el = document.getElementById('leave-history');
+  if(!leaves.length){
+    el.innerHTML = '<div style="color:var(--text3);padding:16px;text-align:center;font-size:12px">No leave requests</div>';
+    return;
+  }
+  const groups = {};
+  leaves.forEach(l=>{
+    const d = new Date(l.fromDate+'T00:00:00');
+    const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    (groups[key]=groups[key]||[]).push(l);
+  });
+  const sortedKeys = Object.keys(groups).sort().reverse();
+  el.innerHTML = sortedKeys.map(key=>{
+    const [y,m] = key.split('-');
+    const label = MONTH_FULL[parseInt(m,10)-1]+' '+y;
+    const items = groups[key];
+    const approvedDays = items.filter(l=>l.status==='approved').reduce((s,l)=>s+leaveDays(l),0);
+    return `<div class="lh-month-group">
+      <div class="lh-month-header"><span>${label}</span>${approvedDays>0?`<span class="lh-month-total">${approvedDays} day${approvedDays!==1?'s':''} approved</span>`:''}</div>
+      <div class="lh-list">${items.map(l=>`
+        <div class="lh-item" id="lh-item-${l.id}">
+          <div class="lh-top">
+            <span class="lh-type">${leaveTypeLabel(l)}</span>
+            <span class="lh-days">${leaveDays(l)} day${leaveDays(l)!==1?'s':''}</span>
+            <span class="lh-dates">${formatDateNice(l.fromDate)}${l.toDate&&l.toDate!==l.fromDate?' → '+formatDateNice(l.toDate):''}</span>
+            <span class="badge b-${l.status} lh-status">${l.status}</span>
+          </div>
+          <div class="lh-reason" id="lh-reason-${l.id}">${l.reason||'-'}</div>
+          ${l.status==='pending'?`<div class="lh-actions" id="lh-actions-${l.id}">
+            <button class="lh-edit-btn" onclick="startEditLeave('${l.id}')">✎ Edit Reason</button>
+          </div>`:''}
+        </div>`).join('')}</div>
+    </div>`;
+  }).join('');
 }
 
 function startEditLeave(id){

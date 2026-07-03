@@ -480,17 +480,31 @@ function renderAttHistory(){
     el.innerHTML='<div style="color:var(--text3);padding:12px 0;text-align:center;font-size:12px">No check-ins yet</div>';
     return;
   }
+  const statusLabel = {
+    'holiday': '🎉 Holiday', 'sick-leave': '🏖 Sick Leave', 'casual-leave': '🏖 Casual Leave',
+    'leave': '🏖 Leave', 'absent': '❌ Absent'
+  };
   el.innerHTML = MY_ATTENDANCE.slice(0,15).map(r=>{
-    const inT=new Date(r.checkInTime);
-    const inStr=inT.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    const hasTime = !!r.checkInTime;
+    const inStr = hasTime ? new Date(r.checkInTime).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}) : '';
     const outStr = r.checkOutTime ? new Date(r.checkOutTime).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}) : '—';
     const hrs = r.workingHours!=null ? r.workingHours+' hrs' : '—';
+    const label = statusLabel[r.status];
+
+    const subLine = label
+      ? label
+      : `In ${inStr}${hasTime?' · Out '+outStr+' · '+hrs:''}${r.source==='machine'?' · Machine':''}`;
+
+    const rightBadge = label
+      ? `<span class="badge b-pending">${r.status==='absent'?'Absent':'On Leave'}</span>`
+      : `<span class="badge ${r.officeVerified?'b-approved':'b-pending'}">${r.officeVerified?'✓ Office WiFi':'⚠ Off Network'}</span>`;
+
     return `<div class="att-history-row">
       <div>
         <div style="font-size:12.5px;font-weight:600">${formatDateNice(r.date)} ${r.status==='late'?'<span class=\"badge b-pending\" style=\"margin-left:6px\">Late</span>':''}</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:2px">In ${inStr} · Out ${outStr} · ${hrs}${r.source==='machine'?' · Machine':''}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${subLine}</div>
       </div>
-      <span class="badge ${r.officeVerified?'b-approved':'b-pending'}">${r.officeVerified?'✓ Office WiFi':'⚠ Off Network'}</span>
+      ${rightBadge}
     </div>`;
   }).join('');
 }
@@ -551,7 +565,8 @@ function updateLeaveBalances(leaveList){
 
   const thisMonthPresent = MY_ATTENDANCE.filter(r=>{
     const d=new Date(r.date);
-    return d.getMonth()===curMonth && d.getFullYear()===curYear;
+    const inMonth = d.getMonth()===curMonth && d.getFullYear()===curYear;
+    return inMonth && (r.status==='present' || r.status==='late' || !r.status);
   }).length;
   document.getElementById('present-days').textContent = thisMonthPresent || '0';
   document.getElementById('present-sub').textContent = 'checked in this month';
@@ -756,8 +771,12 @@ function renderCalendar(){
     let cls='d-empty', tag='';
     if(isFuture) cls='d-future';
     else if(attMap[dateStr]){
-      cls = attMap[dateStr].officeVerified ? 'd-worked-office' : 'd-worked';
-      tag='✓';
+      const st = attMap[dateStr].status;
+      if(st==='holiday'){ cls='d-sunday'; tag='H'; }
+      else if(st==='sick-leave'){ cls='d-sl'; tag='SL'; }
+      else if(st==='casual-leave' || st==='leave'){ cls='d-cl'; tag='CL'; }
+      else if(st==='absent'){ cls='d-absent'; tag='A'; }
+      else { cls = attMap[dateStr].officeVerified ? 'd-worked-office' : 'd-worked'; tag='✓'; }
     }
     else if(leaveMap[dateStr]==='CL'||leaveMap[dateStr]==='HalfDay') cls='d-cl';
     else if(leaveMap[dateStr]==='SL') cls='d-sl';

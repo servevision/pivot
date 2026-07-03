@@ -1,5 +1,16 @@
 [
   {
+    "id": "mr4sdjp5n0bl",
+    "name": "Sakshi Grover",
+    "email": "sakshigrover.servevision@gmail.com",
+    "password": "Sakshi@25",
+    "designation": "Content Editior",
+    "department": "Content",
+    "phone": "7027310001",
+    "status": "pending",
+    "requestedAt": "2026-07-03T10:24:19.193Z"
+  },
+  {
     "id": "mr4sccdz36xx",
     "name": "Joydeep Mahata",
     "email": "joydeepservevision@gmail.com",

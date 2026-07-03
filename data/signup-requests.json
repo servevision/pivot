@@ -7,8 +7,9 @@
     "designation": "",
     "department": "",
     "phone": "",
-    "status": "pending",
-    "requestedAt": "2026-07-03T10:26:17.861Z"
+    "status": "rejected",
+    "requestedAt": "2026-07-03T10:26:17.861Z",
+    "decidedAt": "2026-07-03T10:26:25.798Z"
   },
   {
     "id": "mr4sfupa1nxa",

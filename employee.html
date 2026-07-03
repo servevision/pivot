@@ -249,7 +249,7 @@ textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3.5px rgba(36,84,214,.1
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           <div class="fg">
             <label>From Date</label>
-            <input type="date" id="lv-from">
+            <input type="date" id="lv-from" oninput="onFromDateChange()">
           </div>
           <div class="fg" id="to-date-wrap">
             <label>To Date</label>
@@ -658,8 +658,21 @@ function updateLeaveFields(){
   const t = document.getElementById('lv-type').value;
   document.getElementById('to-date-wrap').style.display = (t==='HalfDay') ? 'none' : 'block';
   const today = new Date().toISOString().split('T')[0];
-  document.getElementById('lv-from').value = today;
-  document.getElementById('lv-to').value   = today;
+  const fromEl = document.getElementById('lv-from');
+  const toEl = document.getElementById('lv-to');
+  fromEl.value = today;
+  toEl.value   = today;
+  toEl.min = today; // "To" can never be before "From"
+}
+
+function onFromDateChange(){
+  const fromEl = document.getElementById('lv-from');
+  const toEl = document.getElementById('lv-to');
+  if(!fromEl.value) return;
+  toEl.min = fromEl.value; // "To" date picker won't allow anything earlier than "From"
+  if(!toEl.value || toEl.value < fromEl.value){
+    toEl.value = fromEl.value; // auto-correct if To was left before the new From
+  }
 }
 
 async function applyLeave(){
@@ -672,12 +685,17 @@ async function applyLeave(){
   ok.classList.remove('show'); err.classList.remove('show');
 
   if(!from||!reason){err.textContent='Date and reason are required';err.classList.add('show');return;}
+  if(type!=='HalfDay' && to < from){
+    err.textContent='"To" date cannot be before "From" date';
+    err.classList.add('show');
+    return;
+  }
 
   try{
     const r = await fetch(API+'/leave',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+_token},
-      body:JSON.stringify({action:'apply',token:_token,leaveType:type,fromDate:from,toDate:to,isHalfDay:type==='HalfDay',reason})
+      body:JSON.stringify({action:'apply',token:_token,leaveType:type,fromDate:from,toDate:type==='HalfDay'?from:to,isHalfDay:type==='HalfDay',reason})
     });
     const d = await r.json();
     if(d.ok){

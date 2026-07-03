@@ -1,5 +1,16 @@
 [
   {
+    "id": "mr4sccdz36xx",
+    "name": "Joydeep Mahata",
+    "email": "joydeepservevision@gmail.com",
+    "password": "1234567890",
+    "designation": "Content Writer",
+    "department": "Content",
+    "phone": "9996458911",
+    "status": "pending",
+    "requestedAt": "2026-07-03T10:23:23.063Z"
+  },
+  {
     "id": "mr4sc7rdw23v",
     "name": "Vivek Attri",
     "email": "vivek.hsim@gmail.com",

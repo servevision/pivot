@@ -7,8 +7,9 @@
     "designation": "Content Editior",
     "department": "Content",
     "phone": "7027310001",
-    "status": "pending",
-    "requestedAt": "2026-07-03T10:24:19.193Z"
+    "status": "approved",
+    "requestedAt": "2026-07-03T10:24:19.193Z",
+    "decidedAt": "2026-07-03T10:24:50.736Z"
   },
   {
     "id": "mr4sccdz36xx",

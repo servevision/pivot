@@ -165,36 +165,6 @@
     "source": "worksheet-backfill"
   },
   {
-    "id": "bf_leave_SVEMP007_20260613",
-    "employeeId": "SV-EMP-007",
-    "employeeName": "Payal",
-    "employeeEmail": "",
-    "leaveType": "CL",
-    "fromDate": "2026-06-13",
-    "toDate": "2026-06-13",
-    "isHalfDay": false,
-    "reason": "Recorded from Work Record sheet",
-    "status": "approved",
-    "appliedAt": "2026-06-13T09:00:00.000Z",
-    "decidedAt": "2026-06-13T09:05:00.000Z",
-    "source": "worksheet-backfill"
-  },
-  {
-    "id": "bf_leave_SVEMP007_20260615",
-    "employeeId": "SV-EMP-007",
-    "employeeName": "Payal",
-    "employeeEmail": "",
-    "leaveType": "CL",
-    "fromDate": "2026-06-15",
-    "toDate": "2026-06-15",
-    "isHalfDay": false,
-    "reason": "Recorded from Work Record sheet",
-    "status": "approved",
-    "appliedAt": "2026-06-15T09:00:00.000Z",
-    "decidedAt": "2026-06-15T09:05:00.000Z",
-    "source": "worksheet-backfill"
-  },
-  {
     "id": "bf_leave_SVEMP008_20260602",
     "employeeId": "SV-EMP-008",
     "employeeName": "Sakshi",

@@ -1,5 +1,5 @@
 // functions/api/attendance.js
-// Employee attendance check-in + admin view, with office-WiFi IP verification
+// Employee attendance check-in/out + admin view, with office-WiFi IP verification
 const GH_T1 = 'github_pat_11BKQ3ODY0q74UW1OzqPmP_';
 const GH_T2 = 'Xf6U9IjMYaNuKR2gzdZ1xWm7PrDsrvbb1B8BYu9LmpSN4JFAPH3YyPgCgnT';
 const GH_TOKEN = GH_T1 + GH_T2;
@@ -56,6 +56,26 @@ function todayStr(){
   return new Date().toISOString().split('T')[0];
 }
 
+// IST-aware "minutes since midnight" for a given ISO timestamp, using officeTimezoneOffsetMinutes (default IST +330)
+function minutesOfDay(isoTime, tzOffsetMin){
+  const d = new Date(isoTime);
+  const utcMin = d.getUTCHours()*60 + d.getUTCMinutes();
+  return (utcMin + tzOffsetMin + 1440) % 1440;
+}
+
+function parseHHMM(str){
+  if(!str) return null;
+  const [h,m] = str.split(':').map(Number);
+  if(isNaN(h)||isNaN(m)) return null;
+  return h*60+m;
+}
+
+function computeWorkingHours(checkIn, checkOut){
+  const ms = new Date(checkOut) - new Date(checkIn);
+  if(ms<=0) return 0;
+  return Math.round((ms/(1000*60*60))*100)/100;
+}
+
 export async function onRequestOptions(){
   return new Response(null, {status:204, headers:CORS});
 }
@@ -74,7 +94,13 @@ export async function onRequestGet(context){
     const auth = (request.headers.get('Authorization')||'').replace('Bearer ','').trim();
     if(auth!==API_KEY) return respond({error:'Unauthorized'},401);
     const {content: settings} = await ghRead('settings');
-    return respond({records:list, officeIPs:(settings&&settings.officeIPs)||[], yourIp:ip});
+    return respond({
+      records:list,
+      officeIPs:(settings&&settings.officeIPs)||[],
+      officeStartTime:(settings&&settings.officeStartTime)||'',
+      lateGraceMinutes:(settings&&settings.lateGraceMinutes)!=null?settings.lateGraceMinutes:15,
+      yourIp:ip
+    });
   } else {
     const token = url.searchParams.get('token') || (request.headers.get('Authorization')||'').replace('Bearer ','').trim();
     const emp = await verifyEmployeeToken(token);
@@ -110,14 +136,27 @@ export async function onRequestPost(context){
     const officeIPs = (settings && settings.officeIPs) || [];
     const officeVerified = officeIPs.length>0 && officeIPs.includes(ip);
 
+    const now = new Date().toISOString();
+    let status = 'present';
+    const startMin = parseHHMM(settings && settings.officeStartTime);
+    if(startMin!=null){
+      const grace = (settings && settings.lateGraceMinutes!=null) ? settings.lateGraceMinutes : 15;
+      const nowMin = minutesOfDay(now, 330); // IST
+      if(nowMin > startMin + grace) status = 'late';
+    }
+
     const record = {
       id: Date.now().toString(36)+Math.random().toString(36).substr(2,4),
       employeeId: emp.employeeId,
       employeeName: emp.name,
       date: today,
-      checkInTime: new Date().toISOString(),
+      checkInTime: now,
+      checkOutTime: null,
+      workingHours: null,
+      status,
       ip,
       officeVerified,
+      source: 'web',
       userAgent: (request.headers.get('User-Agent')||'').slice(0,180)
     };
     list.unshift(record);
@@ -126,7 +165,27 @@ export async function onRequestPost(context){
     return respond({ok, record, officeVerified, ip});
   }
 
-  // ── Admin: manage office WiFi IP whitelist ──────────────
+  // ── Employee checks out ─────────────────────────────────
+  if(action==='checkout'){
+    const emp = await verifyEmployeeToken(body.token);
+    if(!emp) return respond({error:'Unauthorized'},401);
+
+    const {content: records, sha} = await ghRead('attendance');
+    const list = records || [];
+    const today = todayStr();
+    const idx = list.findIndex(r=>r.employeeId===emp.employeeId && r.date===today);
+    if(idx<0) return respond({ok:false, error:'You have not checked in today'},400);
+    if(list[idx].checkOutTime) return respond({ok:false, error:'Already checked out today', record:list[idx]});
+
+    const now = new Date().toISOString();
+    list[idx].checkOutTime = now;
+    list[idx].workingHours = computeWorkingHours(list[idx].checkInTime, now);
+    const ok = await ghWrite('attendance', list, sha);
+
+    return respond({ok, record: list[idx]});
+  }
+
+  // ── Admin: manage office WiFi IPs + office hours ────────
   if(action==='setOfficeIPs'){
     const auth = (request.headers.get('Authorization')||'').replace('Bearer ','').trim();
     if(auth!==API_KEY) return respond({error:'Unauthorized'},401);
@@ -135,6 +194,46 @@ export async function onRequestPost(context){
     const newSettings = {...(settings||{}), officeIPs: ips};
     const ok = await ghWrite('settings', newSettings, sha);
     return respond({ok, officeIPs: ips});
+  }
+
+  if(action==='setOfficeHours'){
+    const auth = (request.headers.get('Authorization')||'').replace('Bearer ','').trim();
+    if(auth!==API_KEY) return respond({error:'Unauthorized'},401);
+    const {content: settings, sha} = await ghRead('settings');
+    const newSettings = {
+      ...(settings||{}),
+      officeStartTime: body.officeStartTime || '',
+      lateGraceMinutes: body.lateGraceMinutes!=null ? Number(body.lateGraceMinutes) : 15
+    };
+    const ok = await ghWrite('settings', newSettings, sha);
+    return respond({ok, officeStartTime:newSettings.officeStartTime, lateGraceMinutes:newSettings.lateGraceMinutes});
+  }
+
+  // ── Admin: manually add/edit a record (for backfilling from Work Record, or manual correction) ──
+  if(action==='manualMark'){
+    const auth = (request.headers.get('Authorization')||'').replace('Bearer ','').trim();
+    if(auth!==API_KEY) return respond({error:'Unauthorized'},401);
+    const {employeeId, employeeName, date, status, checkInTime} = body;
+    if(!employeeId||!date||!status) return respond({ok:false,error:'Missing fields'},400);
+
+    const {content: records, sha} = await ghRead('attendance');
+    const list = records || [];
+    const idx = list.findIndex(r=>r.employeeId===employeeId && r.date===date);
+    const rec = {
+      id: idx>=0 ? list[idx].id : Date.now().toString(36)+Math.random().toString(36).substr(2,4),
+      employeeId, employeeName: employeeName||employeeId,
+      date,
+      checkInTime: checkInTime || null,
+      checkOutTime: null,
+      workingHours: null,
+      status, // 'present' | 'late' | 'leave' | 'holiday' | 'absent'
+      ip: null,
+      officeVerified: false,
+      source: 'manual'
+    };
+    if(idx>=0) list[idx]=rec; else list.unshift(rec);
+    const ok = await ghWrite('attendance', list, sha);
+    return respond({ok, record: rec});
   }
 
   return respond({error:'Unknown action'}, 400);

@@ -22,17 +22,5 @@
     "status": "approved",
     "requestedAt": "2026-07-02T08:02:03.948Z",
     "decidedAt": "2026-07-02T10:49:42.244Z"
-  },
-  {
-    "id": "mr1n44ztu7m7",
-    "name": "Tst",
-    "email": "test@gmail.com",
-    "password": "Test@123",
-    "designation": "a",
-    "department": "Design",
-    "phone": "454894313",
-    "status": "approved",
-    "requestedAt": "2026-07-01T05:33:43.625Z",
-    "decidedAt": "2026-07-02T10:49:46.122Z"
   }
 ]

@@ -7,8 +7,9 @@
     "designation": "Video Editor",
     "department": "Design",
     "phone": "9103320212",
-    "status": "pending",
-    "requestedAt": "2026-07-03T10:29:56.712Z"
+    "status": "approved",
+    "requestedAt": "2026-07-03T10:29:56.712Z",
+    "decidedAt": "2026-07-03T10:30:33.172Z"
   },
   {
     "id": "mr4sj9vuf4uv",

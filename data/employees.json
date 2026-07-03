@@ -49,5 +49,22 @@
     "documents": {},
     "status": "active",
     "createdAt": "2026-07-03T10:24:48.723Z"
+  },
+  {
+    "employeeId": "SV-EMP-004",
+    "name": "Monika Bhardwaj",
+    "email": "monikaservevision567@gmail.com",
+    "designation": "Content Editor",
+    "department": "Content",
+    "phone": "8053854139",
+    "dateOfJoining": "2026-07-03",
+    "exitDate": "",
+    "salary": 0,
+    "bankAccountNo": "",
+    "bankIFSC": "",
+    "bankName": "",
+    "documents": {},
+    "status": "active",
+    "createdAt": "2026-07-03T10:26:17.165Z"
   }
 ]

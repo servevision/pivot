@@ -31,8 +31,9 @@
     "designation": "Content Editor",
     "department": "Content",
     "phone": "8053854139",
-    "status": "pending",
-    "requestedAt": "2026-07-03T10:25:48.493Z"
+    "status": "approved",
+    "requestedAt": "2026-07-03T10:25:48.493Z",
+    "decidedAt": "2026-07-03T10:26:40.011Z"
   },
   {
     "id": "mr4sdjp5n0bl",

@@ -9,8 +9,9 @@
     "toDate": "2026-07-11",
     "isHalfDay": false,
     "reason": "asfwe",
-    "status": "pending",
-    "appliedAt": "2026-07-02T11:48:05.852Z"
+    "status": "rejected",
+    "appliedAt": "2026-07-02T11:48:05.852Z",
+    "decidedAt": "2026-07-03T04:56:34.947Z"
   },
   {
     "id": "mr3fwt7obf4a",

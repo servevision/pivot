@@ -117,5 +117,22 @@
     "documents": {},
     "status": "active",
     "createdAt": "2026-07-03T10:29:18.000Z"
+  },
+  {
+    "employeeId": "SV-EMP-008",
+    "name": "ansh",
+    "email": "ansh24.sv@gmail.com",
+    "designation": "Video Editior",
+    "department": "Marketing",
+    "phone": "9466517848",
+    "dateOfJoining": "2026-07-03",
+    "exitDate": "",
+    "salary": 0,
+    "bankAccountNo": "",
+    "bankIFSC": "",
+    "bankName": "",
+    "documents": {},
+    "status": "active",
+    "createdAt": "2026-07-03T10:29:26.734Z"
   }
 ]

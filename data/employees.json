@@ -100,5 +100,22 @@
     "documents": {},
     "status": "active",
     "createdAt": "2026-07-03T10:26:37.998Z"
+  },
+  {
+    "employeeId": "SV-EMP-007",
+    "name": "Yogesh Miglani",
+    "email": "myogesh805@gmail.com",
+    "designation": "",
+    "department": "",
+    "phone": "8295334393",
+    "dateOfJoining": "2026-07-03",
+    "exitDate": "",
+    "salary": 0,
+    "bankAccountNo": "",
+    "bankIFSC": "",
+    "bankName": "",
+    "documents": {},
+    "status": "active",
+    "createdAt": "2026-07-03T10:29:18.000Z"
   }
 ]

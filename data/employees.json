@@ -32,5 +32,22 @@
     "documents": {},
     "status": "active",
     "createdAt": "2026-07-03T10:23:38.281Z"
+  },
+  {
+    "employeeId": "SV-EMP-003",
+    "name": "Sakshi Grover",
+    "email": "sakshigrover.servevision@gmail.com",
+    "designation": "Content Editior",
+    "department": "Content",
+    "phone": "7027310001",
+    "dateOfJoining": "2026-07-03",
+    "exitDate": "",
+    "salary": 0,
+    "bankAccountNo": "",
+    "bankIFSC": "",
+    "bankName": "",
+    "documents": {},
+    "status": "active",
+    "createdAt": "2026-07-03T10:24:48.723Z"
   }
 ]

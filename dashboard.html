@@ -2420,6 +2420,8 @@ async function downloadAttendanceTemplate(){
         leaveType = matchLeave.leaveType;
       } else if(existing){
         status = existing.status || '';
+      } else if(d.getDay()===0){
+        status = 'holiday'; // Sunday, auto-filled
       }
 
       rows.push([

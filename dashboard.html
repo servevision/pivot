@@ -1989,9 +1989,20 @@ function rEmpRecords(){
       </td>
       <td style="padding:9px 14px;border-bottom:1px solid var(--border)">
         <button class="btn btn-sm" onclick="editEmpRecord('${emp.employeeId}')">✏️ Edit</button>
+        <button class="btn btn-sm btn-d" onclick="deleteEmpRecord('${emp.employeeId}','${(emp.name||'').replace(/'/g,"\\'")}')" style="margin-left:4px">🗑️ Remove</button>
       </td>
     </tr>`).join('')}</tbody>
   </table></div>`;
+}
+
+async function deleteEmpRecord(id, name){
+  if(!confirm(`Remove ${name} (${id}) permanently?\n\nThis deletes their Employee Record. Their existing attendance/leave/expense history will NOT be deleted, but they will no longer appear in Employee Records.\n\nThis cannot be undone.`)) return;
+  const r = await apiCall('POST','/employees',{action:'delete',employeeId:id});
+  if(r && r.ok){
+    loadEmpData();
+  } else {
+    alert('Error: '+(r&&r.error||'Could not remove employee'));
+  }
 }
 
 // ── SIGNUP REQUESTS ───────────────────────────────────────

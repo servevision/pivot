@@ -8,5 +8,10 @@
     "password": "1234567890",
     "employeeId": "SV-EMP-002",
     "name": "Joydeep Mahata"
+  },
+  "sakshigrover.servevision@gmail.com": {
+    "password": "Sakshi@25",
+    "employeeId": "SV-EMP-003",
+    "name": "Sakshi Grover"
   }
 }

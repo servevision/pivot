@@ -61,17 +61,26 @@ export async function onRequestPost(context){
   const reqItem=reqList[idx];
 
   if(decision==='approve'){
-    const {content:employees,sha:empSha}=await ghRead('employees');
-    const empList=employees||[];
-    const employeeId=genEmployeeId(empList);
-    empList.push({
-      employeeId,name:reqItem.name,email:reqItem.email,
-      designation:reqItem.designation||'',department:reqItem.department||'',
-      phone:reqItem.phone||'',dateOfJoining:new Date().toISOString().split('T')[0],
-      exitDate:'',salary:0,bankAccountNo:'',bankIFSC:'',bankName:'',
-      documents:{},status:'active',createdAt:new Date().toISOString()
-    });
-    await ghWrite('employees',empList,empSha);
+    let employeeId, ok;
+    // Retry loop: if the employees.json write fails (e.g. someone else wrote
+    // to it a moment ago and the SHA is stale), re-read fresh data and try
+    // again, instead of silently continuing with a broken employeeId.
+    for(let attempt=0; attempt<5; attempt++){
+      const {content:employees,sha:empSha}=await ghRead('employees');
+      const empList=employees||[];
+      employeeId=genEmployeeId(empList);
+      empList.push({
+        employeeId,name:reqItem.name,email:reqItem.email,
+        designation:reqItem.designation||'',department:reqItem.department||'',
+        phone:reqItem.phone||'',dateOfJoining:new Date().toISOString().split('T')[0],
+        exitDate:'',salary:0,bankAccountNo:'',bankIFSC:'',bankName:'',
+        documents:{},status:'active',createdAt:new Date().toISOString()
+      });
+      ok = await ghWrite('employees',empList,empSha);
+      if(ok) break;
+      await new Promise(res=>setTimeout(res, 300 + Math.random()*400)); // brief random backoff before retry
+    }
+    if(!ok) return respond({error:'Could not create employee record — please try approving again'},500);
 
     const {content:logins,sha:loginSha}=await ghRead('employee-logins');
     const loginMap=logins||{};

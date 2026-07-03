@@ -19,8 +19,9 @@
     "designation": "Content Editor and Outreach Expert",
     "department": "Content",
     "phone": "7027706868",
-    "status": "pending",
-    "requestedAt": "2026-07-03T10:26:06.766Z"
+    "status": "approved",
+    "requestedAt": "2026-07-03T10:26:06.766Z",
+    "decidedAt": "2026-07-03T10:26:32.945Z"
   },
   {
     "id": "mr4sfglp1nsz",

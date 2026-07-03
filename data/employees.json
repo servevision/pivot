@@ -151,5 +151,22 @@
     "documents": {},
     "status": "active",
     "createdAt": "2026-07-03T00:00:00.000Z"
+  },
+  {
+    "employeeId": "SV-EMP-010",
+    "name": "Aman Khokhar",
+    "email": "aman@servevision.io",
+    "designation": "Web Desi",
+    "department": "Design",
+    "phone": "9050728768",
+    "dateOfJoining": "2026-07-03",
+    "exitDate": "",
+    "salary": 0,
+    "bankAccountNo": "",
+    "bankIFSC": "",
+    "bankName": "",
+    "documents": {},
+    "status": "active",
+    "createdAt": "2026-07-03T10:51:03.382Z"
   }
 ]

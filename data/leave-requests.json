@@ -23,8 +23,9 @@
     "toDate": "2026-07-24",
     "isHalfDay": false,
     "reason": "zdxvsdX",
-    "status": "pending",
-    "appliedAt": "2026-07-02T11:47:36.804Z"
+    "status": "rejected",
+    "appliedAt": "2026-07-02T11:47:36.804Z",
+    "decidedAt": "2026-07-03T04:56:42.120Z"
   },
   {
     "id": "mr3fnbmgum2m",

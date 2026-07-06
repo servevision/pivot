@@ -9,8 +9,9 @@
     "toDate": "2026-07-06",
     "isHalfDay": false,
     "reason": "Due to fever taking sick leave.",
-    "status": "pending",
-    "appliedAt": "2026-07-06T04:56:18.506Z"
+    "status": "approved",
+    "appliedAt": "2026-07-06T04:56:18.506Z",
+    "decidedAt": "2026-07-06T07:54:11.141Z"
   },
   {
     "id": "mr4tgp8w4bsi",

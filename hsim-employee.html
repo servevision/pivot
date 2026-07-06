@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HSIM India — Employee Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff;--bg2:#f7f8fa;--bg3:#eef1f6;
+  --text:#10141d;--text2:#5b6472;--text3:#98a1b0;
+  --border:#e6e9f0;--border2:#d5dae3;
+  --ink:#053b30;--ink2:#0d5c48;
+  --blue:#0d8f6f;--blue-bg:#e3f6f0;--blue-t:#075c46;
+  --green:#0e9d63;--green-bg:#e5f8ee;--green-t:#0b6b45;
+  --amber:#b8791a;--amber-bg:#faf1de;--amber-t:#7a4f0d;
+  --red:#d14343;--red-bg:#fdeceb;--red-t:#96201f;
+  --purple:#6952d8;--purple-bg:#eeeafd;--purple-t:#40339c;
+  --gold:#d4a339;
+  --r:8px;--rl:14px;
+  --sh:0 1px 2px rgba(15,20,32,.045),0 1px 4px rgba(15,20,32,.05);
+  --sh2:0 10px 28px rgba(15,20,32,.11),0 3px 8px rgba(15,20,32,.06);
+  --fd:'Sora',-apple-system,sans-serif;--fb:'Inter',-apple-system,sans-serif;--fm:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;font-family:var(--fb);font-size:13px;color:var(--text);background:var(--bg3);font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 20% 20%,rgba(91,141,239,.35) 0%,transparent 45%),linear-gradient(160deg,var(--ink2) 0%,var(--ink) 100%);padding:20px}
+.login-box{background:#fff;border-radius:18px;padding:38px 36px;width:100%;max-width:380px;box-shadow:0 30px 70px rgba(0,0,0,.35);position:relative;overflow:hidden}
+.login-box::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--gold) 0%,#5b8def 55%,var(--gold) 100%)}
+.logo-icon{width:50px;height:50px;background:linear-gradient(135deg,#14b892,#0d8f6f);border-radius:13px;display:flex;align-items:center;justify-content:center;margin:6px auto 12px;box-shadow:0 6px 16px rgba(13,143,111,.3)}
+.logo-icon svg{width:26px;height:26px;fill:none;stroke:#fff;stroke-width:2}
+.login-title{text-align:center;margin-bottom:26px}
+.login-title .co{font-family:var(--fb);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.6px;font-weight:700}
+.login-title .nm{font-family:var(--fd);font-size:19px;font-weight:700;color:var(--ink);margin-top:4px;letter-spacing:-.3px}
+.fl{margin-bottom:14px}
+label{font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;font-family:var(--fb)}
+input{width:100%;border:1.5px solid var(--border2);border-radius:9px;padding:10px 13px;font-size:13px;font-family:var(--fb);outline:none;transition:all .15s;background:var(--bg)}
+input:focus{border-color:var(--blue);box-shadow:0 0 0 3.5px rgba(13,143,111,.12)}
+.btn-p{padding:12px;background:linear-gradient(135deg,#14b892,#0d8f6f);color:#fff;border:none;border-radius:9px;font-size:14px;font-family:var(--fb);font-weight:700;cursor:pointer;width:100%;transition:all .15s;box-shadow:0 4px 14px rgba(13,143,111,.32)}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(13,143,111,.4)}
+.btn-p:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.err-box{background:var(--red-bg);border:1px solid #f2c6c6;color:var(--red-t);border-radius:9px;padding:10px 14px;font-size:12px;font-weight:600;margin-bottom:14px;display:none}
+.err-box.show{display:block}
+.foot-link{text-align:center;margin-top:16px;font-size:12px;color:var(--text2)}
+.foot-link a{color:var(--blue);text-decoration:none;font-weight:600}
+.portal{display:none;height:100vh;flex-direction:column}
+.portal.active{display:flex}
+.topbar{background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:13px 22px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;box-shadow:0 1px 0 rgba(15,20,32,.03)}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.emp-avatar{width:36px;height:36px;background:linear-gradient(135deg,#14b892,#0d8f6f);border-radius:50%;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:var(--fd);box-shadow:0 2px 8px rgba(13,143,111,.3)}
+.emp-name{font-weight:700;font-size:13.5px;color:var(--ink);font-family:var(--fd)}
+.emp-id{font-size:10px;color:var(--text3);margin-top:1px;font-family:var(--fm)}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.badge-status{background:var(--green-bg);color:var(--green-t);font-size:10px;font-weight:700;padding:4px 11px;border-radius:20px}
+.logout-btn{background:none;border:1.5px solid var(--border2);border-radius:9px;padding:6px 13px;font-size:12px;cursor:pointer;color:var(--text2);font-weight:600;font-family:var(--fb);transition:all .15s}
+.logout-btn:hover{border-color:var(--blue);color:var(--blue)}
+.portal-content{flex:1;overflow-y:auto;overflow-x:hidden;padding:22px}
+.tabs{display:flex;gap:4px;margin-bottom:20px;background:#fff;border-radius:13px;padding:4px;border:1px solid var(--border);width:fit-content;box-shadow:var(--sh)}
+.tab{padding:8px 17px;border-radius:10px;font-size:12.5px;font-weight:600;font-family:var(--fb);cursor:pointer;transition:all .15s;color:var(--text2);border:none;background:none}
+.tab.active{background:linear-gradient(135deg,#14b892,#0d8f6f);color:#fff;box-shadow:0 3px 10px rgba(13,143,111,.32)}
+.tab-content{display:none}
+.tab-content.active{display:block;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
+.card{background:#fff;border-radius:var(--rl);padding:17px 19px;border:1px solid var(--border);box-shadow:var(--sh);transition:box-shadow .18s,transform .18s}
+.card:hover{box-shadow:var(--sh2)}
+.card-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:7px;font-family:var(--fb)}
+.card-value{font-size:25px;font-weight:700;color:var(--ink);line-height:1.15;font-family:var(--fd)}
+.card-sub{font-size:11px;color:var(--text3);margin-top:5px}
+.card-bar{height:3px;border-radius:2px;margin-bottom:11px;margin-top:-17px;margin-left:-19px;margin-right:-19px;width:calc(100% + 38px)}
+.cl-card{border-left:3px solid var(--blue)}
+.sl-card{border-left:3px solid var(--green)}
+.wfh-card{border-left:3px solid var(--amber)}
+.att-card{background:linear-gradient(135deg,var(--ink2) 0%,var(--ink) 100%);border-radius:18px;padding:24px 26px;margin-bottom:20px;position:relative;overflow:hidden;box-shadow:0 12px 32px rgba(10,26,51,.3)}
+.att-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold) 0%,#5b8def 55%,var(--gold) 100%)}
+.att-card::after{content:'';position:absolute;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(91,141,239,.25) 0%,transparent 70%);top:-80px;right:-60px;pointer-events:none}
+.att-row{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;position:relative}
+.att-left .lbl{font-size:10.5px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:1px;font-weight:700;font-family:var(--fb)}
+.att-left .stat{font-family:var(--fd);font-size:21px;font-weight:700;color:#fff;margin-top:6px}
+.att-left .sub{font-size:12px;color:rgba(255,255,255,.6);margin-top:4px}
+.att-checkin-btn{background:linear-gradient(135deg,var(--gold) 0%,#a97f34 100%);color:#fff;border:none;border-radius:12px;padding:14px 28px;font-size:14px;font-weight:700;font-family:var(--fb);cursor:pointer;box-shadow:0 6px 18px rgba(201,160,78,.4);transition:all .15s;white-space:nowrap}
+.att-checkin-btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(201,160,78,.5)}
+.att-checkin-btn:disabled{opacity:.55;cursor:not-allowed;transform:none;background:rgba(255,255,255,.15);box-shadow:none}
+.att-done-badge{background:rgba(14,157,99,.2);border:1px solid rgba(14,157,99,.4);color:#8ff0c5;padding:10px 18px;border-radius:12px;font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:8px}
+.att-net-badge{font-size:10.5px;padding:3px 10px;border-radius:20px;font-weight:700;margin-left:8px}
+.net-yes{background:rgba(14,157,99,.25);color:#8ff0c5}
+.net-no{background:rgba(184,121,26,.25);color:#f5c988}
+.leave-form{background:#fff;border-radius:var(--rl);padding:22px;border:1px solid var(--border);margin-bottom:20px;max-width:520px;box-shadow:var(--sh)}
+.leave-form h3{font-family:var(--fd);font-size:14.5px;font-weight:700;margin-bottom:16px;color:var(--ink)}
+.fg{margin-bottom:13px}
+select{width:100%;border:1.5px solid var(--border2);border-radius:9px;padding:9px 12px;font-size:13px;font-family:var(--fb);outline:none;transition:all .15s;background:#fff}
+select:focus{border-color:var(--blue);box-shadow:0 0 0 3.5px rgba(13,143,111,.12)}
+textarea{width:100%;border:1.5px solid var(--border2);border-radius:9px;padding:9px 12px;font-size:13px;font-family:var(--fb);outline:none;resize:vertical;min-height:72px;transition:all .15s}
+textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3.5px rgba(13,143,111,.12)}
+.submit-btn{background:linear-gradient(135deg,#14b892,#0d8f6f);color:#fff;border:none;border-radius:9px;padding:11px 26px;font-size:13px;font-family:var(--fb);font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(13,143,111,.3);transition:all .15s}
+.submit-btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(13,143,111,.38)}
+.lh-list{display:flex;flex-direction:column;gap:10px}
+.lh-month-group{margin-bottom:18px}
+.lh-month-group:last-child{margin-bottom:0}
+.lh-month-header{display:flex;justify-content:space-between;align-items:center;padding:0 2px 8px;font-family:var(--fd);font-size:12.5px;font-weight:700;color:var(--ink);border-bottom:1.5px solid var(--border2);margin-bottom:10px}
+.lh-month-total{font-family:var(--fb);font-size:10.5px;font-weight:700;color:var(--green-t);background:var(--green-bg);padding:2px 9px;border-radius:20px}
+.lh-days{font-family:var(--fm);font-size:11px;font-weight:600;color:var(--blue-t);background:var(--blue-bg);padding:2px 8px;border-radius:6px}
+.lh-item{border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:var(--bg2);transition:box-shadow .15s,border-color .15s}
+.lh-item:hover{box-shadow:var(--sh);border-color:var(--border2)}
+.lh-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.lh-type{font-family:var(--fd);font-weight:700;font-size:13px;color:var(--ink)}
+.lh-dates{font-size:11.5px;color:var(--text2);font-family:var(--fm)}
+.lh-status{margin-left:auto}
+.lh-reason{font-size:12.5px;color:var(--text2);line-height:1.5;padding-left:1px}
+.lh-reason-edit{width:100%;margin-top:6px}
+.lh-actions{display:flex;gap:8px;margin-top:10px}
+.lh-edit-btn{background:none;border:1.5px solid var(--border2);border-radius:8px;padding:5px 12px;font-size:11.5px;font-weight:600;font-family:var(--fb);color:var(--text2);cursor:pointer;transition:all .15s}
+.lh-edit-btn:hover{border-color:var(--blue);color:var(--blue)}
+.lh-save-btn{background:linear-gradient(135deg,#14b892,#0d8f6f);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:11.5px;font-weight:700;font-family:var(--fb);cursor:pointer}
+.lh-cancel-btn{background:none;border:1.5px solid var(--border2);border-radius:8px;padding:6px 14px;font-size:11.5px;font-weight:600;font-family:var(--fb);color:var(--text2);cursor:pointer}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10.5px;font-weight:700}
+.b-pending{background:var(--amber-bg);color:var(--amber-t)}
+.b-approved{background:var(--green-bg);color:var(--green-t)}
+.b-rejected{background:var(--red-bg);color:var(--red-t)}
+.spin{display:inline-block;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.msg-ok{background:var(--green-bg);color:var(--green-t);padding:11px;border-radius:9px;font-size:12px;font-weight:600;margin-bottom:12px;display:none}
+.msg-ok.show{display:block}
+.msg-err{background:var(--red-bg);color:var(--red-t);padding:11px;border-radius:9px;font-size:12px;font-weight:600;margin-bottom:12px;display:none}
+.msg-err.show{display:block}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:10px}
+.cal-header{font-size:10px;font-weight:700;text-align:center;padding:4px;color:var(--text3);text-transform:uppercase;font-family:var(--fb)}
+.cal-day{border-radius:9px;padding:6px 4px;text-align:center;font-size:11px;font-weight:600;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:transform .12s}
+.cal-day:not(.d-empty):hover{transform:scale(1.06)}
+.cal-day .day-num{font-size:12.5px;font-weight:700;font-family:var(--fm)}
+.d-worked{background:var(--green-bg);color:var(--green-t)}
+.d-worked-office{background:linear-gradient(135deg,var(--green-bg),#d3f5e4);color:var(--green-t);box-shadow:inset 0 0 0 1.5px rgba(14,157,99,.4)}
+.d-sunday{background:#fef9c3;color:#854d0e}
+.d-cl{background:var(--blue-bg);color:var(--blue-t)}
+.d-sl{background:var(--purple-bg);color:var(--purple-t)}
+.d-wfh{background:var(--amber-bg);color:var(--amber-t)}
+.d-absent{background:var(--red-bg);color:var(--red-t)}
+.d-empty{background:transparent;color:#ccc}
+.d-future{background:var(--bg2);color:var(--text3)}
+.att-history-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.att-history-row:last-child{border-bottom:none}
+</style>
+</head>
+<body>
+
+<div class="login-wrap" id="login-wrap">
+  <div class="login-box">
+    <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+    <div class="login-title">
+      <div class="co">HSIM India</div>
+      <div class="nm">Employee Portal</div>
+    </div>
+    <div class="err-box" id="login-err"></div>
+    <div class="fl"><label>Email</label><input type="email" id="login-email" placeholder="your@email.com"></div>
+    <div class="fl"><label>Password</label><input type="password" id="login-pass" placeholder="Your password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn-p" id="login-btn" onclick="doLogin()">Login →</button>
+    <div class="foot-link" style="margin-top:12px">
+      New employee? <a href="/hsim-signup.html">Request access</a><br>
+      Admin? <a href="/hsim-login.html">Admin Login</a>
+    </div>
+  </div>
+</div>
+
+<div class="portal" id="portal">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="emp-avatar" id="emp-av">AK</div>
+      <div>
+        <div class="emp-name" id="emp-name-display">-</div>
+        <div class="emp-id" id="emp-id-display">-</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span class="badge-status">● Active</span>
+      <button class="logout-btn" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="portal-content">
+
+    <div class="att-card">
+      <div class="att-row">
+        <div class="att-left">
+          <div class="lbl">Today's Attendance</div>
+          <div class="stat" id="att-today-stat">Checking status…</div>
+          <div class="sub" id="att-today-sub">&nbsp;</div>
+        </div>
+        <div id="att-action-area"><button class="att-checkin-btn" id="att-checkin-btn" onclick="markAttendance()" disabled>Loading…</button></div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('overview',this)">📊 Overview</button>
+      <button class="tab" onclick="switchTab('leave',this)">🏖 Leave</button>
+      <button class="tab" onclick="switchTab('attendance',this)">📅 Attendance</button>
+    </div>
+
+    <div class="tab-content active" id="tab-overview">
+      <div class="cards-grid" id="overview-cards">
+        <div class="card cl-card">
+          <div class="card-bar" style="background:var(--blue)"></div>
+          <div class="card-label">Casual Leave Balance</div>
+          <div class="card-value" id="cl-balance">-</div>
+          <div class="card-sub">days carry forward</div>
+        </div>
+        <div class="card sl-card">
+          <div class="card-bar" style="background:var(--green)"></div>
+          <div class="card-label">Sick Leave Remaining</div>
+          <div class="card-value" id="sl-balance">-</div>
+          <div class="card-sub">of 6 days this year</div>
+        </div>
+        <div class="card wfh-card">
+          <div class="card-bar" style="background:var(--amber)"></div>
+          <div class="card-label">WFH Used (This Month)</div>
+          <div class="card-value" id="wfh-used">-</div>
+          <div class="card-sub">of 2 days allowed</div>
+        </div>
+        <div class="card">
+          <div class="card-bar" style="background:var(--purple)"></div>
+          <div class="card-label">Days Present (This Month)</div>
+          <div class="card-value" id="present-days">-</div>
+          <div class="card-sub" id="present-sub">this month</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:4px">
+        <div class="card-label" style="margin-bottom:12px">Recent Leave Requests</div>
+        <div id="recent-leaves">Loading...</div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-leave">
+      <div class="leave-form">
+        <h3>Apply for Leave / WFH</h3>
+        <div class="msg-ok" id="leave-ok"></div>
+        <div class="msg-err" id="leave-err"></div>
+        <div class="fg">
+          <label>Leave Type</label>
+          <select id="lv-type" onchange="updateLeaveFields()">
+            <option value="CL">Casual Leave (CL)</option>
+            <option value="SL">Sick Leave (SL)</option>
+            <option value="WFH">Work From Home (WFH)</option>
+            <option value="HalfDay">Half Day (0.5 CL)</option>
+          </select>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="fg">
+            <label>From Date</label>
+            <input type="date" id="lv-from" oninput="onFromDateChange()">
+          </div>
+          <div class="fg" id="to-date-wrap">
+            <label>To Date</label>
+            <input type="date" id="lv-to">
+          </div>
+        </div>
+        <div class="fg">
+          <label>Reason</label>
+          <textarea id="lv-reason" placeholder="Briefly explain the reason for leave..."></textarea>
+        </div>
+        <button class="submit-btn" onclick="applyLeave()">Submit Request →</button>
+      </div>
+
+      <div class="card">
+        <div class="card-label" style="margin-bottom:12px">My Leave History</div>
+        <div id="leave-history">Loading...</div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-attendance">
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+        <select id="att-month" onchange="renderCalendar()" style="width:auto;min-width:140px">
+        </select>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:11px">
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:3px;background:var(--green-bg);box-shadow:inset 0 0 0 1.5px rgba(14,157,99,.4);display:inline-block"></span>On Office WiFi</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:3px;background:var(--green-bg);display:inline-block"></span>Checked In</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:3px;background:#fef9c3;display:inline-block"></span>Sunday</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:3px;background:var(--blue-bg);display:inline-block"></span>Leave</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="cal-grid" id="cal-headers" style="margin-bottom:4px">
+          <div class="cal-header">Sun</div><div class="cal-header">Mon</div>
+          <div class="cal-header">Tue</div><div class="cal-header">Wed</div>
+          <div class="cal-header">Thu</div><div class="cal-header">Fri</div>
+          <div class="cal-header">Sat</div>
+        </div>
+        <div class="cal-grid" id="cal-body"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-label" style="margin-bottom:8px">Recent Check-ins</div>
+        <div id="att-history-list">Loading...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '/api';
+let _token = sessionStorage.getItem('hsim_emp_token');
+let _empName = sessionStorage.getItem('hsim_emp_name');
+let _empId = sessionStorage.getItem('hsim_emp_id');
+let _empEmail = sessionStorage.getItem('hsim_emp_email');
+let ALL_LEAVES = [];
+let MY_ATTENDANCE = [];
+let TODAY_ATTENDANCE = null;
+
+async function doLogin(){
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  const btn   = document.getElementById('login-btn');
+  const err   = document.getElementById('login-err');
+  err.classList.remove('show');
+  if(!email||!pass){err.textContent='Enter email and password';err.classList.add('show');return;}
+  btn.disabled=true; btn.textContent='Logging in...';
+  try{
+    const r = await fetch(API+'/hsim-employee-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+    const d = await r.json();
+    if(d.ok){
+      _token=d.token; _empName=d.name; _empId=d.employeeId; _empEmail=d.email;
+      sessionStorage.setItem('hsim_emp_token',_token);
+      sessionStorage.setItem('hsim_emp_name',_empName);
+      sessionStorage.setItem('hsim_emp_id',_empId);
+      sessionStorage.setItem('hsim_emp_email',_empEmail);
+      showPortal();
+    } else {
+      err.textContent=d.error||'Invalid credentials'; err.classList.add('show');
+    }
+  }catch(e){err.textContent='Connection error';err.classList.add('show');}
+  finally{btn.disabled=false;btn.textContent='Login →';}
+}
+
+function showPortal(){
+  document.getElementById('login-wrap').style.display='none';
+  const portal = document.getElementById('portal');
+  portal.classList.add('active');
+  const ini = (_empName||'').split(' ').map(x=>x[0]).join('').substr(0,2).toUpperCase();
+  document.getElementById('emp-av').textContent = ini;
+  document.getElementById('emp-name-display').textContent = _empName||'Employee';
+  document.getElementById('emp-id-display').textContent = _empId||'';
+  document.getElementById('login-email').value='';
+  document.getElementById('login-pass').value='';
+  loadEmployeeData();
+  loadAttendanceStatus();
+  setupMonthSelector();
+}
+
+function doLogout(){
+  sessionStorage.clear();
+  _token=_empName=_empId=_empEmail=null; ALL_LEAVES=[]; MY_ATTENDANCE=[];
+  document.getElementById('portal').classList.remove('active');
+  document.getElementById('login-wrap').style.display='flex';
+}
+
+if(_token && _empName){
+  document.getElementById('login-wrap').style.display='none';
+  showPortal();
+}
+
+function switchTab(id, btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+  if(id==='attendance'){
+    try{ renderCalendar(); }catch(e){ console.error('renderCalendar failed',e); }
+    try{ renderAttHistory(); }catch(e){ console.error('renderAttHistory failed',e); }
+  }
+}
+
+async function loadAttendanceStatus(){
+  const btn = document.getElementById('att-checkin-btn');
+  try{
+    const r = await fetch(API+'/hsim-attendance?scope=mine&token='+_token,{headers:{'Authorization':'Bearer '+_token}});
+    const d = await r.json();
+    MY_ATTENDANCE = Array.isArray(d.records) ? d.records : [];
+    TODAY_ATTENDANCE = d.today || null;
+    renderAttendanceCard();
+  }catch(e){
+    document.getElementById('att-today-stat').textContent='Could not load status';
+    if(btn){ btn.disabled=true; btn.textContent='Unavailable'; }
+  }
+}
+
+function renderAttendanceCard(){
+  const statEl = document.getElementById('att-today-stat');
+  const subEl  = document.getElementById('att-today-sub');
+  const areaEl = document.getElementById('att-action-area');
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
+
+  if(TODAY_ATTENDANCE){
+    const inT = new Date(TODAY_ATTENDANCE.checkInTime);
+    const inStr = inT.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    const statusBadge = TODAY_ATTENDANCE.status==='late'
+      ? '<span class="att-net-badge" style="background:rgba(184,121,26,.25);color:#f5c988">Late</span>'
+      : '<span class="att-net-badge net-yes">On Time</span>';
+
+    if(TODAY_ATTENDANCE.checkOutTime){
+      const outT = new Date(TODAY_ATTENDANCE.checkOutTime);
+      const outStr = outT.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+      statEl.innerHTML = '✓ '+inStr+' → '+outStr;
+      subEl.textContent = dateStr+' · '+(TODAY_ATTENDANCE.workingHours!=null?TODAY_ATTENDANCE.workingHours+' hrs worked':'');
+      areaEl.innerHTML = '<div class="att-done-badge">✓ Day Complete'+statusBadge+'</div>';
+    } else {
+      statEl.innerHTML = '✓ Checked in at '+inStr;
+      subEl.textContent = dateStr;
+      areaEl.innerHTML = '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">'
+        + '<div class="att-done-badge">✓ Marked'
+        + '<span class="att-net-badge '+(TODAY_ATTENDANCE.officeVerified?'net-yes':'net-no')+'">'
+        + (TODAY_ATTENDANCE.officeVerified?'On Office WiFi':'Off Network') + '</span>'+statusBadge+'</div>'
+        + '<button class="att-checkin-btn" id="att-checkout-btn" onclick="markCheckout()" style="padding:9px 20px;font-size:12.5px">↩ Check Out</button>'
+        + '</div>';
+    }
+  } else {
+    statEl.textContent = 'Not checked in yet';
+    subEl.textContent = dateStr;
+    areaEl.innerHTML = '<button class="att-checkin-btn" id="att-checkin-btn" onclick="markAttendance()">✓ Check In Now</button>';
+  }
+}
+
+async function markAttendance(){
+  const btn = document.getElementById('att-checkin-btn');
+  if(btn){ btn.disabled=true; btn.textContent='Marking...'; }
+  try{
+    const r = await fetch(API+'/hsim-attendance',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+_token},
+      body:JSON.stringify({action:'checkin',token:_token})
+    });
+    const d = await r.json();
+    if(d.ok){
+      TODAY_ATTENDANCE = d.record;
+      renderAttendanceCard();
+      loadAttendanceStatus();
+    } else if(d.record){
+      TODAY_ATTENDANCE = d.record;
+      renderAttendanceCard();
+    } else {
+      alert(d.error||'Could not mark attendance');
+      if(btn){ btn.disabled=false; btn.textContent='✓ Check In Now'; }
+    }
+  }catch(e){
+    alert('Connection error — please try again');
+    if(btn){ btn.disabled=false; btn.textContent='✓ Check In Now'; }
+  }
+}
+
+async function markCheckout(){
+  const btn = document.getElementById('att-checkout-btn');
+  if(btn){ btn.disabled=true; btn.textContent='Marking...'; }
+  try{
+    const r = await fetch(API+'/hsim-attendance',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+_token},
+      body:JSON.stringify({action:'checkout',token:_token})
+    });
+    const d = await r.json();
+    if(d.ok || d.record){
+      TODAY_ATTENDANCE = d.record;
+      renderAttendanceCard();
+      loadAttendanceStatus();
+    } else {
+      alert(d.error||'Could not check out');
+      if(btn){ btn.disabled=false; btn.textContent='↩ Check Out'; }
+    }
+  }catch(e){
+    alert('Connection error — please try again');
+    if(btn){ btn.disabled=false; btn.textContent='↩ Check Out'; }
+  }
+}
+
+function renderAttHistory(){
+  const el = document.getElementById('att-history-list');
+  if(!el) return;
+  if(!MY_ATTENDANCE.length){
+    el.innerHTML='<div style="color:var(--text3);padding:12px 0;text-align:center;font-size:12px">No check-ins yet</div>';
+    return;
+  }
+  const statusLabel = {
+    'holiday': '🎉 Holiday', 'sick-leave': '🏖 Sick Leave', 'casual-leave': '🏖 Casual Leave',
+    'leave': '🏖 Leave', 'absent': '❌ Absent'
+  };
+  el.innerHTML = MY_ATTENDANCE.slice(0,15).map(r=>{
+    const hasTime = !!r.checkInTime;
+    const inStr = hasTime ? new Date(r.checkInTime).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}) : '';
+    const outStr = r.checkOutTime ? new Date(r.checkOutTime).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}) : '—';
+    const hrs = r.workingHours!=null ? r.workingHours+' hrs' : '—';
+    const label = statusLabel[r.status];
+
+    const subLine = label
+      ? label
+      : `In ${inStr}${hasTime?' · Out '+outStr+' · '+hrs:''}${r.source==='machine'?' · Machine':''}`;
+
+    const rightBadge = label
+      ? `<span class="badge b-pending">${r.status==='absent'?'Absent':'On Leave'}</span>`
+      : `<span class="badge ${r.officeVerified?'b-approved':'b-pending'}">${r.officeVerified?'✓ Office WiFi':'⚠ Off Network'}</span>`;
+
+    return `<div class="att-history-row">
+      <div>
+        <div style="font-size:12.5px;font-weight:600">${formatDateNice(r.date)} ${r.status==='late'?'<span class=\"badge b-pending\" style=\"margin-left:6px\">Late</span>':''}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${subLine}</div>
+      </div>
+      ${rightBadge}
+    </div>`;
+  }).join('');
+}
+
+async function loadEmployeeData(){
+  try{
+    const r = await fetch(API+'/hsim-leave?scope=mine&token='+_token,{headers:{'Authorization':'Bearer '+_token}});
+    const leaves = await r.json();
+    ALL_LEAVES = Array.isArray(leaves) ? leaves : [];
+    if(!Array.isArray(leaves)){
+      document.getElementById('recent-leaves').innerHTML='<div style="color:var(--red-t);padding:12px 0;text-align:center;font-size:12px">Could not load leave data. Please refresh the page.</div>';
+      document.getElementById('leave-history').innerHTML='<div style="color:var(--red-t);padding:16px;text-align:center;font-size:12px">Could not load leave data. Please refresh the page.</div>';
+      return;
+    }
+    renderRecentLeaves(ALL_LEAVES);
+    renderLeaveHistory(ALL_LEAVES);
+    updateLeaveBalances(ALL_LEAVES);
+  }catch(e){console.error(e);}
+}
+
+function updateLeaveBalances(leaveList){
+  const now = new Date();
+  const curMonth = now.getMonth();
+  const curYear = now.getFullYear();
+  const aprStart = curYear * 12 + 3;
+  const nowNum = curYear * 12 + curMonth;
+  const monthsElapsed = Math.max(1, nowNum - aprStart + 1);
+  const earned = monthsElapsed * 1.5;
+
+  const approvedCL = leaveList.filter(l=>l.status==='approved'&&l.leaveType==='CL').reduce((s,l)=>{
+    const days = l.isHalfDay ? 0.5 : dateDiff(l.fromDate,l.toDate)+1;
+    return s+days;
+  },0);
+  const approvedHD = leaveList.filter(l=>l.status==='approved'&&l.leaveType==='HalfDay').length * 0.5;
+
+  const clBal = earned - approvedCL - approvedHD;
+  const clEl = document.getElementById('cl-balance');
+  clEl.textContent = clBal.toFixed(1);
+  clEl.style.color = clBal<0 ? 'var(--red-t)' : '';
+
+  const fyStart = curMonth>=3?curYear:curYear-1;
+  const approvedSL = leaveList.filter(l=>l.status==='approved'&&l.leaveType==='SL').reduce((s,l)=>{
+    const d = new Date(l.fromDate);
+    const fy = d.getMonth()>=3?d.getFullYear():d.getFullYear()-1;
+    return fy===fyStart?s+dateDiff(l.fromDate,l.toDate)+1:s;
+  },0);
+  const slBal = 6-approvedSL;
+  const slEl = document.getElementById('sl-balance');
+  slEl.textContent = slBal;
+  slEl.style.color = slBal<0 ? 'var(--red-t)' : '';
+
+  const thisMonthWFH = leaveList.filter(l=>{
+    if(l.leaveType!=='WFH'||l.status!=='approved') return false;
+    const d = new Date(l.fromDate);
+    return d.getMonth()===curMonth && d.getFullYear()===curYear;
+  }).reduce((s,l)=>s+dateDiff(l.fromDate,l.toDate)+1,0);
+  document.getElementById('wfh-used').textContent = thisMonthWFH;
+
+  const thisMonthPresent = MY_ATTENDANCE.filter(r=>{
+    const d=new Date(r.date);
+    const inMonth = d.getMonth()===curMonth && d.getFullYear()===curYear;
+    return inMonth && (r.status==='present' || r.status==='late' || !r.status);
+  }).length;
+  document.getElementById('present-days').textContent = thisMonthPresent || '0';
+  document.getElementById('present-sub').textContent = 'checked in this month';
+}
+
+function dateDiff(from,to){
+  if(!from||!to) return 0;
+  return Math.max(0,Math.round((new Date(to)-new Date(from))/(1000*60*60*24)));
+}
+
+const LEAVE_LABELS={CL:'Casual Leave',SL:'Sick Leave',WFH:'Work From Home',HalfDay:'Half Day'};
+const MONTH_FULL=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONTH_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function leaveTypeLabel(l){ return LEAVE_LABELS[l.leaveType] || l.leaveType; }
+function leaveDays(l){ return l.isHalfDay ? 0.5 : dateDiff(l.fromDate,l.toDate)+1; }
+function formatDateNice(dateStr){
+  if(!dateStr) return '';
+  const d = new Date(dateStr+'T00:00:00');
+  return String(d.getDate()).padStart(2,'0')+' '+MONTH_SHORT[d.getMonth()]+' '+d.getFullYear();
+}
+
+function renderRecentLeaves(leaves){
+  const recent = leaves.slice(0,3);
+  document.getElementById('recent-leaves').innerHTML = recent.length ?
+    recent.map(l=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:12.5px;font-weight:600">${leaveTypeLabel(l)} · ${leaveDays(l)} day${leaveDays(l)!==1?'s':''} — ${formatDateNice(l.fromDate)}${l.toDate&&l.toDate!==l.fromDate?' to '+formatDateNice(l.toDate):''}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:3px">${l.reason||''}</div>
+      </div>
+      <span class="badge b-${l.status}">${l.status}</span>
+    </div>`).join('')
+    : '<div style="color:var(--text3);padding:12px 0;text-align:center;font-size:12px">No leave requests yet</div>';
+}
+
+function renderLeaveHistory(leaves){
+  const el = document.getElementById('leave-history');
+  if(!leaves.length){
+    el.innerHTML = '<div style="color:var(--text3);padding:16px;text-align:center;font-size:12px">No leave requests</div>';
+    return;
+  }
+  const groups = {};
+  leaves.forEach(l=>{
+    const d = new Date(l.fromDate+'T00:00:00');
+    const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    (groups[key]=groups[key]||[]).push(l);
+  });
+  const sortedKeys = Object.keys(groups).sort().reverse();
+  el.innerHTML = sortedKeys.map(key=>{
+    const [y,m] = key.split('-');
+    const label = MONTH_FULL[parseInt(m,10)-1]+' '+y;
+    const items = groups[key];
+    const approvedDays = items.filter(l=>l.status==='approved').reduce((s,l)=>s+leaveDays(l),0);
+    return `<div class="lh-month-group">
+      <div class="lh-month-header"><span>${label}</span>${approvedDays>0?`<span class="lh-month-total">${approvedDays} day${approvedDays!==1?'s':''} approved</span>`:''}</div>
+      <div class="lh-list">${items.map(l=>`
+        <div class="lh-item" id="lh-item-${l.id}">
+          <div class="lh-top">
+            <span class="lh-type">${leaveTypeLabel(l)}</span>
+            <span class="lh-days">${leaveDays(l)} day${leaveDays(l)!==1?'s':''}</span>
+            <span class="lh-dates">${formatDateNice(l.fromDate)}${l.toDate&&l.toDate!==l.fromDate?' → '+formatDateNice(l.toDate):''}</span>
+            <span class="badge b-${l.status} lh-status">${l.status}</span>
+          </div>
+          <div class="lh-reason" id="lh-reason-${l.id}">${l.reason||'-'}</div>
+          ${l.status==='pending'?`<div class="lh-actions" id="lh-actions-${l.id}">
+            <button class="lh-edit-btn" onclick="startEditLeave('${l.id}')">✎ Edit Reason</button>
+          </div>`:''}
+        </div>`).join('')}</div>
+    </div>`;
+  }).join('');
+}
+
+function startEditLeave(id){
+  const reasonEl = document.getElementById('lh-reason-'+id);
+  const actionsEl = document.getElementById('lh-actions-'+id);
+  const current = reasonEl.textContent;
+  reasonEl.innerHTML = `<textarea class="lh-reason-edit" id="lh-edit-input-${id}">${current==='-'?'':current}</textarea>`;
+  actionsEl.innerHTML = `
+    <button class="lh-save-btn" onclick="saveEditLeave('${id}')">Save</button>
+    <button class="lh-cancel-btn" onclick="renderLeaveHistory(ALL_LEAVES)">Cancel</button>`;
+  document.getElementById('lh-edit-input-'+id).focus();
+}
+
+async function saveEditLeave(id){
+  const input = document.getElementById('lh-edit-input-'+id);
+  const reason = input.value.trim();
+  if(!reason){ input.focus(); return; }
+  try{
+    const r = await fetch(API+'/hsim-leave',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+_token},
+      body:JSON.stringify({action:'edit',token:_token,requestId:id,reason})
+    });
+    const d = await r.json();
+    if(d.ok){
+      loadEmployeeData();
+    } else {
+      alert(d.error||'Could not save changes');
+    }
+  }catch(e){ alert('Connection error'); }
+}
+
+function updateLeaveFields(){
+  const t = document.getElementById('lv-type').value;
+  document.getElementById('to-date-wrap').style.display = (t==='HalfDay') ? 'none' : 'block';
+  const today = new Date().toISOString().split('T')[0];
+  const fromEl = document.getElementById('lv-from');
+  const toEl = document.getElementById('lv-to');
+  fromEl.value = today;
+  toEl.value   = today;
+  toEl.min = today; // "To" can never be before "From"
+}
+
+function onFromDateChange(){
+  const fromEl = document.getElementById('lv-from');
+  const toEl = document.getElementById('lv-to');
+  if(!fromEl.value) return;
+  toEl.min = fromEl.value; // "To" date picker won't allow anything earlier than "From"
+  if(!toEl.value || toEl.value < fromEl.value){
+    toEl.value = fromEl.value; // auto-correct if To was left before the new From
+  }
+}
+
+async function applyLeave(){
+  const type  = document.getElementById('lv-type').value;
+  const from  = document.getElementById('lv-from').value;
+  const to    = document.getElementById('lv-to').value || from;
+  const reason= document.getElementById('lv-reason').value.trim();
+  const ok    = document.getElementById('leave-ok');
+  const err   = document.getElementById('leave-err');
+  ok.classList.remove('show'); err.classList.remove('show');
+
+  if(!from||!reason){err.textContent='Date and reason are required';err.classList.add('show');return;}
+  if(type!=='HalfDay' && to < from){
+    err.textContent='"To" date cannot be before "From" date';
+    err.classList.add('show');
+    return;
+  }
+
+  try{
+    const r = await fetch(API+'/hsim-leave',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+_token},
+      body:JSON.stringify({action:'apply',token:_token,leaveType:type,fromDate:from,toDate:type==='HalfDay'?from:to,isHalfDay:type==='HalfDay',reason})
+    });
+    const d = await r.json();
+    if(d.ok){
+      ok.textContent='Leave request submitted! Admin will approve/reject shortly.';
+      ok.classList.add('show');
+      document.getElementById('lv-reason').value='';
+      loadEmployeeData();
+    } else {
+      err.textContent=d.error||'Failed to submit';err.classList.add('show');
+    }
+  }catch(e){err.textContent='Connection error';err.classList.add('show');}
+}
+
+function setupMonthSelector(){
+  const sel = document.getElementById('att-month');
+  const now = new Date();
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  sel.innerHTML='';
+  for(let i=0;i<6;i++){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const val=months[d.getMonth()]+'-'+d.getFullYear();
+    const opt=document.createElement('option');
+    opt.value=val; opt.textContent=val;
+    sel.appendChild(opt);
+  }
+}
+
+function renderCalendar(){
+  const monthStr = document.getElementById('att-month').value;
+  if(!monthStr) return;
+  const [mn,yr] = monthStr.split('-');
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const mi = months.indexOf(mn);
+  const year = parseInt(yr);
+  const daysInMonth = new Date(year,mi+1,0).getDate();
+  const firstDay = new Date(year,mi,1).getDay();
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  const attMap={};
+  MY_ATTENDANCE.forEach(r=>{ attMap[r.date]=r; });
+
+  const leaveMap={};
+  ALL_LEAVES.filter(l=>l.status==='approved').forEach(l=>{
+    let d=new Date(l.fromDate);
+    const end=new Date(l.toDate||l.fromDate);
+    while(d<=end){
+      leaveMap[d.toISOString().split('T')[0]] = l.leaveType;
+      d.setDate(d.getDate()+1);
+    }
+  });
+
+  const cells=[];
+  for(let i=0;i<firstDay;i++) cells.push('<div class="cal-day d-empty"></div>');
+  for(let d=1;d<=daysInMonth;d++){
+    const dateStr=`${year}-${String(mi+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isSun=new Date(year,mi,d).getDay()===0;
+    const isFuture=dateStr>todayStr;
+    let cls='d-empty', tag='';
+    if(isFuture) cls='d-future';
+    else if(attMap[dateStr]){
+      const st = attMap[dateStr].status;
+      if(st==='holiday'){ cls='d-sunday'; tag='H'; }
+      else if(st==='sick-leave'){ cls='d-sl'; tag='SL'; }
+      else if(st==='casual-leave' || st==='leave'){ cls='d-cl'; tag='CL'; }
+      else if(st==='absent'){ cls='d-absent'; tag='A'; }
+      else { cls = attMap[dateStr].officeVerified ? 'd-worked-office' : 'd-worked'; tag='✓'; }
+    }
+    else if(leaveMap[dateStr]==='CL'||leaveMap[dateStr]==='HalfDay') cls='d-cl';
+    else if(leaveMap[dateStr]==='SL') cls='d-sl';
+    else if(leaveMap[dateStr]==='WFH') cls='d-wfh';
+    else if(isSun) cls='d-sunday';
+    else if(dateStr<=todayStr) cls='d-absent';
+    cells.push(`<div class="cal-day ${cls}" title="${dateStr}"><span class="day-num">${d}</span><span style="font-size:9px">${tag}</span></div>`);
+  }
+  document.getElementById('cal-body').innerHTML=cells.join('');
+}
+
+updateLeaveFields();
+</script>
+</body>
+</html>

@@ -95,6 +95,7 @@ async function doLogin() {
     });
     const data = await r.json();
     if (data.ok && data.token) {
+      sessionStorage.clear();
       sessionStorage.setItem('sv_token', data.token);
       sessionStorage.setItem('sv_email', data.email);
       window.location.href = '/dashboard.html';

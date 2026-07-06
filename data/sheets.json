@@ -4,9 +4,9 @@
     "name": "Ansh",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbw5wcr-BJaE6qkBFv0IqIADPEnVHPEtben4HYYK0wKQKbfL2pwSKz6o5JFios1buZqT-g/exec",
-    "status": "loading",
+    "status": "ok",
     "rows": 111,
-    "lastSync": "1:05:22 pm"
+    "lastSync": "1:59:32 pm"
   },
   {
     "id": "s2",
@@ -40,9 +40,9 @@
     "name": "Sunita Mahata",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbx99TDIA2OdkP-bG02go1nXhXFoscmxoEb5YMc58MCqwR_BbL1fnvknDuZM5XCN6jDE/exec",
-    "status": "loading",
+    "status": "ok",
     "rows": 1070,
-    "lastSync": "1:05:31 pm"
+    "lastSync": "1:59:34 pm"
   },
   {
     "id": "s6",
@@ -67,7 +67,7 @@
     "name": "Monika Bhardwaj",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbxY7ZUbQxEZdN9Bbc_cj1CWy03rb8nDTvMjG4QYusLubGcFwVV5lSOUo1DNCCxXrtam8g/exec",
-    "status": "pending",
+    "status": "loading",
     "rows": 580,
     "lastSync": "1:05:33 pm"
   },

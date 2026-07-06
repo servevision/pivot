@@ -37,6 +37,10 @@ body{font-family:var(--fb);background:var(--bg3);color:var(--text);font-size:13p
 .main{position:fixed;left:222px;top:0;right:0;bottom:0;display:flex;flex-direction:column}
 .topbar{background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:12px 26px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;z-index:50;gap:10px;flex-wrap:wrap;box-shadow:0 1px 0 rgba(15,20,32,.03)}
 .content{flex:1;overflow-y:auto;overflow-x:hidden;padding:22px 26px 44px}
+.co-switcher{display:flex;gap:4px;padding:10px 10px 0;background:var(--bg)}
+.co-tab{flex:1;padding:7px 6px;border-radius:8px 8px 0 0;font-size:10.5px;font-weight:700;font-family:var(--fb);cursor:pointer;border:none;background:var(--bg2);color:var(--text2);transition:all .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.co-tab:hover{background:var(--border)}
+.co-tab.active{background:var(--ink);color:#fff}
 .sb-brand{position:relative;background:linear-gradient(160deg,var(--ink2) 0%,var(--ink) 100%);padding:22px 18px 18px;border-bottom:none;overflow:hidden}
 .sb-brand::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold) 0%,#5b8def 55%,var(--gold) 100%)}
 .sb-brand::after{content:'';position:absolute;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(91,141,239,.25) 0%,transparent 70%);top:-60px;right:-40px;pointer-events:none}
@@ -148,13 +152,25 @@ const _svEmail  = sessionStorage.getItem('sv_email');
 // Redirect to login if not authenticated
 if (!_svToken) { window.location.href = '/'; }
 
+// ── Multi-company support (Serve Vision + HSIM India) ────────
+const HSIM_API_KEY = 'hsim_api_2026_key_x9f2';
+let currentCompany = sessionStorage.getItem('active_company') || 'sv';
+
+// ep()/dp() pick the right API path depending on which company is active.
+// Shared sections (Employee Records, Signup Requests, Leave Approvals,
+// Attendance) call these instead of hardcoding the path, so the exact same
+// UI code works for both companies' separate data.
+function ep(name){ return currentCompany==='hsim' ? '/hsim-'+name : '/'+name; }
+function dp(name){ return currentCompany==='hsim' ? '/data/hsim-'+name : '/data/'+name; }
+
 async function apiCall(method, path, data) {
   try {
+    const token = currentCompany==='hsim' ? HSIM_API_KEY : _svToken;
     const opts = {
       method,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + _svToken
+        'Authorization': 'Bearer ' + token
       }
     };
     if (data !== undefined) opts.body = JSON.stringify(data);
@@ -248,24 +264,28 @@ async function pushAllToGitHub() {
 <body>
 
 <div class="sidebar">
+  <div class="co-switcher">
+    <button class="co-tab active" id="co-tab-sv" onclick="switchCompany('sv')">🏢 Serve Vision</button>
+    <button class="co-tab" id="co-tab-hsim" onclick="switchCompany('hsim')">🏭 HSIM India</button>
+  </div>
   <div class="sb-brand">
-    <div class="sb-co">Serve Vision Pvt Ltd</div>
+    <div class="sb-co" id="sb-co">Serve Vision Pvt Ltd</div>
     <div class="sb-nm">HR Dashboard</div>
-    <div class="sb-yr">Financial Year 2025–26</div>
+    <div class="sb-yr" id="sb-yr">Financial Year 2025–26</div>
   </div>
   <nav class="nav">
-    <div class="ns">Setup</div>
-    <button class="ni active" onclick="gp('sheets',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Sheet Registry</button>
-    <button class="ni" onclick="gp('salary-setup',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Salary Setup</button>
-    <button class="ni" onclick="gp('holiday-setup',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Paid Holidays & Leave</button>
-    <div class="ns">Reports</div>
-    <button class="ni" onclick="gp('overview',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Overview</button>
-    <button class="ni" onclick="gp('salaries',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6"/></svg>Salaries</button>
-    <button class="ni" onclick="gp('partner-pivot',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Partner Pivot</button>
-    <button class="ni" onclick="gp('emp-pivot',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Employee Pivot</button>
-    <button class="ni" onclick="gp('workrecord',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Work Record</button>
-    <div class="ns">Finance</div>
-    <button class="ni" onclick="gp('expenses',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Expenses</button>
+    <div class="ns sv-only">Setup</div>
+    <button class="ni active sv-only" onclick="gp('sheets',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Sheet Registry</button>
+    <button class="ni sv-only" onclick="gp('salary-setup',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Salary Setup</button>
+    <button class="ni sv-only" onclick="gp('holiday-setup',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Paid Holidays & Leave</button>
+    <div class="ns sv-only">Reports</div>
+    <button class="ni sv-only" onclick="gp('overview',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Overview</button>
+    <button class="ni sv-only" onclick="gp('salaries',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6"/></svg>Salaries</button>
+    <button class="ni sv-only" onclick="gp('partner-pivot',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Partner Pivot</button>
+    <button class="ni sv-only" onclick="gp('emp-pivot',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Employee Pivot</button>
+    <button class="ni sv-only" onclick="gp('workrecord',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Work Record</button>
+    <div class="ns sv-only">Finance</div>
+    <button class="ni sv-only" onclick="gp('expenses',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Expenses</button>
     <div class="ns">People</div>
     <button class="ni" onclick="gp('emp-records',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Employee Records</button>
     <button class="ni" onclick="gp('signup-requests',this)" id="ni-signup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>Signup Requests <span id="signup-badge" style="background:#ef4444;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px;display:none">0</span></button>
@@ -1497,6 +1517,29 @@ function uFoot(){
 
 // Page nav
 let curP='sheets';
+function switchCompany(co){
+  if(co===currentCompany) return;
+  currentCompany = co;
+  sessionStorage.setItem('active_company', co);
+
+  document.getElementById('co-tab-sv').classList.toggle('active', co==='sv');
+  document.getElementById('co-tab-hsim').classList.toggle('active', co==='hsim');
+  document.getElementById('sb-co').textContent = co==='hsim' ? 'HSIM India' : 'Serve Vision Pvt Ltd';
+  document.getElementById('sb-yr').textContent = co==='hsim' ? 'Employee Management' : 'Financial Year 2025–26';
+
+  document.querySelectorAll('.sv-only').forEach(el=>{ el.style.display = co==='sv' ? '' : 'none'; });
+
+  // Clear cached data from the other company so nothing bleeds through
+  EMP_RECORDS = [];
+  ATT_RECORDS = []; ATT_OFFICE_IPS = []; ATT_OFFICE_START=''; ATT_GRACE_MIN=15;
+
+  refreshPendingBadges();
+
+  // Land on Employee Records — the one page both workspaces share
+  const empBtn = document.querySelector("button[onclick*=\"gp('emp-records'\"]");
+  gp('emp-records', empBtn);
+}
+
 function gp(id,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
@@ -1972,7 +2015,7 @@ let EMP_RECORDS = [];
 
 async function loadEmpData(){
   try{
-    const r = await apiCall('GET','/data/employees');
+    const r = await apiCall('GET',dp('employees'));
     EMP_RECORDS = Array.isArray(r)?r:[];
     rEmpRecords();
   }catch(e){ console.error(e); }
@@ -2031,9 +2074,9 @@ async function saveEmpRecord(){
   setMsg('emp-form-msg','Saving...','info');
   let result;
   if(editId){
-    result = await apiCall('POST','/employees',{action:'update',employeeId:editId,employee:emp});
+    result = await apiCall('POST',ep('employees'),{action:'update',employeeId:editId,employee:emp});
   } else {
-    result = await apiCall('POST','/employees',{action:'create',employee:emp});
+    result = await apiCall('POST',ep('employees'),{action:'create',employee:emp});
   }
 
   if(result&&result.ok){
@@ -2110,7 +2153,7 @@ function rEmpRecords(){
 
 async function deleteEmpRecord(id, name){
   if(!confirm(`Remove ${name} (${id}) permanently?\n\nThis deletes their Employee Record. Their existing attendance/leave/expense history will NOT be deleted, but they will no longer appear in Employee Records.\n\nThis cannot be undone.`)) return;
-  const r = await apiCall('POST','/employees',{action:'delete',employeeId:id});
+  const r = await apiCall('POST',ep('employees'),{action:'delete',employeeId:id});
   if(r && r.ok){
     loadEmpData();
   } else {
@@ -2125,7 +2168,7 @@ async function rSignupRequests(){
   const el=document.getElementById('signup-requests-list');
   if(!el) return;
   el.innerHTML='<div style="padding:20px;color:var(--text2)">Loading...</div>';
-  const data = await apiCall('GET','/data/signup-requests');
+  const data = await apiCall('GET',dp('signup-requests'));
   SIGNUP_REQUESTS = Array.isArray(data) ? data : [];
   const pending = SIGNUP_REQUESTS.filter(function(x){ return x.status==='pending'; });
   const badge = document.getElementById('signup-badge');
@@ -2189,7 +2232,7 @@ async function rLeaveApprovals(){
   const el=document.getElementById('leave-approvals-list');
   if(!el) return;
   el.innerHTML='<div style="padding:20px;color:var(--text2)">Loading...</div>';
-  const data = await apiCall('GET','/data/leave-requests');
+  const data = await apiCall('GET',dp('leave-requests'));
   LEAVE_REQUESTS = Array.isArray(data) ? data : [];
   const pending = LEAVE_REQUESTS.filter(function(x){ return x.status==='pending'; });
   const badge = document.getElementById('leave-badge');
@@ -2236,7 +2279,7 @@ async function decideLeaveBtn(btn){
 
 async function decideLeave(id, decision){
   if(!confirm(decision==='approve'?'Approve this leave request?':'Reject this request?')) return;
-  const r = await apiCall('POST','/leave',{action:'decide',requestId:id,decision});
+  const r = await apiCall('POST',ep('leave'),{action:'decide',requestId:id,decision});
   if(r&&r.ok){
     rLeaveApprovals();
   } else {
@@ -2251,7 +2294,7 @@ let ATT_OFFICE_START = '';
 let ATT_GRACE_MIN = 15;
 
 async function fetchAttendance(){
-  const d = await apiCall('GET','/attendance?scope=all');
+  const d = await apiCall('GET',ep('attendance')+'?scope=all');
   if(d && Array.isArray(d.records)){
     ATT_RECORDS = d.records;
     ATT_OFFICE_IPS = d.officeIPs || [];
@@ -2280,14 +2323,14 @@ async function addOfficeIP(){
   const ip = inp.value.trim();
   if(!ip) return;
   if(!ATT_OFFICE_IPS.includes(ip)) ATT_OFFICE_IPS.push(ip);
-  const r = await apiCall('POST','/attendance',{action:'setOfficeIPs',officeIPs:ATT_OFFICE_IPS});
+  const r = await apiCall('POST',ep('attendance'),{action:'setOfficeIPs',officeIPs:ATT_OFFICE_IPS});
   if(r&&r.ok){ inp.value=''; renderOfficeIPList(); rAttendance(); }
   else alert('Error saving IP');
 }
 
 async function removeOfficeIP(ip){
   ATT_OFFICE_IPS = ATT_OFFICE_IPS.filter(x=>x!==ip);
-  const r = await apiCall('POST','/attendance',{action:'setOfficeIPs',officeIPs:ATT_OFFICE_IPS});
+  const r = await apiCall('POST',ep('attendance'),{action:'setOfficeIPs',officeIPs:ATT_OFFICE_IPS});
   if(r&&r.ok){ renderOfficeIPList(); rAttendance(); }
 }
 
@@ -2296,7 +2339,7 @@ async function saveOfficeHours(){
   const grace = parseInt(document.getElementById('att-grace-min').value,10)||0;
   const msg = document.getElementById('att-hours-msg');
   msg.textContent='Saving...'; msg.style.color='var(--text2)';
-  const r = await apiCall('POST','/attendance',{action:'setOfficeHours',officeStartTime:startTime,lateGraceMinutes:grace});
+  const r = await apiCall('POST',ep('attendance'),{action:'setOfficeHours',officeStartTime:startTime,lateGraceMinutes:grace});
   if(r&&r.ok){
     ATT_OFFICE_START=startTime; ATT_GRACE_MIN=grace;
     msg.textContent='✓ Saved — check-ins after '+startTime+' + '+grace+' min grace will be marked Late.';
@@ -2487,7 +2530,7 @@ async function downloadAttendanceTemplate(){
   if(!EMP_RECORDS.length) await loadEmpData();
   if(!ATT_RECORDS.length) await fetchAttendance();
 
-  const leaveData = await apiCall('GET','/data/leave-requests');
+  const leaveData = await apiCall('GET',dp('leave-requests'));
   const leaves = Array.isArray(leaveData) ? leaveData : [];
 
   const rows = [['Employee ID','Employee Name','Date','Status','Check-in Time (HH:MM)','Check-out Time (HH:MM)','Leave ID','Leave Type']];
@@ -2555,7 +2598,7 @@ function uploadAttendanceFile(){
       });
       if(!rows.length){ msgEl.textContent='No valid rows found — make sure Employee ID, Date and Status columns are filled'; msgEl.style.color='var(--red-t)'; return; }
       msgEl.textContent = `Uploading ${rows.length} rows...`; msgEl.style.color='var(--text2)';
-      const res = await apiCall('POST','/attendance',{action:'bulkUpload', rows});
+      const res = await apiCall('POST',ep('attendance'),{action:'bulkUpload', rows});
       if(res && res.ok){
         msgEl.textContent = `✓ Done — Added ${res.added}, Updated ${res.updated}${res.skipped?', Skipped '+res.skipped:''}`;
         msgEl.style.color='var(--green-t)';
@@ -3135,6 +3178,22 @@ function expSal(){
 
 // ── BOOTSTRAP: load data on page open + auto-refresh ────────
 document.addEventListener('DOMContentLoaded', function() {
+  // Restore correct workspace view immediately if HSIM was active last session
+  if(currentCompany==='hsim'){
+    document.getElementById('co-tab-sv').classList.remove('active');
+    document.getElementById('co-tab-hsim').classList.add('active');
+    document.getElementById('sb-co').textContent='HSIM India';
+    document.getElementById('sb-yr').textContent='Employee Management';
+    document.querySelectorAll('.sv-only').forEach(el=>{ el.style.display='none'; });
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+    const empPage = document.getElementById('page-emp-records');
+    if(empPage) empPage.classList.add('active');
+    const empBtn = document.querySelector("button[onclick*=\"gp('emp-records'\"]");
+    if(empBtn) empBtn.classList.add('active');
+    document.getElementById('page-title').textContent = 'Employee Records';
+    curP = 'emp-records';
+  }
   setTimeout(function() {
     // Patch sv/svS/svH/svE to also write to GitHub
     if (typeof sv === 'function') { const _sv = sv; window.sv = function(){ _sv(); if (typeof dbWrite === 'function') dbWrite('sheets', SHEETS); }; }
@@ -3153,24 +3212,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Show pending-request counts on sidebar badges right away
     if (typeof loadEmpData === 'function') loadEmpData();
-    if (typeof apiCall === 'function') {
-      apiCall('GET','/data/signup-requests').then(function(sr){
-        if (Array.isArray(sr)) {
-          var p = sr.filter(function(r){ return r.status==='pending'; }).length;
-          var b = document.getElementById('signup-badge');
-          if (b) { b.textContent = p; b.style.display = p ? 'inline' : 'none'; }
-        }
-      });
-      apiCall('GET','/data/leave-requests').then(function(lr){
-        if (Array.isArray(lr)) {
-          var p = lr.filter(function(r){ return r.status==='pending'; }).length;
-          var b = document.getElementById('leave-badge');
-          if (b) { b.textContent = p; b.style.display = p ? 'inline' : 'none'; }
-        }
-      });
-    }
+    refreshPendingBadges();
   }, 800);
 });
+
+function refreshPendingBadges(){
+  if (typeof apiCall !== 'function') return;
+  apiCall('GET',dp('signup-requests')).then(function(sr){
+    if (Array.isArray(sr)) {
+      var p = sr.filter(function(r){ return r.status==='pending'; }).length;
+      var b = document.getElementById('signup-badge');
+      if (b) { b.textContent = p; b.style.display = p ? 'inline' : 'none'; }
+    }
+  });
+  apiCall('GET',dp('leave-requests')).then(function(lr){
+    if (Array.isArray(lr)) {
+      var p = lr.filter(function(r){ return r.status==='pending'; }).length;
+      var b = document.getElementById('leave-badge');
+      if (b) { b.textContent = p; b.style.display = p ? 'inline' : 'none'; }
+    }
+  });
+}
 </script>
 
 <div id="manage-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.5);align-items:center;justify-content:center">

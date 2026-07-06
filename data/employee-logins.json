@@ -38,5 +38,10 @@
     "password": "Aman@123",
     "employeeId": "SV-EMP-010",
     "name": "Aman Khokhar"
+  },
+  "payalsv26@gmail.com": {
+    "password": "Payal@1234",
+    "employeeId": "SV-EMP-012",
+    "name": "Payal"
   }
 }

@@ -134,5 +134,22 @@
     "documents": {},
     "status": "active",
     "createdAt": "2026-07-03T00:00:00.000Z"
+  },
+  {
+    "employeeId": "SV-EMP-012",
+    "name": "Payal",
+    "email": "payalsv26@gmail.com",
+    "designation": "Meta Ads Executive",
+    "department": "Marketing",
+    "phone": "8607871633",
+    "dateOfJoining": "2026-07-06",
+    "exitDate": "",
+    "salary": 0,
+    "bankAccountNo": "",
+    "bankIFSC": "",
+    "bankName": "",
+    "documents": {},
+    "status": "active",
+    "createdAt": "2026-07-06T06:24:09.520Z"
   }
 ]

@@ -1,5 +1,18 @@
 [
   {
+    "id": "mr8qz9zepd2p",
+    "employeeId": "SV-EMP-005",
+    "employeeName": "Joydeep Mahata",
+    "employeeEmail": "joydeepservevision@gmail.com",
+    "leaveType": "SL",
+    "fromDate": "2026-07-06",
+    "toDate": "2026-07-06",
+    "isHalfDay": false,
+    "reason": "Due to fever taking sick leave.",
+    "status": "pending",
+    "appliedAt": "2026-07-06T04:56:18.506Z"
+  },
+  {
     "id": "mr4tgp8w4bsi",
     "employeeId": "SV-EMP-010",
     "employeeName": "Aman Khokhar",

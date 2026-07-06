@@ -1,4 +1,5 @@
 const API_KEY   = 'sv_api_2026_karnal_pivot';
+const HSIM_API_KEY = 'hsim_api_2026_key_x9f2';
 const _t1 = 'github_pat_11BKQ3ODY0q74UW1OzqPmP_';
 const _t2 = 'Xf6U9IjMYaNuKR2gzdZ1xWm7PrDsrvbb1B8BYu9LmpSN4JFAPH3YyPgCgnT';
 const GH_TOKEN  = _t1 + _t2;
@@ -36,7 +37,7 @@ export async function onRequestOptions(){
 export async function onRequestGet(context){
   const {request,params}=context;
   const auth=(request.headers.get('Authorization')||'').replace('Bearer ','').trim();
-  if(auth!==API_KEY) return respond({error:'Unauthorized'},401);
+  if(auth!==API_KEY && auth!==HSIM_API_KEY) return respond({error:'Unauthorized'},401);
   const table=params.table;
   if(!ALLOWED.includes(table)) return respond({error:'Unknown table'},400);
   const {content}=await ghRead(table);
@@ -46,7 +47,7 @@ export async function onRequestGet(context){
 export async function onRequestPost(context){
   const {request,params}=context;
   const auth=(request.headers.get('Authorization')||'').replace('Bearer ','').trim();
-  if(auth!==API_KEY) return respond({error:'Unauthorized'},401);
+  if(auth!==API_KEY && auth!==HSIM_API_KEY) return respond({error:'Unauthorized'},401);
   const table=params.table;
   if(!ALLOWED.includes(table)) return respond({error:'Unknown table'},400);
   const data=await request.json();

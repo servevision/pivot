@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HSIM India — Sign Up</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+     background:linear-gradient(135deg,#053b30 0%,#0d8f6f 60%,#14b892 100%);
+     min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.box{background:#fff;border-radius:16px;padding:36px 40px;width:100%;max-width:460px;
+     box-shadow:0 24px 64px rgba(0,0,0,.22);overflow-y:auto;max-height:95vh}
+.logo{text-align:center;margin-bottom:24px}
+.logo-icon{width:48px;height:48px;background:linear-gradient(135deg,#14b892,#0d8f6f);
+           border-radius:12px;display:flex;align-items:center;justify-content:center;
+           margin:0 auto 10px}
+.logo-icon svg{width:26px;height:26px;fill:none;stroke:#fff;stroke-width:2}
+.co{font-size:10px;color:#a0a0a6;text-transform:uppercase;letter-spacing:1.2px;font-weight:700}
+.nm{font-size:20px;font-weight:800;color:#053b30;letter-spacing:-.5px;margin-top:3px}
+hr{border:none;border-top:1px solid #e4e3dc;margin:0 0 22px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid.full{grid-template-columns:1fr}
+.fl{margin-bottom:14px}
+label{font-size:10px;color:#64646a;font-weight:700;text-transform:uppercase;
+      letter-spacing:.5px;display:block;margin-bottom:5px}
+input,select{width:100%;border:1.5px solid #e4e3dc;border-radius:8px;padding:10px 12px;
+      font-size:13px;color:#16161a;outline:none;transition:all .15s;background:#fff}
+input:focus,select:focus{border-color:#0d8f6f;box-shadow:0 0 0 3px rgba(20,184,146,.14)}
+.btn{width:100%;padding:12px;background:linear-gradient(135deg,#14b892,#0d8f6f);
+     color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;
+     cursor:pointer;transition:all .15s;margin-top:6px;display:flex;align-items:center;
+     justify-content:center;gap:8px}
+.btn:hover{box-shadow:0 6px 18px rgba(13,143,111,.4);transform:translateY(-1px)}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.err{background:#fdeaea;border:1px solid #f0b8b8;color:#7a1a1a;border-radius:8px;
+     padding:10px 14px;font-size:12px;font-weight:600;margin-bottom:14px;display:none}
+.err.show{display:block}
+.suc{background:#eaf7ef;border:1px solid #86c9a0;color:#0a5239;border-radius:8px;
+     padding:14px;font-size:13px;margin-bottom:14px;display:none;text-align:center}
+.suc.show{display:block}
+.foot{text-align:center;margin-top:18px;font-size:12px;color:#888}
+.foot a{color:#0d8f6f;text-decoration:none;font-weight:600}
+.spin{display:inline-block;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.req{color:#e53e3e}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </div>
+    <div class="co">HSIM India</div>
+    <div class="nm">Employee Sign Up</div>
+  </div>
+  <hr>
+
+  <div class="err" id="err"></div>
+  <div class="suc" id="suc">
+    <div style="font-size:24px;margin-bottom:8px">✅</div>
+    <div style="font-weight:700;font-size:15px;margin-bottom:4px">Request Submitted!</div>
+    <div>Your signup request has been sent to admin for approval.<br>You will receive an email once approved.</div>
+  </div>
+
+  <div id="form-area">
+    <div class="grid">
+      <div class="fl">
+        <label>Full Name <span class="req">*</span></label>
+        <input type="text" id="f-name" placeholder="Ansh Sharma">
+      </div>
+      <div class="fl">
+        <label>Phone Number</label>
+        <input type="tel" id="f-phone" placeholder="9876543210">
+      </div>
+    </div>
+    <div class="fl">
+      <label>Work Email <span class="req">*</span></label>
+      <input type="email" id="f-email" placeholder="yourname@hsim.in">
+    </div>
+    <div class="grid">
+      <div class="fl">
+        <label>Password <span class="req">*</span></label>
+        <input type="password" id="f-pass" placeholder="Create password">
+      </div>
+      <div class="fl">
+        <label>Confirm Password <span class="req">*</span></label>
+        <input type="password" id="f-pass2" placeholder="Repeat password">
+      </div>
+    </div>
+    <div class="grid">
+      <div class="fl">
+        <label>Designation</label>
+        <input type="text" id="f-desig" placeholder="e.g. Developer">
+      </div>
+      <div class="fl">
+        <label>Department</label>
+        <select id="f-dept">
+          <option value="">-- Select --</option>
+          <option>Technology</option>
+          <option>Design</option>
+          <option>Marketing</option>
+          <option>Operations</option>
+          <option>HR</option>
+          <option>Finance</option>
+          <option>Content</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn" id="sub-btn" onclick="doSignup()">Submit Request →</button>
+    <div class="foot">Already have an account? <a href="/hsim-employee.html">Login here</a><br>
+      Admin? <a href="/hsim-login.html">Admin Login</a></div>
+  </div>
+</div>
+<script>
+async function doSignup(){
+  const name   = document.getElementById('f-name').value.trim();
+  const email  = document.getElementById('f-email').value.trim();
+  const pass   = document.getElementById('f-pass').value;
+  const pass2  = document.getElementById('f-pass2').value;
+  const phone  = document.getElementById('f-phone').value.trim();
+  const desig  = document.getElementById('f-desig').value.trim();
+  const dept   = document.getElementById('f-dept').value;
+  const btn    = document.getElementById('sub-btn');
+  const err    = document.getElementById('err');
+  const suc    = document.getElementById('suc');
+
+  err.classList.remove('show');
+
+  if(!name||!email||!pass){ showErr('Name, email and password are required'); return; }
+  if(pass!==pass2){ showErr('Passwords do not match'); return; }
+  if(pass.length<6){ showErr('Password must be at least 6 characters'); return; }
+
+  btn.disabled=true;
+  btn.innerHTML='<span class="spin">↻</span> Submitting...';
+
+  try{
+    const r = await fetch('/api/hsim-auth-signup',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name,email,password:pass,phone,designation:desig,department:dept})
+    });
+    const data = await r.json();
+    if(data.ok||r.ok){
+      document.getElementById('form-area').style.display='none';
+      suc.classList.add('show');
+    } else {
+      showErr(data.error||'Something went wrong. Please try again.');
+    }
+  }catch(e){
+    showErr('Connection error. Please try again.');
+  }finally{
+    btn.disabled=false;
+    btn.innerHTML='Submit Request →';
+  }
+}
+
+function showErr(msg){
+  const err=document.getElementById('err');
+  err.textContent=msg;
+  err.classList.add('show');
+}
+
+// Enter key support
+document.addEventListener('keydown',e=>{if(e.key==='Enter')doSignup();});
+</script>
+</body>
+</html>

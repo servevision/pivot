@@ -414,6 +414,18 @@ async function pushAllToGitHub() {
       </div>
       <div class="card"><div class="card-t">Employee Summary</div><div id="emp-ov"></div></div>
       <div class="card"><div class="card-t">Leave Balance — Casual & Sick Leave</div><div class="card-sub" style="font-size:11px;color:var(--text2);margin-bottom:10px">CL: 1.5 days/month, carries forward · SL: 6 days/year, resets each financial year</div><div id="leave-bank-ov"></div></div>
+      <div class="card">
+        <div class="card-t">📋 Leave Log — Who Took Leave, When & How Many Days</div>
+        <div class="card-sub" style="font-size:11px;color:var(--text2);margin-bottom:10px">From employee-applied leave requests · click a name to expand their dates</div>
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+          <input type="text" id="llog-q" placeholder="Search employee..." oninput="renderLeaveLog()" style="flex:1;min-width:180px">
+          <select id="llog-status" onchange="renderLeaveLog()" style="min-width:140px">
+            <option value="approved">Approved only</option>
+            <option value="">All (incl. pending/rejected)</option>
+          </select>
+        </div>
+        <div id="leave-log-ov">Loading...</div>
+      </div>
     </div>
 
     <!-- SALARIES -->
@@ -1495,7 +1507,7 @@ function gp(id,el){
 }
 function rCurrent(){doR(curP);}
 function doR(id){
-  if(id==='overview')rOv();
+  if(id==='overview'){rOv();loadLeaveLog();}
   else if(id==='salaries')rSal();
   else if(id==='partner-pivot')rPP();
   else if(id==='emp-pivot')rEP();
@@ -1598,7 +1610,82 @@ function rOv(){
   }
 }
 
-// Salaries matrix — CHRONOLOGICAL ORDER
+// Leave Log — detailed per-employee leave dates + counts (from leave-requests.json)
+let LLOG_DATA = [];
+async function loadLeaveLog(){
+  document.getElementById('leave-log-ov').innerHTML = '<div style="padding:16px;color:var(--text2)">Loading...</div>';
+  const d = await apiCall('GET','/data/leave-requests');
+  LLOG_DATA = Array.isArray(d) ? d : [];
+  renderLeaveLog();
+}
+
+function toggleLeaveLogEmp(name){
+  const el = document.getElementById('llog-dates-'+name.replace(/[^a-zA-Z0-9]/g,''));
+  if(el) el.classList.toggle('hidden');
+  const arrow = document.getElementById('llog-arrow-'+name.replace(/[^a-zA-Z0-9]/g,''));
+  if(arrow) arrow.classList.toggle('open');
+}
+
+function renderLeaveLog(){
+  const el = document.getElementById('leave-log-ov');
+  if(!el) return;
+  const q = (document.getElementById('llog-q')?.value||'').toLowerCase();
+  const statusF = document.getElementById('llog-status')?.value||'approved';
+
+  let filtered = LLOG_DATA.filter(l=>{
+    const matchQ = !q || (l.employeeName||'').toLowerCase().includes(q);
+    const matchS = !statusF || l.status===statusF;
+    return matchQ && matchS;
+  });
+
+  if(!filtered.length){
+    el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text2)">No leave records match.</div>';
+    return;
+  }
+
+  const byEmp = {};
+  filtered.forEach(l=>{
+    if(!byEmp[l.employeeName]) byEmp[l.employeeName] = [];
+    byEmp[l.employeeName].push(l);
+  });
+
+  const dayCount = (l)=> l.isHalfDay ? 0.5 : (Math.round((new Date(l.toDate||l.fromDate)-new Date(l.fromDate))/(1000*60*60*24))+1);
+
+  el.innerHTML = Object.entries(byEmp).sort((a,b)=>a[0].localeCompare(b[0])).map(([name, leaves])=>{
+    const totalDays = leaves.reduce((s,l)=>s+dayCount(l),0);
+    const clDays = leaves.filter(l=>l.leaveType==='CL'||l.leaveType==='HalfDay').reduce((s,l)=>s+dayCount(l),0);
+    const slDays = leaves.filter(l=>l.leaveType==='SL').reduce((s,l)=>s+dayCount(l),0);
+    const wfhDays = leaves.filter(l=>l.leaveType==='WFH').reduce((s,l)=>s+dayCount(l),0);
+    const safeId = name.replace(/[^a-zA-Z0-9]/g,'');
+    const ini = name.split(' ').map(x=>x[0]).join('').substr(0,2).toUpperCase();
+
+    leaves.sort((a,b)=>new Date(b.fromDate)-new Date(a.fromDate));
+
+    return `<div style="border-bottom:1px solid var(--border);padding:10px 0">
+      <div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="toggleLeaveLogEmp('${name.replace(/'/g,"\\'")}')">
+        <div class="av" style="background:var(--blue-bg);color:var(--blue-t);flex-shrink:0">${ini}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700">${name}</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px">
+            <b>${totalDays}</b> total days
+            ${clDays?` · <span style="color:var(--blue-t)">${clDays} CL</span>`:''}
+            ${slDays?` · <span style="color:var(--purple-t)">${slDays} SL</span>`:''}
+            ${wfhDays?` · <span style="color:var(--amber-t)">${wfhDays} WFH</span>`:''}
+            · ${leaves.length} request${leaves.length!==1?'s':''}
+          </div>
+        </div>
+        <span class="pivot-toggle" id="llog-arrow-${safeId}">›</span>
+      </div>
+      <div id="llog-dates-${safeId}" class="pivot-child hidden" style="padding-left:42px;margin-top:8px">
+        ${leaves.map(l=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:12px;border-top:1px solid var(--border)">
+          <span><b>${l.leaveType}${l.isHalfDay?' (Half Day)':''}</b> — ${l.fromDate}${l.toDate&&l.toDate!==l.fromDate?' → '+l.toDate:''} <span style="color:var(--text3)">(${dayCount(l)}d)</span></span>
+          <span class="badge b-${l.status==='approved'?'green':l.status==='pending'?'amber':'red'}">${l.status}</span>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function rSal(){
   const work=ALL.filter(r=>!r.isHol&&!r.isLeave&&!r.isSun&&r.name&&r.month);
   const months=sortMonths([...new Set(work.map(r=>r.month))]);

@@ -7,7 +7,8 @@
     "designation": "Meta Ads Executive",
     "department": "Marketing",
     "phone": "8607871633",
-    "status": "pending",
-    "requestedAt": "2026-07-06T06:21:11.879Z"
+    "status": "approved",
+    "requestedAt": "2026-07-06T06:21:11.879Z",
+    "decidedAt": "2026-07-06T06:24:11.648Z"
   }
 ]

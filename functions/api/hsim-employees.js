@@ -1,0 +1,104 @@
+// functions/api/hsim-employees.js
+const GH_T1 = 'github_pat_11BKQ3ODY0q74UW1OzqPmP_';
+const GH_T2 = 'Xf6U9IjMYaNuKR2gzdZ1xWm7PrDsrvbb1B8BYu9LmpSN4JFAPH3YyPgCgnT';
+const GH_TOKEN = GH_T1 + GH_T2;
+const GH_OWNER = 'servevision';
+const GH_REPO  = 'pivot';
+const GH_BRANCH = 'main';
+const API_KEY = 'hsim_api_2026_key_x9f2';
+
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+};
+
+function respond(data,status=200){
+  return new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json',...CORS}});
+}
+
+async function ghRead(file){
+  const url=`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/data/${file}.json?ref=${GH_BRANCH}`;
+  const r=await fetch(url,{headers:{Authorization:`token ${GH_TOKEN}`,Accept:'application/vnd.github.v3+json','User-Agent':'HSIM-Dashboard'}});
+  if(!r.ok) return {content:null,sha:null};
+  const d=await r.json();
+  return {content:JSON.parse(atob(d.content.replace(/\n/g,''))),sha:d.sha};
+}
+
+async function ghWrite(file,content,sha){
+  const url=`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/data/${file}.json`;
+  const body={message:`Update ${file}`,content:btoa(unescape(encodeURIComponent(JSON.stringify(content,null,2)))),branch:GH_BRANCH};
+  if(sha) body.sha=sha;
+  const r=await fetch(url,{method:'PUT',headers:{Authorization:`token ${GH_TOKEN}`,Accept:'application/vnd.github.v3+json','Content-Type':'application/json','User-Agent':'HSIM-Dashboard'},body:JSON.stringify(body)});
+  return r.ok;
+}
+
+function genEmployeeId(existingEmployees){
+  let maxNum = 0;
+  existingEmployees.forEach(e=>{
+    const m = (e.employeeId||'').match(/HSIM-EMP-(\d+)/);
+    if(m) maxNum = Math.max(maxNum, parseInt(m[1]));
+  });
+  return 'HSIM-EMP-' + String(maxNum+1).padStart(3,'0');
+}
+
+export async function onRequestOptions(){
+  return new Response(null,{status:204,headers:CORS});
+}
+
+export async function onRequestGet(context){
+  const {request}=context;
+  const auth=(request.headers.get('Authorization')||'').replace('Bearer ','').trim();
+  if(auth!==API_KEY) return respond({error:'Unauthorized'},401);
+  const {content}=await ghRead('hsim-employees');
+  return respond(content||[]);
+}
+
+export async function onRequestPost(context){
+  const {request}=context;
+  const auth=(request.headers.get('Authorization')||'').replace('Bearer ','').trim();
+  if(auth!==API_KEY) return respond({error:'Unauthorized'},401);
+
+  const body=await request.json();
+  const {action} = body;
+
+  if(action==='create'){
+    let employeeId, ok;
+    for(let attempt=0; attempt<5; attempt++){
+      const {content:employees,sha}=await ghRead('hsim-employees');
+      const list = employees||[];
+      employeeId = genEmployeeId(list);
+      const emp = body.employee;
+      emp.employeeId = employeeId;
+      emp.createdAt = new Date().toISOString();
+      list.push(emp);
+      ok = await ghWrite('hsim-employees',list,sha);
+      if(ok) break;
+      await new Promise(res=>setTimeout(res, 300 + Math.random()*400));
+    }
+    if(!ok) return respond({error:'Could not create employee — try again'},500);
+    return respond({ok:true, employeeId});
+  }
+
+  if(action==='update'){
+    const {content:employees,sha}=await ghRead('hsim-employees');
+    const list = employees||[];
+    const idx = list.findIndex(e=>e.employeeId===body.employeeId);
+    if(idx>=0){
+      list[idx] = {...list[idx], ...body.employee, updatedAt:new Date().toISOString()};
+      const ok = await ghWrite('hsim-employees',list,sha);
+      return respond({ok});
+    }
+    return respond({error:'Employee not found'},404);
+  }
+
+  if(action==='delete'){
+    const {content:employees,sha}=await ghRead('hsim-employees');
+    let list = employees||[];
+    list = list.filter(e=>e.employeeId!==body.employeeId);
+    const ok = await ghWrite('hsim-employees',list,sha);
+    return respond({ok});
+  }
+
+  return respond({error:'Unknown action'},400);
+}

@@ -24,14 +24,14 @@
     "url": "https://script.google.com/macros/s/AKfycbzoZ-d01wEzuIGdTuF3EOJntf1N5KCxoEGR4rIkvy7ig6q8wEAOlM1kBOf5Zl7eTQlJtg/exec",
     "status": "ok",
     "rows": 370,
-    "lastSync": "9:55:51 am"
+    "lastSync": "9:56:26 am"
   },
   {
     "id": "s4",
     "name": "Sakshi",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbynMafp2BwQBk_zS4exzweR0otJyOflpmaoRfU4DdLDcwjUi5WvwWyvYaeGgcbah90/exec",
-    "status": "pending",
+    "status": "loading",
     "rows": 347,
     "lastSync": "1:59:34 pm"
   },
@@ -40,7 +40,7 @@
     "name": "Sunita Mahata",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbx99TDIA2OdkP-bG02go1nXhXFoscmxoEb5YMc58MCqwR_BbL1fnvknDuZM5XCN6jDE/exec",
-    "status": "pending",
+    "status": "loading",
     "rows": 1070,
     "lastSync": "1:59:34 pm"
   },
@@ -49,7 +49,7 @@
     "name": "Gourav Madaan",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbxgauMxVYptoIPrnXJoHqTaHX8SAuTjvwfKsFE0P9QNL4f4fZqQqQMhjEJ-Od6X1MVn/exec",
-    "status": "pending",
+    "status": "loading",
     "rows": 112,
     "lastSync": "1:59:36 pm"
   },

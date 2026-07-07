@@ -9,8 +9,9 @@
     "toDate": "2026-07-07",
     "isHalfDay": false,
     "reason": "..",
-    "status": "pending",
-    "appliedAt": "2026-07-07T10:34:20.545Z"
+    "status": "approved",
+    "appliedAt": "2026-07-07T10:34:20.545Z",
+    "decidedAt": "2026-07-07T10:34:42.309Z"
   },
   {
     "id": "mr8qz9zepd2p",

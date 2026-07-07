@@ -4,7 +4,7 @@
     "name": "Ansh",
     "email": "ansh24.sv@gmail.com",
     "designation": "Video Editior",
-    "department": "Marketing",
+    "department": "Design",
     "phone": "9466517848",
     "dateOfJoining": "2026-04-01",
     "exitDate": "",
@@ -14,7 +14,8 @@
     "bankName": "",
     "documents": {},
     "status": "active",
-    "createdAt": "2026-07-03T00:00:00.000Z"
+    "createdAt": "2026-07-03T00:00:00.000Z",
+    "updatedAt": "2026-07-07T11:47:39.445Z"
   },
   {
     "employeeId": "SV-EMP-004",

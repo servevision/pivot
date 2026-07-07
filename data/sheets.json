@@ -15,7 +15,7 @@
     "url": "https://script.google.com/macros/s/AKfycbybIabQUdjvOhZHuNf0wuvZXr2f3JfEnsI6zICqbKoVsl3VfM3ILdDON-TWZxqgh70/exec",
     "status": "ok",
     "rows": 805,
-    "lastSync": "1:22:51 pm"
+    "lastSync": "1:22:54 pm"
   },
   {
     "id": "s3",
@@ -24,7 +24,7 @@
     "url": "https://script.google.com/macros/s/AKfycbzoZ-d01wEzuIGdTuF3EOJntf1N5KCxoEGR4rIkvy7ig6q8wEAOlM1kBOf5Zl7eTQlJtg/exec",
     "status": "ok",
     "rows": 370,
-    "lastSync": "1:22:48 pm"
+    "lastSync": "1:23:00 pm"
   },
   {
     "id": "s4",
@@ -33,7 +33,7 @@
     "url": "https://script.google.com/macros/s/AKfycbynMafp2BwQBk_zS4exzweR0otJyOflpmaoRfU4DdLDcwjUi5WvwWyvYaeGgcbah90/exec",
     "status": "ok",
     "rows": 357,
-    "lastSync": "1:22:49 pm"
+    "lastSync": "1:23:04 pm"
   },
   {
     "id": "s5",
@@ -42,7 +42,7 @@
     "url": "https://script.google.com/macros/s/AKfycbx99TDIA2OdkP-bG02go1nXhXFoscmxoEb5YMc58MCqwR_BbL1fnvknDuZM5XCN6jDE/exec",
     "status": "ok",
     "rows": 1081,
-    "lastSync": "1:22:51 pm"
+    "lastSync": "1:23:10 pm"
   },
   {
     "id": "s6",
@@ -51,16 +51,16 @@
     "url": "https://script.google.com/macros/s/AKfycbxgauMxVYptoIPrnXJoHqTaHX8SAuTjvwfKsFE0P9QNL4f4fZqQqQMhjEJ-Od6X1MVn/exec",
     "status": "ok",
     "rows": 112,
-    "lastSync": "1:22:52 pm"
+    "lastSync": "1:23:15 pm"
   },
   {
     "id": "s7",
     "name": "Joydeep Mahata",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbzQOcj6Au_p3k6q87p5i3gfhhuXeKwRIc1_5cC9s4Dq6dsIEh0FEwZIZcySaM_dtxs-fA/exec",
-    "status": "loading",
+    "status": "ok",
     "rows": 868,
-    "lastSync": "10:10:17 am"
+    "lastSync": "1:23:41 pm"
   },
   {
     "id": "s8",
@@ -69,7 +69,7 @@
     "url": "https://script.google.com/macros/s/AKfycbxY7ZUbQxEZdN9Bbc_cj1CWy03rb8nDTvMjG4QYusLubGcFwVV5lSOUo1DNCCxXrtam8g/exec",
     "status": "ok",
     "rows": 583,
-    "lastSync": "1:22:52 pm"
+    "lastSync": "1:23:45 pm"
   },
   {
     "id": "s9",
@@ -78,6 +78,6 @@
     "url": "https://script.google.com/macros/s/AKfycbws-YI_t1sJ6pDxLcRCWHWi7FfZC6ZS1O9SgcNBLXNbmLmqI43ApNfA4DBY92-tpzLQrQ/exec",
     "status": "ok",
     "rows": 180,
-    "lastSync": "1:22:54 pm"
+    "lastSync": "1:23:50 pm"
   }
 ]

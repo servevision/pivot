@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "id": "mrblj3ec58v2",
+    "employeeId": "HSIM-EMP-001",
+    "employeeName": "Vivek Attri",
+    "date": "2026-07-08",
+    "checkInTime": "2026-07-08T04:47:03.924Z",
+    "checkOutTime": null,
+    "workingHours": null,
+    "status": "present",
+    "ip": "146.196.38.237",
+    "officeVerified": false,
+    "source": "web",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
+  }
+]

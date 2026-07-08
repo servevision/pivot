@@ -9,8 +9,9 @@
     "toDate": "2026-07-08",
     "isHalfDay": false,
     "reason": "WFH",
-    "status": "pending",
-    "appliedAt": "2026-07-08T05:01:26.039Z"
+    "status": "approved",
+    "appliedAt": "2026-07-08T05:01:26.039Z",
+    "decidedAt": "2026-07-08T07:19:49.625Z"
   },
   {
     "id": "mraihuddta3a",

@@ -9,7 +9,8 @@
     "toDate": "2026-07-07",
     "isHalfDay": false,
     "reason": "Health issue",
-    "status": "pending",
-    "appliedAt": "2026-07-08T04:46:38.022Z"
+    "status": "approved",
+    "appliedAt": "2026-07-08T04:46:38.022Z",
+    "decidedAt": "2026-07-08T04:46:48.836Z"
   }
 ]

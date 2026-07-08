@@ -1,1 +1,15 @@
-[]
+[
+  {
+    "id": "mrblijeumc4v",
+    "employeeId": "HSIM-EMP-001",
+    "employeeName": "Vivek Attri",
+    "employeeEmail": "vivek.hsim@gmail.com",
+    "leaveType": "SL",
+    "fromDate": "2026-07-07",
+    "toDate": "2026-07-07",
+    "isHalfDay": false,
+    "reason": "Health issue",
+    "status": "pending",
+    "appliedAt": "2026-07-08T04:46:38.022Z"
+  }
+]

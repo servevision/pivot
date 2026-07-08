@@ -40,9 +40,9 @@
     "name": "Sunita Mahata",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbx99TDIA2OdkP-bG02go1nXhXFoscmxoEb5YMc58MCqwR_BbL1fnvknDuZM5XCN6jDE/exec",
-    "status": "loading",
+    "status": "ok",
     "rows": 1081,
-    "lastSync": "4:43:43 pm"
+    "lastSync": "10:20:42 am"
   },
   {
     "id": "s6",
@@ -76,7 +76,7 @@
     "name": "Payal",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbws-YI_t1sJ6pDxLcRCWHWi7FfZC6ZS1O9SgcNBLXNbmLmqI43ApNfA4DBY92-tpzLQrQ/exec",
-    "status": "error",
+    "status": "loading",
     "rows": 180,
     "lastSync": "1:23:50 pm"
   }

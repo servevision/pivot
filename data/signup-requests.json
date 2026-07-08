@@ -7,8 +7,9 @@
     "designation": "SEO Trainer",
     "department": "Operations",
     "phone": "8689023912",
-    "status": "pending",
-    "requestedAt": "2026-07-08T04:37:51.299Z"
+    "status": "rejected",
+    "requestedAt": "2026-07-08T04:37:51.299Z",
+    "decidedAt": "2026-07-08T04:49:31.474Z"
   },
   {
     "id": "mr8u0g1zmncu",

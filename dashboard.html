@@ -2212,7 +2212,7 @@ async function decideSignupBtn(btn){
 async function decideSignup(id, decision){
   if(!confirm(decision==='approve'?'Approve this signup request?':'Reject this request?')) return;
   try{
-    const r = await apiCall('POST','/admin-signup-action',{requestId:id,decision});
+    const r = await apiCall('POST',ep('admin-signup-action'),{requestId:id,decision});
     if(r&&r.ok){
       alert(decision==='approve'?'✓ Approved! Employee ID: '+(r.employeeId||''):'Request rejected. Employee notified.');
       rSignupRequests();

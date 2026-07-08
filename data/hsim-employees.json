@@ -1,1 +1,19 @@
-[]
+[
+  {
+    "employeeId": "HSIM-EMP-001",
+    "name": "Vivek Attri",
+    "email": "vivek.hsim@gmail.com",
+    "designation": "SEO Trainer",
+    "department": "Operations",
+    "phone": "8689023912",
+    "dateOfJoining": "2026-07-08",
+    "exitDate": "",
+    "salary": 0,
+    "bankAccountNo": "",
+    "bankIFSC": "",
+    "bankName": "",
+    "documents": {},
+    "status": "active",
+    "createdAt": "2026-07-08T04:43:35.984Z"
+  }
+]

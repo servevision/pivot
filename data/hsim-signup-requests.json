@@ -1,1 +1,13 @@
-[]
+[
+  {
+    "id": "mrbl3gajhn20",
+    "name": "Vivek Attri",
+    "email": "vivek.hsim@gmail.com",
+    "password": "Vivek.hsim@gmail.com",
+    "designation": "SEO Trainer",
+    "department": "Operations",
+    "phone": "8689023912",
+    "status": "pending",
+    "requestedAt": "2026-07-08T04:34:54.139Z"
+  }
+]

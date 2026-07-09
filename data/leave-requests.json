@@ -1,5 +1,18 @@
 [
   {
+    "id": "mrczfzzhcbkg",
+    "employeeId": "SV-EMP-005",
+    "employeeName": "Joydeep Mahata",
+    "employeeEmail": "joydeepservevision@gmail.com",
+    "leaveType": "CL",
+    "fromDate": "2026-07-09",
+    "toDate": "2026-07-09",
+    "isHalfDay": false,
+    "reason": ".",
+    "status": "pending",
+    "appliedAt": "2026-07-09T04:04:20.333Z"
+  },
+  {
     "id": "mrczfi263o7e",
     "employeeId": "SV-EMP-005",
     "employeeName": "Joydeep Mahata",

@@ -63,8 +63,9 @@
     "toDate": "2026-07-08",
     "isHalfDay": false,
     "reason": "Due to rain",
-    "status": "pending",
-    "appliedAt": "2026-07-09T04:03:57.102Z"
+    "status": "approved",
+    "appliedAt": "2026-07-09T04:03:57.102Z",
+    "decidedAt": "2026-07-09T09:37:40.492Z"
   },
   {
     "id": "mrc2rxbq3w9i",

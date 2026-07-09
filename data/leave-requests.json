@@ -1,5 +1,18 @@
 [
   {
+    "id": "mrdc27qczecs",
+    "employeeId": "SV-EMP-011",
+    "employeeName": "Yogesh Miglani",
+    "employeeEmail": "myogesh805@gmail.com",
+    "leaveType": "CL",
+    "fromDate": "2026-07-10",
+    "toDate": "2026-07-10",
+    "isHalfDay": false,
+    "reason": "Family function",
+    "status": "pending",
+    "appliedAt": "2026-07-09T09:57:32.196Z"
+  },
+  {
     "id": "mrdad3j3rjv2",
     "employeeId": "SV-EMP-008",
     "employeeName": "Sakshi Grover",

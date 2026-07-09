@@ -22,8 +22,9 @@
     "toDate": "2026-07-15",
     "isHalfDay": false,
     "reason": "Dear Sir,\n\nI kindly request approval for my leave from 13 July to 15 July. Please approve my leave for these three days.\n\nThank you.",
-    "status": "pending",
-    "appliedAt": "2026-07-09T09:09:09.090Z"
+    "status": "approved",
+    "appliedAt": "2026-07-09T09:09:09.090Z",
+    "decidedAt": "2026-07-09T09:37:18.005Z"
   },
   {
     "id": "mrdaa0ns8z2q",

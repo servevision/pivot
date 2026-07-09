@@ -13,9 +13,9 @@
     "name": "Aman Khokhar",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbybIabQUdjvOhZHuNf0wuvZXr2f3JfEnsI6zICqbKoVsl3VfM3ILdDON-TWZxqgh70/exec",
-    "status": "loading",
+    "status": "ok",
     "rows": 809,
-    "lastSync": "3:05:58 pm"
+    "lastSync": "3:06:09 pm"
   },
   {
     "id": "s3",
@@ -40,9 +40,9 @@
     "name": "Sunita Mahata",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbx99TDIA2OdkP-bG02go1nXhXFoscmxoEb5YMc58MCqwR_BbL1fnvknDuZM5XCN6jDE/exec",
-    "status": "loading",
+    "status": "ok",
     "rows": 1081,
-    "lastSync": "12:49:17 pm"
+    "lastSync": "3:06:10 pm"
   },
   {
     "id": "s6",
@@ -76,7 +76,7 @@
     "name": "Payal",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbws-YI_t1sJ6pDxLcRCWHWi7FfZC6ZS1O9SgcNBLXNbmLmqI43ApNfA4DBY92-tpzLQrQ/exec",
-    "status": "pending",
+    "status": "loading",
     "rows": 180,
     "lastSync": "12:49:19 pm"
   }

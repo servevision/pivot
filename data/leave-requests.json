@@ -1,5 +1,18 @@
 [
   {
+    "id": "mrdaa0ns8z2q",
+    "employeeId": "SV-EMP-008",
+    "employeeName": "Sakshi Grover",
+    "employeeEmail": "sakshigrover.servevision@gmail.com",
+    "leaveType": "WFH",
+    "fromDate": "2026-07-11",
+    "toDate": "2026-07-11",
+    "isHalfDay": false,
+    "reason": "Dear Sir,\n\nI would like to request permission to work from home on Saturday, 11 July. I will be available during working hours and will complete all my assigned tasks on time.\n\nThank you for your consideration.",
+    "status": "pending",
+    "appliedAt": "2026-07-09T09:07:37.048Z"
+  },
+  {
     "id": "mrczfzzhcbkg",
     "employeeId": "SV-EMP-005",
     "employeeName": "Joydeep Mahata",

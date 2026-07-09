@@ -50,8 +50,9 @@
     "toDate": "2026-07-09",
     "isHalfDay": false,
     "reason": ".",
-    "status": "pending",
-    "appliedAt": "2026-07-09T04:04:20.333Z"
+    "status": "approved",
+    "appliedAt": "2026-07-09T04:04:20.333Z",
+    "decidedAt": "2026-07-09T09:37:51.850Z"
   },
   {
     "id": "mrczfi263o7e",

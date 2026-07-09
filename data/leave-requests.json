@@ -9,8 +9,9 @@
     "toDate": "2026-07-16",
     "isHalfDay": true,
     "reason": "Dear sir,\n\nI kindly request approval for a first-half leave on 16 July. I will be available to resume work during the second half of the day.\n\nThank you.",
-    "status": "pending",
-    "appliedAt": "2026-07-09T09:10:00.735Z"
+    "status": "approved",
+    "appliedAt": "2026-07-09T09:10:00.735Z",
+    "decidedAt": "2026-07-09T09:37:56.623Z"
   },
   {
     "id": "mrdabzoixf30",

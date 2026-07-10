@@ -1,5 +1,18 @@
 [
   {
+    "id": "mrerd8g5u3cg",
+    "employeeId": "SV-EMP-002",
+    "employeeName": "Ansh",
+    "employeeEmail": "ansh24.sv@gmail.com",
+    "leaveType": "CL",
+    "fromDate": "2026-07-13",
+    "toDate": "2026-07-15",
+    "isHalfDay": false,
+    "reason": "Dear Sir,\n\nI would like to inform you that I need to travel out of station due to personal reasons. Therefore, I kindly request you to grant me leave from [13 july 2026 ] to [15 july 2026].\n\nI have ensured that my pending work is up to date, and I will complete any urgent tasks before my leave. I will also remain reachable in case of any important matters.\n\nI kindly request you to approve my leave. Thank you for your understanding.\n\nYours sincerely,\n\n[Ansh]",
+    "status": "pending",
+    "appliedAt": "2026-07-10T09:53:46.757Z"
+  },
+  {
     "id": "mrer9v61thu5",
     "employeeId": "SV-EMP-002",
     "employeeName": "Ansh",

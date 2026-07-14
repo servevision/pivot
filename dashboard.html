@@ -924,6 +924,19 @@ async function pushAllToGitHub() {
           <div class="fg"><label>Email</label><input type="email" id="client-email" placeholder="client@company.com"></div>
           <div class="fg"><label>Phone</label><input type="text" id="client-phone" placeholder="+91..."></div>
           <div class="fg"><label>GST Number</label><input type="text" id="client-gst" placeholder="22AAAAA0000A1Z5"></div>
+          <div class="fg"><label>State</label>
+            <select id="client-state">
+              <option value="">-- Select State --</option>
+              <option>Andhra Pradesh</option><option>Arunachal Pradesh</option><option>Assam</option><option>Bihar</option>
+              <option>Chhattisgarh</option><option>Goa</option><option>Gujarat</option><option selected>Haryana</option>
+              <option>Himachal Pradesh</option><option>Jharkhand</option><option>Karnataka</option><option>Kerala</option>
+              <option>Madhya Pradesh</option><option>Maharashtra</option><option>Manipur</option><option>Meghalaya</option>
+              <option>Mizoram</option><option>Nagaland</option><option>Odisha</option><option>Punjab</option>
+              <option>Rajasthan</option><option>Sikkim</option><option>Tamil Nadu</option><option>Telangana</option>
+              <option>Tripura</option><option>Uttar Pradesh</option><option>Uttarakhand</option><option>West Bengal</option>
+              <option>Delhi</option><option>Jammu and Kashmir</option><option>Ladakh</option><option>Other / Outside India</option>
+            </select>
+          </div>
           <div class="fg"><label>Address</label><input type="text" id="client-address" placeholder="Full address"></div>
         </div>
         <div class="fg" style="margin-bottom:12px"><label>Description</label><textarea id="client-desc" placeholder="Notes about this client..." style="width:100%;min-height:56px;border:1.5px solid var(--border2);border-radius:9px;padding:9px 12px;font-size:13px;font-family:inherit"></textarea></div>
@@ -944,34 +957,59 @@ async function pushAllToGitHub() {
       <div class="card">
         <div class="card-t">🏢 Your Company Details (appear on every invoice)</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
-          <div class="fg"><label>Company Name</label><input type="text" id="co-name" value="Serve Vision Pvt Ltd"></div>
-          <div class="fg"><label>GSTIN</label><input type="text" id="co-gstin" placeholder="22AAAAA0000A1Z5"></div>
-          <div class="fg"><label>PAN</label><input type="text" id="co-pan" placeholder="AAAAA0000A"></div>
+          <div class="fg"><label>Company Name</label><input type="text" id="co-name" value="SERVE VISION PRIVATE LIMITED"></div>
+          <div class="fg"><label>GST No.</label><input type="text" id="co-gstin" value="06ABGCS4675K1ZU"></div>
+          <div class="fg"><label>PAN No.</label><input type="text" id="co-pan" value="ABGCS4675K"></div>
         </div>
-        <div class="fg" style="margin-bottom:10px"><label>Company Address</label><input type="text" id="co-address" placeholder="Full registered address"></div>
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-bottom:10px">
+          <div class="fg"><label>Company Address</label><input type="text" id="co-address" value="SCO-112, 2nd Floor, old Tehsil Complex, Karnal, Haryana, 132001"></div>
+          <div class="fg"><label>Phone</label><input type="text" id="co-phone" value="+91 9802387131"></div>
+          <div class="fg"><label>Email</label><input type="text" id="co-email" value="payments@servevision.io"></div>
+        </div>
         <button class="btn btn-p btn-sm" onclick="saveCompanyDetails()">Save Company Details</button>
         <span id="co-details-msg" style="font-size:11px;margin-left:8px;color:var(--text2)"></span>
       </div>
 
       <div class="card">
+        <div class="card-t">🏦 Bank Accounts</div>
+        <div class="card-sub">Add your bank accounts here — you'll pick which one to print on each invoice.</div>
+        <div id="banks-list" style="margin-bottom:12px"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:8px;align-items:end">
+          <div class="fg"><label>Bank Name</label><input type="text" id="bank-name" placeholder="IDFC First Bank"></div>
+          <div class="fg"><label>Account Holder</label><input type="text" id="bank-holder" placeholder="SERVE VISION PRIVATE LIMITED"></div>
+          <div class="fg"><label>Account Number</label><input type="text" id="bank-account" placeholder="10283904361"></div>
+          <div class="fg"><label>IFSC Code</label><input type="text" id="bank-ifsc" placeholder="IDFB0021472"></div>
+          <button class="btn btn-p btn-sm" onclick="saveBank()">+ Add</button>
+        </div>
+        <span id="bank-msg" style="font-size:11px;color:var(--text2)"></span>
+      </div>
+
+      <div class="card">
         <div class="card-t">+ Create Invoice</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
-          <div class="fg"><label>Client</label><select id="inv-client"><option value="">-- Select Client --</option></select></div>
-          <div class="fg"><label>Invoice Type</label><select id="inv-type"><option value="Tax Invoice">Tax Invoice</option><option value="Export Invoice">Export Invoice</option></select></div>
+          <div class="fg"><label>Invoice Number</label><input type="text" id="inv-number" placeholder="SVPL/25-26/117"></div>
+          <div class="fg"><label>Invoice Type</label><select id="inv-type" onchange="onInvTypeChange()"><option value="Export Invoice">Export Invoice</option><option value="Tax Invoice">Tax Invoice</option></select></div>
           <div class="fg"><label>Invoice Date</label><input type="date" id="inv-date"></div>
         </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+          <div class="fg"><label>Client</label><select id="inv-client" onchange="onInvClientChange()"><option value="">-- Select Client --</option></select></div>
+          <div class="fg"><label>Bank Account (for payment)</label><select id="inv-bank"><option value="">-- Select Bank --</option></select></div>
+          <div class="fg" id="inv-usdrate-wrap"><label>USD to INR Rate</label><input type="number" id="inv-usdrate" placeholder="94.46" step="0.01"></div>
+        </div>
+        <div id="inv-gst-note" style="font-size:11.5px;color:var(--text2);margin-bottom:10px;padding:8px 12px;background:var(--bg2);border-radius:8px"></div>
+
         <div id="inv-items">
-          <div class="inv-item-row" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:end">
-            <div class="fg"><label>Description</label><input type="text" class="inv-desc" placeholder="Item / service description"></div>
-            <div class="fg"><label>Qty</label><input type="number" class="inv-qty" value="1"></div>
-            <div class="fg"><label>Rate (₹)</label><input type="number" class="inv-rate" placeholder="0"></div>
-            <div class="fg"><label>Tax %</label><input type="number" class="inv-tax" value="18"></div>
+          <div class="inv-item-row" style="display:grid;grid-template-columns:2.2fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:end">
+            <div class="fg"><label>Description</label><input type="text" class="inv-desc" placeholder="Advertisement on: Websites"></div>
+            <div class="fg"><label>SAC / HSN Code</label><input type="text" class="inv-sac" placeholder="998361"></div>
+            <div class="fg"><label id="inv-amt-label">Amount ($)</label><input type="number" class="inv-rate" placeholder="0"></div>
             <button class="btn btn-sm btn-d" onclick="removeInvItemRow(this)">✕</button>
           </div>
         </div>
         <button class="btn btn-sm" onclick="addInvItemRow()">+ Add Line Item</button>
         <hr class="div">
-        <div style="text-align:right;font-size:14px;font-weight:800" id="inv-total-preview">Total: ₹0</div>
+        <div id="inv-tax-breakdown" style="text-align:right;font-size:12.5px;color:var(--text2);line-height:1.9"></div>
+        <div style="text-align:right;font-size:16px;font-weight:800;margin-top:6px" id="inv-total-preview">Total: ₹0</div>
         <div style="margin-top:12px">
           <button class="btn btn-p" onclick="generateInvoice()">Generate Invoice</button>
           <span id="inv-msg" style="font-size:11.5px;margin-left:10px;color:var(--text2)"></span>
@@ -988,6 +1026,7 @@ async function pushAllToGitHub() {
 <div id="invoice-preview-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.6);align-items:center;justify-content:center;overflow-y:auto;padding:20px">
   <div style="background:#fff;border-radius:12px;width:100%;max-width:720px;max-height:90vh;overflow-y:auto;position:relative">
     <div style="position:sticky;top:0;background:#fff;padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;z-index:2">
+
       <div style="font-weight:800;font-size:14px">Invoice Preview</div>
       <div>
         <button class="btn btn-p btn-sm" onclick="printInvoice()">🖨️ Print / Save as PDF</button>
@@ -2744,6 +2783,7 @@ function editClient(id){
   document.getElementById('client-email').value = c.email||'';
   document.getElementById('client-phone').value = c.phone||'';
   document.getElementById('client-gst').value = c.gst||'';
+  document.getElementById('client-state').value = c.state||'';
   document.getElementById('client-address').value = c.address||'';
   document.getElementById('client-desc').value = c.description||'';
   document.getElementById('client-form-title').textContent = 'Edit Client';
@@ -2752,7 +2792,7 @@ function editClient(id){
 }
 function cancelClientEdit(){
   document.getElementById('client-edit-id').value='';
-  ['client-name','client-company','client-email','client-phone','client-gst','client-address','client-desc'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
+  ['client-name','client-company','client-email','client-phone','client-gst','client-state','client-address','client-desc'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
   document.getElementById('client-form-title').textContent='+ Add Client';
   document.getElementById('client-cancel-btn').style.display='none';
 }
@@ -2764,6 +2804,7 @@ async function saveClient(){
     email: document.getElementById('client-email').value.trim(),
     phone: document.getElementById('client-phone').value.trim(),
     gst: document.getElementById('client-gst').value.trim(),
+    state: document.getElementById('client-state').value,
     address: document.getElementById('client-address').value.trim(),
     description: document.getElementById('client-desc').value.trim()
   };
@@ -2799,7 +2840,7 @@ function rClients(){
       <div style="flex:1;min-width:180px">
         <div style="font-weight:700;font-size:13px">${c.name}${c.company?' <span style="color:var(--text3);font-weight:500">— '+c.company+'</span>':''}</div>
         <div style="font-size:11.5px;color:var(--text2)">${c.email||''}${c.phone?' · '+c.phone:''}</div>
-        ${c.gst?`<div style="font-size:10.5px;color:var(--text3);margin-top:2px">GST: ${c.gst}</div>`:''}
+        ${c.gst?`<div style="font-size:10.5px;color:var(--text3);margin-top:2px">GST: ${c.gst}${c.state?' · '+c.state:''}</div>`:c.state?`<div style="font-size:10.5px;color:var(--text3);margin-top:2px">${c.state}</div>`:''}
       </div>
       <button class="btn btn-sm" onclick="editClient('${c.id}')">✏️ Edit</button>
       <button class="btn btn-sm btn-d" onclick="deleteClient('${c.id}')">🗑️ Remove</button>
@@ -2917,15 +2958,14 @@ function rSales(){
   </table></div>`;
 }
 
-// ── INVOICES MODULE ───────────────────────────────────────
-let INVOICES_DATA = [];
-
 function saveCompanyDetails(){
   const details = {
     name: document.getElementById('co-name').value,
     gstin: document.getElementById('co-gstin').value,
     pan: document.getElementById('co-pan').value,
-    address: document.getElementById('co-address').value
+    address: document.getElementById('co-address').value,
+    phone: document.getElementById('co-phone').value,
+    email: document.getElementById('co-email').value
   };
   localStorage.setItem('sv_company_details', JSON.stringify(details));
   const msg = document.getElementById('co-details-msg');
@@ -2939,19 +2979,76 @@ function loadCompanyDetails(){
     if(details.gstin) document.getElementById('co-gstin').value = details.gstin;
     if(details.pan) document.getElementById('co-pan').value = details.pan;
     if(details.address) document.getElementById('co-address').value = details.address;
+    if(details.phone) document.getElementById('co-phone').value = details.phone;
+    if(details.email) document.getElementById('co-email').value = details.email;
   }catch(e){}
 }
 
+// ── BANK ACCOUNTS ─────────────────────────────────────────
+let BANKS_DATA = [];
+async function loadBanks(){
+  const d = await apiCall('GET','/business?type=banks');
+  BANKS_DATA = Array.isArray(d) ? d : [];
+  renderBanksList();
+  populateBankDropdown();
+}
+function renderBanksList(){
+  const el = document.getElementById('banks-list');
+  if(!el) return;
+  if(!BANKS_DATA.length){ el.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:6px 0">No bank accounts added yet.</div>'; return; }
+  el.innerHTML = BANKS_DATA.map(b=>`
+    <div class="sheet-card" style="padding:9px 13px">
+      <div style="flex:1;min-width:180px">
+        <div style="font-weight:700;font-size:12.5px">${b.name}</div>
+        <div style="font-size:11px;color:var(--text2)">${b.holder||''} · A/C ${b.account||''} · ${b.ifsc||''}</div>
+      </div>
+      <button class="btn btn-sm btn-d" onclick="deleteBank('${b.id}')">🗑️</button>
+    </div>`).join('');
+}
+function populateBankDropdown(){
+  const sel = document.getElementById('inv-bank');
+  if(!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">-- Select Bank --</option>' + BANKS_DATA.map(b=>`<option value="${b.id}">${b.name} (${b.account})</option>`).join('');
+  if(cur) sel.value = cur;
+}
+async function saveBank(){
+  const item = {
+    name: document.getElementById('bank-name').value.trim(),
+    holder: document.getElementById('bank-holder').value.trim(),
+    account: document.getElementById('bank-account').value.trim(),
+    ifsc: document.getElementById('bank-ifsc').value.trim()
+  };
+  const msg = document.getElementById('bank-msg');
+  if(!item.name || !item.account){ msg.textContent='Bank name and account number are required'; msg.style.color='var(--red-t)'; return; }
+  msg.textContent = 'Saving...'; msg.style.color='var(--text2)';
+  const r = await apiCall('POST','/business',{type:'banks',action:'create',item});
+  if(r&&r.ok){
+    msg.textContent='✓ Added'; msg.style.color='var(--green-t)';
+    ['bank-name','bank-holder','bank-account','bank-ifsc'].forEach(id=>document.getElementById(id).value='');
+    loadBanks();
+  } else {
+    msg.textContent='Error: '+(r&&r.error||'Could not save'); msg.style.color='var(--red-t)';
+  }
+}
+async function deleteBank(id){
+  if(!confirm('Remove this bank account?')) return;
+  const r = await apiCall('POST','/business',{type:'banks',action:'delete',id});
+  if(r&&r.ok) loadBanks();
+  else alert('Error deleting');
+}
+
+// ── INVOICE ITEM ROWS ─────────────────────────────────────
 function addInvItemRow(){
   const container = document.getElementById('inv-items');
   const row = document.createElement('div');
   row.className = 'inv-item-row';
-  row.style.cssText = 'display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:end';
+  row.style.cssText = 'display:grid;grid-template-columns:2.2fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:end';
+  const isExport = document.getElementById('inv-type').value==='Export Invoice';
   row.innerHTML = `
     <div class="fg"><input type="text" class="inv-desc" placeholder="Item / service description"></div>
-    <div class="fg"><input type="number" class="inv-qty" value="1"></div>
-    <div class="fg"><input type="number" class="inv-rate" placeholder="0"></div>
-    <div class="fg"><input type="number" class="inv-tax" value="18"></div>
+    <div class="fg"><input type="text" class="inv-sac" placeholder="SAC / HSN code"></div>
+    <div class="fg"><input type="number" class="inv-rate" placeholder="${isExport?'Amount ($)':'Amount (₹)'}"></div>
     <button class="btn btn-sm btn-d" onclick="removeInvItemRow(this)">✕</button>`;
   container.appendChild(row);
 }
@@ -2964,133 +3061,286 @@ function removeInvItemRow(btn){
 function getInvItems(){
   return [...document.querySelectorAll('.inv-item-row')].map(row=>({
     description: row.querySelector('.inv-desc').value.trim(),
-    qty: parseFloat(row.querySelector('.inv-qty').value)||0,
-    rate: parseFloat(row.querySelector('.inv-rate').value)||0,
-    taxPct: parseFloat(row.querySelector('.inv-tax').value)||0
-  })).filter(it=>it.description);
+    sac: row.querySelector('.inv-sac').value.trim(),
+    amount: parseFloat(row.querySelector('.inv-rate').value)||0
+  })).filter(it=>it.description || it.amount);
 }
-function calcInvoiceTotals(items){
-  let subtotal=0, taxTotal=0;
-  items.forEach(it=>{
-    const lineAmt = it.qty*it.rate;
-    subtotal += lineAmt;
-    taxTotal += lineAmt*(it.taxPct/100);
-  });
-  return {subtotal, taxTotal, grandTotal: subtotal+taxTotal};
+
+// ── GST LOGIC ──────────────────────────────────────────────
+// Rule (as specified): client state = Haryana -> IGST 18%. Any other state -> CGST 9% + SGST 9%.
+// Export Invoice -> zero-rated, no GST applied, amount is in USD converted to INR via the rate.
+function computeGST(items, clientState, isExport){
+  const taxable = items.reduce((s,it)=>s+it.amount,0);
+  if(isExport){
+    return { taxable, igst:0, cgst:0, sgst:0, taxTotal:0, mode:'export' };
+  }
+  if(clientState==='Haryana'){
+    const igst = taxable*0.18;
+    return { taxable, igst, cgst:0, sgst:0, taxTotal:igst, mode:'igst' };
+  }
+  const cgst = taxable*0.09, sgst = taxable*0.09;
+  return { taxable, igst:0, cgst, sgst, taxTotal:cgst+sgst, mode:'cgst_sgst' };
 }
+
+function onInvTypeChange(){
+  const isExport = document.getElementById('inv-type').value==='Export Invoice';
+  document.getElementById('inv-usdrate-wrap').style.display = isExport ? '' : 'none';
+  document.getElementById('inv-amt-label').textContent = isExport ? 'Amount ($)' : 'Amount (₹)';
+  document.querySelectorAll('.inv-rate').forEach(inp=>{ inp.placeholder = isExport ? 'Amount ($)' : 'Amount (₹)'; });
+  updateGSTNote();
+  updateInvTotalPreview();
+}
+function onInvClientChange(){
+  updateGSTNote();
+  updateInvTotalPreview();
+}
+function updateGSTNote(){
+  const isExport = document.getElementById('inv-type').value==='Export Invoice';
+  const clientId = document.getElementById('inv-client').value;
+  const client = CLIENTS_DATA.find(c=>c.id===clientId);
+  const note = document.getElementById('inv-gst-note');
+  if(!note) return;
+  if(isExport){
+    note.textContent = '📦 Export Invoice — zero-rated, no GST applied. Amount converted from USD to INR using the rate below.';
+  } else if(!client || !client.state){
+    note.textContent = '⚠️ Select a client with a State set to auto-calculate GST.';
+  } else if(client.state==='Haryana'){
+    note.textContent = `📍 Client state: Haryana → IGST @ 18% will be applied.`;
+  } else {
+    note.textContent = `📍 Client state: ${client.state} → CGST @ 9% + SGST @ 9% will be applied.`;
+  }
+}
+
 function updateInvTotalPreview(){
   const items = getInvItems();
-  const {grandTotal} = calcInvoiceTotals(items);
-  const el = document.getElementById('inv-total-preview');
-  if(el) el.textContent = 'Total: '+fmt(grandTotal);
+  const isExport = document.getElementById('inv-type').value==='Export Invoice';
+  const clientId = document.getElementById('inv-client').value;
+  const client = CLIENTS_DATA.find(c=>c.id===clientId);
+  const gst = computeGST(items, client&&client.state, isExport);
+  const breakdownEl = document.getElementById('inv-tax-breakdown');
+  const totalEl = document.getElementById('inv-total-preview');
+
+  if(isExport){
+    const rate = parseFloat(document.getElementById('inv-usdrate').value)||0;
+    const totalUSD = gst.taxable;
+    const totalINR = totalUSD*rate;
+    if(breakdownEl) breakdownEl.innerHTML = `Taxable Amount: $${totalUSD.toFixed(2)}<br>Tax: $0.00<br>Amount After Tax: $${totalUSD.toFixed(2)}<br>USD to INR Rate: ${rate||'—'}`;
+    if(totalEl) totalEl.textContent = 'Total: '+fmt(totalINR);
+  } else {
+    if(breakdownEl){
+      breakdownEl.innerHTML = gst.mode==='igst'
+        ? `Taxable Amount: ${fmt(gst.taxable)}<br>IGST (18%): ${fmt(gst.igst)}`
+        : gst.mode==='cgst_sgst'
+        ? `Taxable Amount: ${fmt(gst.taxable)}<br>CGST (9%): ${fmt(gst.cgst)}<br>SGST (9%): ${fmt(gst.sgst)}`
+        : `Taxable Amount: ${fmt(gst.taxable)}`;
+    }
+    if(totalEl) totalEl.textContent = 'Total: '+fmt(gst.taxable+gst.taxTotal);
+  }
 }
 document.addEventListener('input', function(e){
-  if(e.target.classList && (e.target.classList.contains('inv-qty')||e.target.classList.contains('inv-rate')||e.target.classList.contains('inv-tax'))){
+  if(e.target.classList && (e.target.classList.contains('inv-rate')||e.target.id==='inv-usdrate')){
     updateInvTotalPreview();
   }
 });
 
+// ── NUMBER TO WORDS (Indian numbering, Rupees/Paisa) ───────
+function numberToWordsIndian(num){
+  const ones=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+  const tens=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+  function two(n){ if(n<20) return ones[n]; return tens[Math.floor(n/10)]+(n%10?' '+ones[n%10]:''); }
+  function three(n){ if(n<100) return two(n); return ones[Math.floor(n/100)]+' Hundred'+(n%100?' '+two(n%100):''); }
+  if(num===0) return 'Zero';
+  let str='';
+  const crore=Math.floor(num/10000000); num%=10000000;
+  const lakh=Math.floor(num/100000); num%=100000;
+  const thousand=Math.floor(num/1000); num%=1000;
+  const hundred=num;
+  if(crore) str+=three(crore)+' Crore ';
+  if(lakh) str+=three(lakh)+' Lakh ';
+  if(thousand) str+=three(thousand)+' Thousand ';
+  if(hundred) str+=three(hundred);
+  return str.trim();
+}
+function amountInWords(amount){
+  const rupees = Math.floor(amount);
+  const paisa = Math.round((amount-rupees)*100);
+  let words = numberToWordsIndian(rupees)+' Rupees';
+  if(paisa) words += ' And '+numberToWordsIndian(paisa)+' Paisa';
+  return words+' Only';
+}
+
+// ── LOAD / GENERATE / VIEW / LIST ─────────────────────────
+let INVOICES_DATA = [];
 async function loadInvoices(){
   const el = document.getElementById('invoices-list');
   if(el) el.innerHTML = '<div style="padding:16px;color:var(--text2)">Loading...</div>';
   if(!CLIENTS_DATA.length) await loadClients();
+  await loadBanks();
   loadCompanyDetails();
   const dateEl = document.getElementById('inv-date');
   if(dateEl && !dateEl.value) dateEl.value = new Date().toISOString().split('T')[0];
+  onInvTypeChange();
   const d = await apiCall('GET','/business?type=invoices');
   INVOICES_DATA = Array.isArray(d) ? d : [];
   rInvoices();
 }
-function nextInvoiceNumber(){
-  const year = new Date().getFullYear();
-  const count = INVOICES_DATA.filter(i=>(i.invoiceNumber||'').includes('SV-'+year)).length;
-  return `SV-${year}-${String(count+1).padStart(3,'0')}`;
-}
+
 async function generateInvoice(){
+  const invoiceNumber = document.getElementById('inv-number').value.trim();
   const clientId = document.getElementById('inv-client').value;
   const type = document.getElementById('inv-type').value;
   const date = document.getElementById('inv-date').value;
+  const bankId = document.getElementById('inv-bank').value;
+  const usdRate = parseFloat(document.getElementById('inv-usdrate').value)||0;
   const items = getInvItems();
   const msg = document.getElementById('inv-msg');
+  const isExport = type==='Export Invoice';
 
+  if(!invoiceNumber){ msg.textContent='Enter an invoice number'; msg.style.color='var(--red-t)'; return; }
   if(!clientId){ msg.textContent='Select a client first'; msg.style.color='var(--red-t)'; return; }
   if(!items.length){ msg.textContent='Add at least one line item'; msg.style.color='var(--red-t)'; return; }
+  if(isExport && !usdRate){ msg.textContent='Enter the USD to INR rate for an Export Invoice'; msg.style.color='var(--red-t)'; return; }
 
   const client = CLIENTS_DATA.find(c=>c.id===clientId);
-  const totals = calcInvoiceTotals(items);
-  const invoiceNumber = nextInvoiceNumber();
+  const bank = BANKS_DATA.find(b=>b.id===bankId);
+  const gst = computeGST(items, client&&client.state, isExport);
+  const grandTotal = isExport ? gst.taxable*usdRate : gst.taxable+gst.taxTotal;
+
   const company = {
     name: document.getElementById('co-name').value,
     gstin: document.getElementById('co-gstin').value,
     pan: document.getElementById('co-pan').value,
-    address: document.getElementById('co-address').value
+    address: document.getElementById('co-address').value,
+    phone: document.getElementById('co-phone').value,
+    email: document.getElementById('co-email').value
   };
-  const invoice = { invoiceNumber, type, date, clientId, clientSnapshot: client, companySnapshot: company, items, ...totals };
+
+  const invoice = {
+    invoiceNumber, type, date, clientId,
+    clientSnapshot: client, companySnapshot: company, bankSnapshot: bank,
+    items, usdRate: isExport?usdRate:null,
+    taxable: gst.taxable, igst: gst.igst, cgst: gst.cgst, sgst: gst.sgst, taxTotal: gst.taxTotal,
+    grandTotal
+  };
 
   msg.textContent='Saving...'; msg.style.color='var(--text2)';
   const r = await apiCall('POST','/business',{type:'invoices',action:'create',item:invoice});
   if(r&&r.ok){
     msg.textContent='✓ Invoice generated'; msg.style.color='var(--green-t)';
     invoice.id = r.id;
-    showInvoicePreview(invoice);
+    showGenInvoicePreview(invoice);
     loadInvoices();
   } else {
     msg.textContent='Error: '+(r&&r.error||'Could not save'); msg.style.color='var(--red-t)';
   }
 }
-function viewInvoice(id){
+
+function viewGenInvoice(id){
   const inv = INVOICES_DATA.find(i=>i.id===id);
-  if(inv) showInvoicePreview(inv);
+  if(inv) showGenInvoicePreview(inv);
 }
-function showInvoicePreview(inv){
+
+function showGenInvoicePreview(inv){
   const c = inv.clientSnapshot||{};
   const co = inv.companySnapshot||{};
+  const bank = inv.bankSnapshot||{};
+  const isExport = inv.type==='Export Invoice';
+  const currency = isExport ? '$' : '₹';
+  const fmtAmt = (n)=> currency+Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  const rows = (inv.items||[]).map((it,idx)=>`
+    <tr style="background:${idx%2===0?'#eef1f6':'#fff'}">
+      <td style="padding:10px 14px;font-size:12px;width:50px">${idx+1}.</td>
+      <td style="padding:10px 14px;font-size:12px">${it.description||''}</td>
+      <td style="padding:10px 14px;font-size:12px;text-align:center">${it.sac||''}</td>
+      <td style="padding:10px 14px;font-size:12px;text-align:right">${fmtAmt(it.amount)}</td>
+    </tr>`).join('');
+  // pad to at least 5 rows like the sample
+  let padRows='';
+  for(let i=(inv.items||[]).length; i<5; i++){
+    padRows += `<tr style="background:${i%2===0?'#eef1f6':'#fff'}"><td style="padding:10px 14px;font-size:12px">${i+1}.</td><td></td><td></td><td></td></tr>`;
+  }
+
+  const wordsAmount = amountInWords(Math.round(inv.grandTotal||0));
+
+  const taxBlock = isExport ? `
+    <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px"><span style="color:#777;text-transform:uppercase;font-size:10.5px">Taxable Amount</span><span>${fmtAmt(inv.taxable)}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px"><span style="color:#777;text-transform:uppercase;font-size:10.5px">Tax</span><span>$0.00</span></div>
+    <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px"><span style="color:#777;text-transform:uppercase;font-size:10.5px">Amount After Tax</span><span>${fmtAmt(inv.taxable)}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px"><span style="color:#777;text-transform:uppercase;font-size:10.5px">USD to INR Rate</span><span>${inv.usdRate||''}</span></div>
+  ` : `
+    <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px"><span style="color:#777;text-transform:uppercase;font-size:10.5px">Taxable Amount</span><span>${fmtAmt(inv.taxable)}</span></div>
+    ${inv.igst?`<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px"><span style="color:#777;text-transform:uppercase;font-size:10.5px">IGST (18%)</span><span>${fmtAmt(inv.igst)}</span></div>`:''}
+    ${inv.cgst?`<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px"><span style="color:#777;text-transform:uppercase;font-size:10.5px">CGST (9%)</span><span>${fmtAmt(inv.cgst)}</span></div>`:''}
+    ${inv.sgst?`<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px"><span style="color:#777;text-transform:uppercase;font-size:10.5px">SGST (9%)</span><span>${fmtAmt(inv.sgst)}</span></div>`:''}
+  `;
+
   const html = `
-    <div style="font-family:Arial,sans-serif;color:#1a1a1a">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;border-bottom:3px solid #173a91;padding-bottom:16px">
+    <div style="font-family:Arial,Helvetica,sans-serif;color:#1a1a1a;position:relative;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+        <div style="font-family:Arial;font-size:26px;font-weight:900;letter-spacing:-.5px;color:#0d1b2a">
+          SERVE<span style="color:#2196d8">✓</span>VISION
+        </div>
+      </div>
+      <div style="font-size:15px;font-weight:800;color:#2196d8;margin-top:6px">${(co.name||'').toUpperCase()}</div>
+      <div style="font-size:11px;margin-top:4px"><b>GST No.</b> ${co.gstin||''}</div>
+      <div style="font-size:11px"><b>PAN No.</b> ${co.pan||''}</div>
+
+      <div style="background:#2196d8;color:#fff;text-align:center;font-size:19px;font-weight:800;padding:10px;margin:18px 0;letter-spacing:1px">${(inv.type||'').toUpperCase()}</div>
+
+      <div style="display:flex;justify-content:space-between;margin-bottom:18px">
         <div>
-          <div style="font-size:22px;font-weight:800;color:#173a91">${co.name||''}</div>
-          <div style="font-size:11px;color:#555;margin-top:4px;max-width:280px">${co.address||''}</div>
-          ${co.gstin?`<div style="font-size:11px;color:#555;margin-top:2px">GSTIN: ${co.gstin}</div>`:''}
-          ${co.pan?`<div style="font-size:11px;color:#555">PAN: ${co.pan}</div>`:''}
+          <div style="font-size:11px;font-weight:800;color:#2196d8;text-transform:uppercase">Invoice To:</div>
+          <div style="font-size:14px;font-weight:800;margin-top:4px">${(c.name||'').toUpperCase()}${c.company?' — '+c.company:''}</div>
+          <div style="font-size:11px;color:#333;margin-top:3px;max-width:280px">${c.address||''}</div>
+          ${c.gst?`<div style="font-size:11px;color:#333;margin-top:2px">GST: ${c.gst}</div>`:''}
         </div>
         <div style="text-align:right">
-          <div style="font-size:18px;font-weight:800;text-transform:uppercase;color:#173a91">${inv.type}</div>
-          <div style="font-size:12px;color:#555;margin-top:6px"># ${inv.invoiceNumber}</div>
-          <div style="font-size:12px;color:#555">Date: ${inv.date}</div>
+          <div style="font-size:11px;font-weight:800;color:#2196d8;text-transform:uppercase">Invoice No.</div>
+          <div style="font-size:13px;font-weight:700;margin-top:4px">${inv.invoiceNumber||''}</div>
+          <div style="font-size:11px;font-weight:800;color:#2196d8;text-transform:uppercase;margin-top:10px">Date</div>
+          <div style="font-size:13px;font-weight:700;margin-top:4px">${inv.date||''}</div>
         </div>
       </div>
-      <div style="margin-bottom:20px">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#888;font-weight:700;margin-bottom:6px">Bill To</div>
-        <div style="font-size:14px;font-weight:700">${c.name||''}${c.company?' — '+c.company:''}</div>
-        <div style="font-size:12px;color:#555;margin-top:3px">${c.address||''}</div>
-        <div style="font-size:12px;color:#555">${c.email||''}${c.phone?' · '+c.phone:''}</div>
-        ${c.gst?`<div style="font-size:12px;color:#555">GST: ${c.gst}</div>`:''}
-      </div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
-        <thead><tr style="background:#f3f4f6">
-          <th style="text-align:left;padding:8px 10px;font-size:11px;border-bottom:2px solid #ddd">Description</th>
-          <th style="text-align:right;padding:8px 10px;font-size:11px;border-bottom:2px solid #ddd">Qty</th>
-          <th style="text-align:right;padding:8px 10px;font-size:11px;border-bottom:2px solid #ddd">Rate</th>
-          <th style="text-align:right;padding:8px 10px;font-size:11px;border-bottom:2px solid #ddd">Tax%</th>
-          <th style="text-align:right;padding:8px 10px;font-size:11px;border-bottom:2px solid #ddd">Amount</th>
+
+      <table style="width:100%;border-collapse:collapse;margin-bottom:18px">
+        <thead><tr style="background:#0d1b2a">
+          <th style="text-align:left;padding:9px 14px;font-size:11px;color:#fff;font-weight:700">S. No.</th>
+          <th style="text-align:left;padding:9px 14px;font-size:11px;color:#fff;font-weight:700">Description</th>
+          <th style="text-align:center;padding:9px 14px;font-size:11px;color:#fff;font-weight:700">SAC Code</th>
+          <th style="text-align:right;padding:9px 14px;font-size:11px;color:#fff;font-weight:700">Amount</th>
         </tr></thead>
-        <tbody>${(inv.items||[]).map(it=>`<tr>
-          <td style="padding:8px 10px;font-size:12px;border-bottom:1px solid #eee">${it.description}</td>
-          <td style="padding:8px 10px;font-size:12px;text-align:right;border-bottom:1px solid #eee">${it.qty}</td>
-          <td style="padding:8px 10px;font-size:12px;text-align:right;border-bottom:1px solid #eee">${fmt(it.rate)}</td>
-          <td style="padding:8px 10px;font-size:12px;text-align:right;border-bottom:1px solid #eee">${it.taxPct}%</td>
-          <td style="padding:8px 10px;font-size:12px;text-align:right;border-bottom:1px solid #eee;font-weight:600">${fmt(it.qty*it.rate*(1+it.taxPct/100))}</td>
-        </tr>`).join('')}</tbody>
+        <tbody>${rows}${padRows}</tbody>
       </table>
-      <div style="display:flex;justify-content:flex-end">
-        <div style="width:240px">
-          <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12px"><span>Subtotal</span><span>${fmt(inv.subtotal)}</span></div>
-          <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12px"><span>Tax</span><span>${fmt(inv.taxTotal)}</span></div>
-          <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:15px;font-weight:800;border-top:2px solid #173a91;margin-top:4px"><span>Total</span><span>${fmt(inv.grandTotal)}</span></div>
+
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px">
+        <div style="max-width:320px">
+          <div style="font-size:10.5px;font-weight:800;color:#2196d8">In word</div>
+          <div style="font-size:11.5px;margin-top:4px;line-height:1.5">${wordsAmount}</div>
+        </div>
+        <div style="width:230px">
+          ${taxBlock}
+          <div style="display:flex;justify-content:space-between;padding:8px 0 2px;font-size:15px;font-weight:800;color:#2196d8;border-top:1px solid #ddd;margin-top:4px"><span>Total</span><span>${fmt(inv.grandTotal)}</span></div>
         </div>
       </div>
-      <div style="margin-top:40px;font-size:11px;color:#999;text-align:center">Thank you for your business.</div>
+
+      ${bank && bank.name ? `
+      <div style="margin-bottom:26px">
+        <div style="font-size:11.5px;font-weight:800;color:#2196d8;margin-bottom:6px">Bank Account Details</div>
+        <div style="display:grid;grid-template-columns:130px 1fr;font-size:11.5px;row-gap:3px">
+          <div style="color:#555">Bank Name</div><div>${bank.name||''}</div>
+          <div style="color:#555">Account Holder</div><div>${bank.holder||''}</div>
+          <div style="color:#555">Account Number</div><div>${bank.account||''}</div>
+          <div style="color:#555">IFSC Code</div><div>${bank.ifsc||''}</div>
+        </div>
+      </div>` : ''}
+
+      <div style="border-top:1px solid #ddd;padding-top:14px;display:flex;justify-content:space-around;font-size:11px;color:#333;flex-wrap:wrap;gap:10px">
+        <div>📍 ${co.address||''}</div>
+        <div>📞 ${co.phone||''}</div>
+        <div>✉️ ${co.email||''}</div>
+      </div>
+      <div style="text-align:center;font-size:10px;color:#999;margin-top:10px">This is computer generated, no signature required</div>
     </div>`;
   document.getElementById('invoice-preview-content').innerHTML = html;
   document.getElementById('invoice-preview-modal').style.display='flex';
@@ -3125,7 +3375,7 @@ function rInvoices(){
       <td>${i.date}</td>
       <td>${(i.clientSnapshot&&i.clientSnapshot.name)||'-'}</td>
       <td style="font-weight:700">${fmt(i.grandTotal)}</td>
-      <td><button class="btn btn-sm" onclick="viewInvoice('${i.id}')">👁️ View</button> <button class="btn btn-sm btn-d" onclick="deleteInvoice('${i.id}')">🗑️</button></td>
+      <td><button class="btn btn-sm" onclick="viewGenInvoice('${i.id}')">👁️ View</button> <button class="btn btn-sm btn-d" onclick="deleteInvoice('${i.id}')">🗑️</button></td>
     </tr>`).join('')}</tbody>
   </table></div>`;
 }

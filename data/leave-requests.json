@@ -9,8 +9,9 @@
     "toDate": "2026-07-11",
     "isHalfDay": false,
     "reason": "Due to road block.",
-    "status": "pending",
-    "appliedAt": "2026-07-13T05:24:16.464Z"
+    "status": "approved",
+    "appliedAt": "2026-07-13T05:24:16.464Z",
+    "decidedAt": "2026-07-14T16:24:29.647Z"
   },
   {
     "id": "mrewmzb8im63",

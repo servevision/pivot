@@ -291,6 +291,7 @@ async function pushAllToGitHub() {
     <button class="ni" onclick="gp('signup-requests',this)" id="ni-signup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>Signup Requests <span id="signup-badge" style="background:#ef4444;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px;display:none">0</span></button>
     <button class="ni" onclick="gp('leave-approvals',this)" id="ni-leave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Leave Approvals <span id="leave-badge" style="background:#ef4444;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px;display:none">0</span></button>
     <button class="ni" onclick="gp('attendance',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Attendance</button>
+    <button class="ni" onclick="gp('password-resets',this)" id="ni-pwreset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Password Resets <span id="pwreset-badge" style="background:#ef4444;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px;display:none">0</span></button>
   </nav>
   <div class="sb-foot" id="sb-foot">
     <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:5px">Sync Status</div>
@@ -866,6 +867,12 @@ async function pushAllToGitHub() {
       <div id="att-list">Loading...</div>
     </div>
 
+    <div class="page" id="page-password-resets">
+      <div style="margin-bottom:14px"><div style="font-size:14px;font-weight:800">Password Resets</div>
+      <div style="font-size:11px;color:var(--text2);margin-top:2px">Employees who requested help resetting their portal password</div></div>
+      <div id="pwreset-list">Loading...</div>
+    </div>
+
   </div>
 </div>
 
@@ -873,7 +880,7 @@ async function pushAllToGitHub() {
 const ST='sv_v6',SC='sv_sal_v4',SH='sv_hol_v2';
 const AV=[['#dbeafe','#1e3a8a'],['#d1fae5','#064e3b'],['#ede9fe','#2e1065'],['#fef3c7','#451a03'],['#fce7f3','#500724'],['#ecfdf5','#022c22'],['#fef2f2','#450a0a'],['#fff7ed','#431407']];
 let SHEETS=[],ALL=[],SAL={},HOL={},EXP=[],C1=null,C2=null;
-const PT={'sheets':'Sheet Registry','salary-setup':'Salary Setup','holiday-setup':'Paid Holidays & Leave','overview':'Overview','salaries':'Salaries','partner-pivot':'Partner Pivot','emp-pivot':'Employee Pivot','workrecord':'Work Record','expenses':'Expenses','emp-records':'Employee Records','signup-requests':'Signup Requests','leave-approvals':'Leave Approvals','attendance':'Attendance'};
+const PT={'sheets':'Sheet Registry','salary-setup':'Salary Setup','holiday-setup':'Paid Holidays & Leave','overview':'Overview','salaries':'Salaries','partner-pivot':'Partner Pivot','emp-pivot':'Employee Pivot','workrecord':'Work Record','expenses':'Expenses','emp-records':'Employee Records','signup-requests':'Signup Requests','leave-approvals':'Leave Approvals','attendance':'Attendance','password-resets':'Password Resets'};
 const MONTH_ORDER=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 // DATA START DATE — Sirf is month se aage ka data dikhega
@@ -1560,6 +1567,7 @@ function doR(id){
   else if(id==='signup-requests')rSignupRequests();
   else if(id==='leave-approvals')rLeaveApprovals();
   else if(id==='attendance')loadAttendance();
+  else if(id==='password-resets')loadPasswordResets();
   else if(id==='sheets')rSheets();
   else if(id==='salary-setup'){popSEmpSels();rSalCfg();}
   else if(id==='holiday-setup'){popSEmpSels();rHolCfg();}
@@ -2516,6 +2524,75 @@ function exportAttendanceCSV(){
   dlC(rows,'attendance_report.csv');
 }
 
+// ── PASSWORD RESETS MODULE ───────────────────────────────
+let PWRESET_DATA = [];
+async function loadPasswordResets(){
+  document.getElementById('pwreset-list').innerHTML = '<div style="padding:16px;color:var(--text2)">Loading...</div>';
+  const d = await apiCall('GET', ep('password-reset')+'?scope=admin');
+  PWRESET_DATA = Array.isArray(d) ? d : [];
+  rPasswordResets();
+  const pending = PWRESET_DATA.filter(r=>r.status==='pending').length;
+  const b = document.getElementById('pwreset-badge');
+  if(b){ b.textContent=pending; b.style.display = pending?'inline':'none'; }
+}
+
+function rPasswordResets(){
+  const el = document.getElementById('pwreset-list');
+  const pending = PWRESET_DATA.filter(r=>r.status==='pending');
+  const resolved = PWRESET_DATA.filter(r=>r.status!=='pending');
+
+  if(!PWRESET_DATA.length){
+    el.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text2)">No password reset requests.</div>';
+    return;
+  }
+
+  let html = '';
+  if(pending.length){
+    html += `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:10px">Pending (${pending.length})</div>`;
+    html += pending.map(r=>`
+      <div class="sheet-card">
+        <div class="dot" style="background:var(--amber)"></div>
+        <div style="flex:1;min-width:180px">
+          <div style="font-weight:700;font-size:13px">${r.name}</div>
+          <div style="font-size:11.5px;color:var(--text2)">${r.email} · ${r.employeeId||''}</div>
+          <div style="font-size:10.5px;color:var(--text3);margin-top:2px">Requested ${new Date(r.requestedAt).toLocaleString('en-IN')}</div>
+        </div>
+        <input type="text" id="newpw-${r.id}" placeholder="New password" style="width:160px">
+        <button class="btn btn-p btn-sm" onclick="resolvePasswordReset('${r.id}')">Set & Notify</button>
+        <button class="btn btn-sm" onclick="dismissPasswordReset('${r.id}')">Dismiss</button>
+      </div>`).join('');
+  }
+  if(resolved.length){
+    html += `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin:18px 0 10px">History</div>`;
+    html += resolved.slice(0,20).map(r=>`
+      <div class="sheet-card" style="opacity:.7">
+        <div class="dot" style="background:${r.status==='resolved'?'var(--green)':'var(--text3)'}"></div>
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:12.5px">${r.name} <span style="color:var(--text3);font-weight:400">(${r.email})</span></div>
+        </div>
+        <span class="badge ${r.status==='resolved'?'b-green':'b-gray'}">${r.status}</span>
+      </div>`).join('');
+  }
+  el.innerHTML = html;
+}
+
+async function resolvePasswordReset(id){
+  const input = document.getElementById('newpw-'+id);
+  const newPassword = input.value.trim();
+  if(!newPassword){ input.focus(); alert('Enter a new password first'); return; }
+  if(!confirm('Set this new password and email it to the employee?')) return;
+  const r = await apiCall('POST', ep('password-reset'), {action:'resolve', requestId:id, newPassword});
+  if(r&&r.ok){ loadPasswordResets(); }
+  else alert('Error: '+(r&&r.error||'Could not reset password'));
+}
+
+async function dismissPasswordReset(id){
+  if(!confirm('Dismiss this request without resetting the password?')) return;
+  const r = await apiCall('POST', ep('password-reset'), {action:'dismiss', requestId:id});
+  if(r&&r.ok){ loadPasswordResets(); }
+  else alert('Error dismissing request');
+}
+
 function toHHMM(iso){
   if(!iso) return '';
   const d = new Date(iso);
@@ -3229,6 +3306,13 @@ function refreshPendingBadges(){
     if (Array.isArray(lr)) {
       var p = lr.filter(function(r){ return r.status==='pending'; }).length;
       var b = document.getElementById('leave-badge');
+      if (b) { b.textContent = p; b.style.display = p ? 'inline' : 'none'; }
+    }
+  });
+  apiCall('GET',ep('password-reset')+'?scope=admin').then(function(pr){
+    if (Array.isArray(pr)) {
+      var p = pr.filter(function(r){ return r.status==='pending'; }).length;
+      var b = document.getElementById('pwreset-badge');
       if (b) { b.textContent = p; b.style.display = p ? 'inline' : 'none'; }
     }
   });

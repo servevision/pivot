@@ -1,5 +1,13 @@
 [
   {
+    "name": "HDFC Bank",
+    "holder": "SERVE VISION PRIVATE LIMITED",
+    "account": "50200071839230",
+    "ifsc": "HDFC0000195",
+    "id": "mrklb6m3as9d",
+    "createdAt": "2026-07-14T11:50:50.427Z"
+  },
+  {
     "name": "Axis Bank",
     "holder": "SERVE VISION PRIVATE LIMITED",
     "account": "922020009391539",

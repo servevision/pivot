@@ -47,7 +47,7 @@ export async function onRequestGet(context){
   if(!checkAuth(request)) return respond({error:'Unauthorized'},401);
   const url=new URL(request.url);
   const type=url.searchParams.get('type');
-  if(!['sales','clients','invoices'].includes(type)) return respond({error:'Invalid type'},400);
+  if(!['sales','clients','invoices','banks'].includes(type)) return respond({error:'Invalid type'},400);
   const {content}=await ghRead(type);
   return respond(content||[]);
 }
@@ -57,7 +57,7 @@ export async function onRequestPost(context){
   if(!checkAuth(request)) return respond({error:'Unauthorized'},401);
   const body=await request.json().catch(()=>({}));
   const {type,action}=body;
-  if(!['sales','clients','invoices'].includes(type)) return respond({error:'Invalid type'},400);
+  if(!['sales','clients','invoices','banks'].includes(type)) return respond({error:'Invalid type'},400);
 
   const {content:list,sha}=await ghRead(type);
   let arr=list||[];

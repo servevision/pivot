@@ -93,7 +93,7 @@ export async function onRequestPost(context){
   }
 
   // ── Admin sets a new password ──────────────────────────
-  if(action==='fulfill'){
+  if(action==='resolve'){
     const auth=(request.headers.get('Authorization')||'').replace('Bearer ','').trim();
     if(auth!==API_KEY) return respond({error:'Unauthorized'},401);
 
@@ -111,7 +111,7 @@ export async function onRequestPost(context){
     loginMap[list[idx].email].password=newPassword;
     await ghWrite('employee-logins',loginMap,loginSha);
 
-    list[idx].status='fulfilled';
+    list[idx].status='resolved';
     list[idx].fulfilledAt=new Date().toISOString();
     await ghWrite('password-resets',list,sha);
 

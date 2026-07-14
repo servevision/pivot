@@ -12,8 +12,8 @@
     "createdAt": "2026-07-14T12:01:03.252Z"
   },
   {
-    "name": "ÐÐ»ÐµÐºÑÐ°Ð½Ð´Ñ ÐÑÐ¸Ð²Ð¾ÑÑÐº",
-    "company": "ÐÐ»ÐµÐºÑÐ°Ð½Ð´Ñ ÐÑÐ¸Ð²Ð¾ÑÑÐº",
+    "name": "Jeremy Clark",
+    "company": "Jeremy Clark",
     "email": "krivotsuk@gmail.com",
     "phone": "",
     "gst": "",
@@ -21,7 +21,8 @@
     "address": "Linkup Studio OÃ, Narva mnt 5, Kesklinna linnaosa, Tallinn, Harju maakond, 10117, Cuba",
     "description": "",
     "id": "mrklnvlve6og",
-    "createdAt": "2026-07-14T12:00:42.691Z"
+    "createdAt": "2026-07-14T12:00:42.691Z",
+    "updatedAt": "2026-07-14T12:01:21.615Z"
   },
   {
     "name": "Postysheva Anna",

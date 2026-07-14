@@ -140,6 +140,12 @@ hr.div{border:none;border-top:1px solid var(--border);margin:16px 0}
 .sheet-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--rl);padding:13px 15px;margin-bottom:8px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh);flex-wrap:wrap;transition:box-shadow .14s,transform .14s}
 .sheet-card:hover{box-shadow:var(--sh2);transform:translateY(-1px)}
 .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+@media print{
+  body *{visibility:hidden}
+  #invoice-preview-content,#invoice-preview-content *{visibility:visible}
+  #invoice-preview-content{position:absolute;left:0;top:0;width:100%;padding:0}
+  #invoice-preview-modal{position:absolute;background:none}
+}
 </style>
 <script>
 // ============================================================
@@ -286,6 +292,9 @@ async function pushAllToGitHub() {
     <button class="ni sv-only" onclick="gp('workrecord',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Work Record</button>
     <div class="ns sv-only">Finance</div>
     <button class="ni sv-only" onclick="gp('expenses',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Expenses</button>
+    <button class="ni sv-only" onclick="gp('sales',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg>Sales</button>
+    <button class="ni sv-only" onclick="gp('clients',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Client Data</button>
+    <button class="ni sv-only" onclick="gp('invoices',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>Invoices</button>
     <div class="ns">People</div>
     <button class="ni" onclick="gp('emp-records',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Employee Records</button>
     <button class="ni" onclick="gp('signup-requests',this)" id="ni-signup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>Signup Requests <span id="signup-badge" style="background:#ef4444;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px;display:none">0</span></button>
@@ -873,6 +882,119 @@ async function pushAllToGitHub() {
       <div id="pwreset-list">Loading...</div>
     </div>
 
+    <!-- SALES -->
+    <div class="page" id="page-sales">
+      <div style="margin-bottom:14px"><div style="font-size:14px;font-weight:800">Sales</div>
+      <div style="font-size:11px;color:var(--text2);margin-top:2px">Track monthly sales entries</div></div>
+
+      <div class="cards-grid" id="sales-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:14px"></div>
+
+      <div class="card">
+        <div class="card-t" id="sale-form-title">+ Add Sale</div>
+        <input type="hidden" id="sale-edit-id">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+          <div class="fg"><label>Date</label><input type="date" id="sale-date"></div>
+          <div class="fg"><label>Client</label><select id="sale-client"><option value="">-- Select Client --</option></select></div>
+          <div class="fg"><label>Amount (₹)</label><input type="number" id="sale-amount" placeholder="0"></div>
+        </div>
+        <div class="fg" style="margin-bottom:12px"><label>Description</label><textarea id="sale-desc" placeholder="What was sold / service provided..." style="width:100%;min-height:60px;border:1.5px solid var(--border2);border-radius:9px;padding:9px 12px;font-size:13px;font-family:inherit"></textarea></div>
+        <button class="btn btn-p" onclick="saveSale()">+ Add Sale</button>
+        <button class="btn" id="sale-cancel-btn" onclick="cancelSaleEdit()" style="display:none">Cancel</button>
+        <span id="sale-msg" style="font-size:11.5px;margin-left:10px;color:var(--text2)"></span>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+        <input type="text" id="sale-q" placeholder="Search client or description..." oninput="rSales()" style="flex:1;min-width:200px">
+        <select id="sale-fmonth" onchange="rSales()" style="min-width:140px"><option value="">All Months</option></select>
+      </div>
+      <div id="sales-list">Loading...</div>
+    </div>
+
+    <!-- CLIENTS -->
+    <div class="page" id="page-clients">
+      <div style="margin-bottom:14px"><div style="font-size:14px;font-weight:800">Client Data</div>
+      <div style="font-size:11px;color:var(--text2);margin-top:2px">Client records used across Sales and Invoices</div></div>
+
+      <div class="card">
+        <div class="card-t" id="client-form-title">+ Add Client</div>
+        <input type="hidden" id="client-edit-id">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div class="fg"><label>Name</label><input type="text" id="client-name" placeholder="Contact person name"></div>
+          <div class="fg"><label>Company</label><input type="text" id="client-company" placeholder="Company name"></div>
+          <div class="fg"><label>Email</label><input type="email" id="client-email" placeholder="client@company.com"></div>
+          <div class="fg"><label>Phone</label><input type="text" id="client-phone" placeholder="+91..."></div>
+          <div class="fg"><label>GST Number</label><input type="text" id="client-gst" placeholder="22AAAAA0000A1Z5"></div>
+          <div class="fg"><label>Address</label><input type="text" id="client-address" placeholder="Full address"></div>
+        </div>
+        <div class="fg" style="margin-bottom:12px"><label>Description</label><textarea id="client-desc" placeholder="Notes about this client..." style="width:100%;min-height:56px;border:1.5px solid var(--border2);border-radius:9px;padding:9px 12px;font-size:13px;font-family:inherit"></textarea></div>
+        <button class="btn btn-p" onclick="saveClient()">+ Add Client</button>
+        <button class="btn" id="client-cancel-btn" onclick="cancelClientEdit()" style="display:none">Cancel</button>
+        <span id="client-msg" style="font-size:11.5px;margin-left:10px;color:var(--text2)"></span>
+      </div>
+
+      <input type="text" id="client-q" placeholder="Search clients..." oninput="rClients()" style="width:100%;max-width:320px;margin-bottom:12px">
+      <div id="clients-list">Loading...</div>
+    </div>
+
+    <!-- INVOICES -->
+    <div class="page" id="page-invoices">
+      <div style="margin-bottom:14px"><div style="font-size:14px;font-weight:800">Invoices</div>
+      <div style="font-size:11px;color:var(--text2);margin-top:2px">Generate Export Invoices and Tax Invoices</div></div>
+
+      <div class="card">
+        <div class="card-t">🏢 Your Company Details (appear on every invoice)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+          <div class="fg"><label>Company Name</label><input type="text" id="co-name" value="Serve Vision Pvt Ltd"></div>
+          <div class="fg"><label>GSTIN</label><input type="text" id="co-gstin" placeholder="22AAAAA0000A1Z5"></div>
+          <div class="fg"><label>PAN</label><input type="text" id="co-pan" placeholder="AAAAA0000A"></div>
+        </div>
+        <div class="fg" style="margin-bottom:10px"><label>Company Address</label><input type="text" id="co-address" placeholder="Full registered address"></div>
+        <button class="btn btn-p btn-sm" onclick="saveCompanyDetails()">Save Company Details</button>
+        <span id="co-details-msg" style="font-size:11px;margin-left:8px;color:var(--text2)"></span>
+      </div>
+
+      <div class="card">
+        <div class="card-t">+ Create Invoice</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+          <div class="fg"><label>Client</label><select id="inv-client"><option value="">-- Select Client --</option></select></div>
+          <div class="fg"><label>Invoice Type</label><select id="inv-type"><option value="Tax Invoice">Tax Invoice</option><option value="Export Invoice">Export Invoice</option></select></div>
+          <div class="fg"><label>Invoice Date</label><input type="date" id="inv-date"></div>
+        </div>
+        <div id="inv-items">
+          <div class="inv-item-row" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:end">
+            <div class="fg"><label>Description</label><input type="text" class="inv-desc" placeholder="Item / service description"></div>
+            <div class="fg"><label>Qty</label><input type="number" class="inv-qty" value="1"></div>
+            <div class="fg"><label>Rate (₹)</label><input type="number" class="inv-rate" placeholder="0"></div>
+            <div class="fg"><label>Tax %</label><input type="number" class="inv-tax" value="18"></div>
+            <button class="btn btn-sm btn-d" onclick="removeInvItemRow(this)">✕</button>
+          </div>
+        </div>
+        <button class="btn btn-sm" onclick="addInvItemRow()">+ Add Line Item</button>
+        <hr class="div">
+        <div style="text-align:right;font-size:14px;font-weight:800" id="inv-total-preview">Total: ₹0</div>
+        <div style="margin-top:12px">
+          <button class="btn btn-p" onclick="generateInvoice()">Generate Invoice</button>
+          <span id="inv-msg" style="font-size:11.5px;margin-left:10px;color:var(--text2)"></span>
+        </div>
+      </div>
+
+      <input type="text" id="inv-q" placeholder="Search invoices by client or number..." oninput="rInvoices()" style="width:100%;max-width:320px;margin-bottom:12px">
+      <div id="invoices-list">Loading...</div>
+    </div>
+
+  </div>
+</div>
+
+<div id="invoice-preview-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.6);align-items:center;justify-content:center;overflow-y:auto;padding:20px">
+  <div style="background:#fff;border-radius:12px;width:100%;max-width:720px;max-height:90vh;overflow-y:auto;position:relative">
+    <div style="position:sticky;top:0;background:#fff;padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;z-index:2">
+      <div style="font-weight:800;font-size:14px">Invoice Preview</div>
+      <div>
+        <button class="btn btn-p btn-sm" onclick="printInvoice()">🖨️ Print / Save as PDF</button>
+        <button class="btn btn-sm" onclick="closeInvoicePreview()">✕ Close</button>
+      </div>
+    </div>
+    <div id="invoice-preview-content" style="padding:30px"></div>
   </div>
 </div>
 
@@ -880,7 +1002,7 @@ async function pushAllToGitHub() {
 const ST='sv_v6',SC='sv_sal_v4',SH='sv_hol_v2';
 const AV=[['#dbeafe','#1e3a8a'],['#d1fae5','#064e3b'],['#ede9fe','#2e1065'],['#fef3c7','#451a03'],['#fce7f3','#500724'],['#ecfdf5','#022c22'],['#fef2f2','#450a0a'],['#fff7ed','#431407']];
 let SHEETS=[],ALL=[],SAL={},HOL={},EXP=[],C1=null,C2=null;
-const PT={'sheets':'Sheet Registry','salary-setup':'Salary Setup','holiday-setup':'Paid Holidays & Leave','overview':'Overview','salaries':'Salaries','partner-pivot':'Partner Pivot','emp-pivot':'Employee Pivot','workrecord':'Work Record','expenses':'Expenses','emp-records':'Employee Records','signup-requests':'Signup Requests','leave-approvals':'Leave Approvals','attendance':'Attendance','password-resets':'Password Resets'};
+const PT={'sheets':'Sheet Registry','salary-setup':'Salary Setup','holiday-setup':'Paid Holidays & Leave','overview':'Overview','salaries':'Salaries','partner-pivot':'Partner Pivot','emp-pivot':'Employee Pivot','workrecord':'Work Record','expenses':'Expenses','emp-records':'Employee Records','signup-requests':'Signup Requests','leave-approvals':'Leave Approvals','attendance':'Attendance','password-resets':'Password Resets','sales':'Sales','clients':'Client Data','invoices':'Invoices'};
 const MONTH_ORDER=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 // DATA START DATE — Sirf is month se aage ka data dikhega
@@ -1568,6 +1690,9 @@ function doR(id){
   else if(id==='leave-approvals')rLeaveApprovals();
   else if(id==='attendance')loadAttendance();
   else if(id==='password-resets')loadPasswordResets();
+  else if(id==='sales')loadSales();
+  else if(id==='clients')loadClients();
+  else if(id==='invoices')loadInvoices();
   else if(id==='sheets')rSheets();
   else if(id==='salary-setup'){popSEmpSels();rSalCfg();}
   else if(id==='holiday-setup'){popSEmpSels();rHolCfg();}
@@ -2592,6 +2717,419 @@ async function dismissPasswordReset(id){
   if(r&&r.ok){ loadPasswordResets(); }
   else alert('Error dismissing request');
 }
+
+// ── CLIENTS MODULE ────────────────────────────────────────
+let CLIENTS_DATA = [];
+async function loadClients(){
+  const el = document.getElementById('clients-list');
+  if(el) el.innerHTML = '<div style="padding:16px;color:var(--text2)">Loading...</div>';
+  const d = await apiCall('GET','/business?type=clients');
+  CLIENTS_DATA = Array.isArray(d) ? d : [];
+  rClients();
+  populateClientDropdowns();
+}
+function populateClientDropdowns(){
+  const opts = '<option value="">-- Select Client --</option>' + CLIENTS_DATA.map(c=>`<option value="${c.id}">${c.name}${c.company?' ('+c.company+')':''}</option>`).join('');
+  const saleSel = document.getElementById('sale-client');
+  const invSel = document.getElementById('inv-client');
+  if(saleSel){ const cur=saleSel.value; saleSel.innerHTML = opts; if(cur) saleSel.value=cur; }
+  if(invSel){ const cur=invSel.value; invSel.innerHTML = opts; if(cur) invSel.value=cur; }
+}
+function editClient(id){
+  const c = CLIENTS_DATA.find(x=>x.id===id);
+  if(!c) return;
+  document.getElementById('client-edit-id').value = id;
+  document.getElementById('client-name').value = c.name||'';
+  document.getElementById('client-company').value = c.company||'';
+  document.getElementById('client-email').value = c.email||'';
+  document.getElementById('client-phone').value = c.phone||'';
+  document.getElementById('client-gst').value = c.gst||'';
+  document.getElementById('client-address').value = c.address||'';
+  document.getElementById('client-desc').value = c.description||'';
+  document.getElementById('client-form-title').textContent = 'Edit Client';
+  document.getElementById('client-cancel-btn').style.display='inline-block';
+  window.scrollTo(0,0);
+}
+function cancelClientEdit(){
+  document.getElementById('client-edit-id').value='';
+  ['client-name','client-company','client-email','client-phone','client-gst','client-address','client-desc'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
+  document.getElementById('client-form-title').textContent='+ Add Client';
+  document.getElementById('client-cancel-btn').style.display='none';
+}
+async function saveClient(){
+  const editId = document.getElementById('client-edit-id').value;
+  const item = {
+    name: document.getElementById('client-name').value.trim(),
+    company: document.getElementById('client-company').value.trim(),
+    email: document.getElementById('client-email').value.trim(),
+    phone: document.getElementById('client-phone').value.trim(),
+    gst: document.getElementById('client-gst').value.trim(),
+    address: document.getElementById('client-address').value.trim(),
+    description: document.getElementById('client-desc').value.trim()
+  };
+  if(!item.name){ alert('Client name is required'); return; }
+  const msg = document.getElementById('client-msg');
+  msg.textContent = 'Saving...'; msg.style.color='var(--text2)';
+  const r = editId
+    ? await apiCall('POST','/business',{type:'clients',action:'update',id:editId,item})
+    : await apiCall('POST','/business',{type:'clients',action:'create',item});
+  if(r&&r.ok){
+    msg.textContent='✓ Saved'; msg.style.color='var(--green-t)';
+    cancelClientEdit();
+    loadClients();
+  } else {
+    msg.textContent = 'Error: '+(r&&r.error||'Could not save'); msg.style.color='var(--red-t)';
+  }
+}
+async function deleteClient(id){
+  if(!confirm('Delete this client permanently?')) return;
+  const r = await apiCall('POST','/business',{type:'clients',action:'delete',id});
+  if(r&&r.ok) loadClients();
+  else alert('Error deleting client');
+}
+function rClients(){
+  const q = (document.getElementById('client-q')?.value||'').toLowerCase();
+  const filtered = CLIENTS_DATA.filter(c=>!q || ((c.name||'')+(c.company||'')+(c.email||'')).toLowerCase().includes(q));
+  const el = document.getElementById('clients-list');
+  if(!el) return;
+  if(!filtered.length){ el.innerHTML='<div style="padding:24px;text-align:center;color:var(--text2)">No clients yet.</div>'; return; }
+  el.innerHTML = filtered.map(c=>`
+    <div class="sheet-card">
+      <div class="av" style="background:var(--blue-bg);color:var(--blue-t)">${(c.name||'?').substr(0,2).toUpperCase()}</div>
+      <div style="flex:1;min-width:180px">
+        <div style="font-weight:700;font-size:13px">${c.name}${c.company?' <span style="color:var(--text3);font-weight:500">— '+c.company+'</span>':''}</div>
+        <div style="font-size:11.5px;color:var(--text2)">${c.email||''}${c.phone?' · '+c.phone:''}</div>
+        ${c.gst?`<div style="font-size:10.5px;color:var(--text3);margin-top:2px">GST: ${c.gst}</div>`:''}
+      </div>
+      <button class="btn btn-sm" onclick="editClient('${c.id}')">✏️ Edit</button>
+      <button class="btn btn-sm btn-d" onclick="deleteClient('${c.id}')">🗑️ Remove</button>
+    </div>`).join('');
+}
+
+// ── SALES MODULE ──────────────────────────────────────────
+let SALES_DATA = [];
+async function loadSales(){
+  const el = document.getElementById('sales-list');
+  if(el) el.innerHTML = '<div style="padding:16px;color:var(--text2)">Loading...</div>';
+  if(!CLIENTS_DATA.length) await loadClients();
+  const d = await apiCall('GET','/business?type=sales');
+  SALES_DATA = Array.isArray(d) ? d : [];
+  rSales();
+}
+function clientName(id){
+  const c = CLIENTS_DATA.find(x=>x.id===id);
+  return c ? c.name+(c.company?' ('+c.company+')':'') : '—';
+}
+function populateSaleMonths(){
+  const sel = document.getElementById('sale-fmonth');
+  if(!sel) return;
+  const cur = sel.value;
+  const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const months = [...new Set(SALES_DATA.map(s=>(s.date||'').slice(0,7)))].filter(Boolean).sort().reverse();
+  sel.innerHTML = '<option value="">All Months</option>' + months.map(m=>{
+    const [y,mo]=m.split('-');
+    return `<option value="${m}">${MN[parseInt(mo,10)-1]} ${y}</option>`;
+  }).join('');
+  if(cur) sel.value = cur;
+}
+function editSale(id){
+  const s = SALES_DATA.find(x=>x.id===id);
+  if(!s) return;
+  document.getElementById('sale-edit-id').value=id;
+  document.getElementById('sale-date').value=s.date||'';
+  document.getElementById('sale-client').value=s.clientId||'';
+  document.getElementById('sale-amount').value=s.amount||'';
+  document.getElementById('sale-desc').value=s.description||'';
+  document.getElementById('sale-form-title').textContent='Edit Sale';
+  document.getElementById('sale-cancel-btn').style.display='inline-block';
+  window.scrollTo(0,0);
+}
+function cancelSaleEdit(){
+  document.getElementById('sale-edit-id').value='';
+  document.getElementById('sale-date').value='';
+  document.getElementById('sale-client').value='';
+  document.getElementById('sale-amount').value='';
+  document.getElementById('sale-desc').value='';
+  document.getElementById('sale-form-title').textContent='+ Add Sale';
+  document.getElementById('sale-cancel-btn').style.display='none';
+}
+async function saveSale(){
+  const editId = document.getElementById('sale-edit-id').value;
+  const item = {
+    date: document.getElementById('sale-date').value,
+    clientId: document.getElementById('sale-client').value,
+    amount: parseFloat(document.getElementById('sale-amount').value)||0,
+    description: document.getElementById('sale-desc').value.trim()
+  };
+  if(!item.date || !item.clientId || !item.amount){ alert('Date, Client and Amount are required'); return; }
+  const msg = document.getElementById('sale-msg');
+  msg.textContent='Saving...'; msg.style.color='var(--text2)';
+  const r = editId
+    ? await apiCall('POST','/business',{type:'sales',action:'update',id:editId,item})
+    : await apiCall('POST','/business',{type:'sales',action:'create',item});
+  if(r&&r.ok){
+    msg.textContent='✓ Saved'; msg.style.color='var(--green-t)';
+    cancelSaleEdit();
+    loadSales();
+  } else {
+    msg.textContent='Error: '+(r&&r.error||'Could not save'); msg.style.color='var(--red-t)';
+  }
+}
+async function deleteSale(id){
+  if(!confirm('Delete this sale entry?')) return;
+  const r = await apiCall('POST','/business',{type:'sales',action:'delete',id});
+  if(r&&r.ok) loadSales();
+  else alert('Error deleting');
+}
+function rSales(){
+  populateSaleMonths();
+  const q = (document.getElementById('sale-q')?.value||'').toLowerCase();
+  const fMonth = document.getElementById('sale-fmonth')?.value||'';
+  let filtered = SALES_DATA.filter(s=>{
+    const cn = clientName(s.clientId).toLowerCase();
+    const matchQ = !q || cn.includes(q) || (s.description||'').toLowerCase().includes(q);
+    const matchM = !fMonth || (s.date||'').slice(0,7)===fMonth;
+    return matchQ && matchM;
+  });
+  filtered.sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+  const total = filtered.reduce((s,x)=>s+(x.amount||0),0);
+  const thisMonth = new Date().toISOString().slice(0,7);
+  const thisMonthTotal = SALES_DATA.filter(s=>(s.date||'').slice(0,7)===thisMonth).reduce((s,x)=>s+(x.amount||0),0);
+  const statsEl = document.getElementById('sales-stats');
+  if(statsEl) statsEl.innerHTML = `
+    <div class="met"><div class="met-bar" style="background:var(--green)"></div><div class="lb">This Month</div><div class="vl">${fmt(thisMonthTotal)}</div></div>
+    <div class="met"><div class="met-bar" style="background:var(--blue)"></div><div class="lb">Filtered Total</div><div class="vl">${fmt(total)}</div></div>
+    <div class="met"><div class="met-bar" style="background:var(--purple)"></div><div class="lb">Entries</div><div class="vl">${filtered.length}</div></div>`;
+
+  const el = document.getElementById('sales-list');
+  if(!el) return;
+  if(!filtered.length){ el.innerHTML='<div style="padding:24px;text-align:center;color:var(--text2)">No sales recorded.</div>'; return; }
+  el.innerHTML = `<div class="tw"><table>
+    <thead><tr><th>Date</th><th>Client</th><th>Amount</th><th>Description</th><th></th></tr></thead>
+    <tbody>${filtered.map(s=>`<tr>
+      <td>${s.date}</td>
+      <td>${clientName(s.clientId)}</td>
+      <td style="font-weight:700">${fmt(s.amount)}</td>
+      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.description||'-'}</td>
+      <td><button class="btn btn-sm" onclick="editSale('${s.id}')">✏️</button> <button class="btn btn-sm btn-d" onclick="deleteSale('${s.id}')">🗑️</button></td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+// ── INVOICES MODULE ───────────────────────────────────────
+let INVOICES_DATA = [];
+
+function saveCompanyDetails(){
+  const details = {
+    name: document.getElementById('co-name').value,
+    gstin: document.getElementById('co-gstin').value,
+    pan: document.getElementById('co-pan').value,
+    address: document.getElementById('co-address').value
+  };
+  localStorage.setItem('sv_company_details', JSON.stringify(details));
+  const msg = document.getElementById('co-details-msg');
+  msg.textContent = '✓ Saved'; msg.style.color='var(--green-t)';
+  setTimeout(()=>{ msg.textContent=''; }, 2500);
+}
+function loadCompanyDetails(){
+  try{
+    const details = JSON.parse(localStorage.getItem('sv_company_details')||'{}');
+    if(details.name) document.getElementById('co-name').value = details.name;
+    if(details.gstin) document.getElementById('co-gstin').value = details.gstin;
+    if(details.pan) document.getElementById('co-pan').value = details.pan;
+    if(details.address) document.getElementById('co-address').value = details.address;
+  }catch(e){}
+}
+
+function addInvItemRow(){
+  const container = document.getElementById('inv-items');
+  const row = document.createElement('div');
+  row.className = 'inv-item-row';
+  row.style.cssText = 'display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:end';
+  row.innerHTML = `
+    <div class="fg"><input type="text" class="inv-desc" placeholder="Item / service description"></div>
+    <div class="fg"><input type="number" class="inv-qty" value="1"></div>
+    <div class="fg"><input type="number" class="inv-rate" placeholder="0"></div>
+    <div class="fg"><input type="number" class="inv-tax" value="18"></div>
+    <button class="btn btn-sm btn-d" onclick="removeInvItemRow(this)">✕</button>`;
+  container.appendChild(row);
+}
+function removeInvItemRow(btn){
+  const rows = document.querySelectorAll('.inv-item-row');
+  if(rows.length<=1) return;
+  btn.closest('.inv-item-row').remove();
+  updateInvTotalPreview();
+}
+function getInvItems(){
+  return [...document.querySelectorAll('.inv-item-row')].map(row=>({
+    description: row.querySelector('.inv-desc').value.trim(),
+    qty: parseFloat(row.querySelector('.inv-qty').value)||0,
+    rate: parseFloat(row.querySelector('.inv-rate').value)||0,
+    taxPct: parseFloat(row.querySelector('.inv-tax').value)||0
+  })).filter(it=>it.description);
+}
+function calcInvoiceTotals(items){
+  let subtotal=0, taxTotal=0;
+  items.forEach(it=>{
+    const lineAmt = it.qty*it.rate;
+    subtotal += lineAmt;
+    taxTotal += lineAmt*(it.taxPct/100);
+  });
+  return {subtotal, taxTotal, grandTotal: subtotal+taxTotal};
+}
+function updateInvTotalPreview(){
+  const items = getInvItems();
+  const {grandTotal} = calcInvoiceTotals(items);
+  const el = document.getElementById('inv-total-preview');
+  if(el) el.textContent = 'Total: '+fmt(grandTotal);
+}
+document.addEventListener('input', function(e){
+  if(e.target.classList && (e.target.classList.contains('inv-qty')||e.target.classList.contains('inv-rate')||e.target.classList.contains('inv-tax'))){
+    updateInvTotalPreview();
+  }
+});
+
+async function loadInvoices(){
+  const el = document.getElementById('invoices-list');
+  if(el) el.innerHTML = '<div style="padding:16px;color:var(--text2)">Loading...</div>';
+  if(!CLIENTS_DATA.length) await loadClients();
+  loadCompanyDetails();
+  const dateEl = document.getElementById('inv-date');
+  if(dateEl && !dateEl.value) dateEl.value = new Date().toISOString().split('T')[0];
+  const d = await apiCall('GET','/business?type=invoices');
+  INVOICES_DATA = Array.isArray(d) ? d : [];
+  rInvoices();
+}
+function nextInvoiceNumber(){
+  const year = new Date().getFullYear();
+  const count = INVOICES_DATA.filter(i=>(i.invoiceNumber||'').includes('SV-'+year)).length;
+  return `SV-${year}-${String(count+1).padStart(3,'0')}`;
+}
+async function generateInvoice(){
+  const clientId = document.getElementById('inv-client').value;
+  const type = document.getElementById('inv-type').value;
+  const date = document.getElementById('inv-date').value;
+  const items = getInvItems();
+  const msg = document.getElementById('inv-msg');
+
+  if(!clientId){ msg.textContent='Select a client first'; msg.style.color='var(--red-t)'; return; }
+  if(!items.length){ msg.textContent='Add at least one line item'; msg.style.color='var(--red-t)'; return; }
+
+  const client = CLIENTS_DATA.find(c=>c.id===clientId);
+  const totals = calcInvoiceTotals(items);
+  const invoiceNumber = nextInvoiceNumber();
+  const company = {
+    name: document.getElementById('co-name').value,
+    gstin: document.getElementById('co-gstin').value,
+    pan: document.getElementById('co-pan').value,
+    address: document.getElementById('co-address').value
+  };
+  const invoice = { invoiceNumber, type, date, clientId, clientSnapshot: client, companySnapshot: company, items, ...totals };
+
+  msg.textContent='Saving...'; msg.style.color='var(--text2)';
+  const r = await apiCall('POST','/business',{type:'invoices',action:'create',item:invoice});
+  if(r&&r.ok){
+    msg.textContent='✓ Invoice generated'; msg.style.color='var(--green-t)';
+    invoice.id = r.id;
+    showInvoicePreview(invoice);
+    loadInvoices();
+  } else {
+    msg.textContent='Error: '+(r&&r.error||'Could not save'); msg.style.color='var(--red-t)';
+  }
+}
+function viewInvoice(id){
+  const inv = INVOICES_DATA.find(i=>i.id===id);
+  if(inv) showInvoicePreview(inv);
+}
+function showInvoicePreview(inv){
+  const c = inv.clientSnapshot||{};
+  const co = inv.companySnapshot||{};
+  const html = `
+    <div style="font-family:Arial,sans-serif;color:#1a1a1a">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;border-bottom:3px solid #173a91;padding-bottom:16px">
+        <div>
+          <div style="font-size:22px;font-weight:800;color:#173a91">${co.name||''}</div>
+          <div style="font-size:11px;color:#555;margin-top:4px;max-width:280px">${co.address||''}</div>
+          ${co.gstin?`<div style="font-size:11px;color:#555;margin-top:2px">GSTIN: ${co.gstin}</div>`:''}
+          ${co.pan?`<div style="font-size:11px;color:#555">PAN: ${co.pan}</div>`:''}
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:18px;font-weight:800;text-transform:uppercase;color:#173a91">${inv.type}</div>
+          <div style="font-size:12px;color:#555;margin-top:6px"># ${inv.invoiceNumber}</div>
+          <div style="font-size:12px;color:#555">Date: ${inv.date}</div>
+        </div>
+      </div>
+      <div style="margin-bottom:20px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#888;font-weight:700;margin-bottom:6px">Bill To</div>
+        <div style="font-size:14px;font-weight:700">${c.name||''}${c.company?' — '+c.company:''}</div>
+        <div style="font-size:12px;color:#555;margin-top:3px">${c.address||''}</div>
+        <div style="font-size:12px;color:#555">${c.email||''}${c.phone?' · '+c.phone:''}</div>
+        ${c.gst?`<div style="font-size:12px;color:#555">GST: ${c.gst}</div>`:''}
+      </div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
+        <thead><tr style="background:#f3f4f6">
+          <th style="text-align:left;padding:8px 10px;font-size:11px;border-bottom:2px solid #ddd">Description</th>
+          <th style="text-align:right;padding:8px 10px;font-size:11px;border-bottom:2px solid #ddd">Qty</th>
+          <th style="text-align:right;padding:8px 10px;font-size:11px;border-bottom:2px solid #ddd">Rate</th>
+          <th style="text-align:right;padding:8px 10px;font-size:11px;border-bottom:2px solid #ddd">Tax%</th>
+          <th style="text-align:right;padding:8px 10px;font-size:11px;border-bottom:2px solid #ddd">Amount</th>
+        </tr></thead>
+        <tbody>${(inv.items||[]).map(it=>`<tr>
+          <td style="padding:8px 10px;font-size:12px;border-bottom:1px solid #eee">${it.description}</td>
+          <td style="padding:8px 10px;font-size:12px;text-align:right;border-bottom:1px solid #eee">${it.qty}</td>
+          <td style="padding:8px 10px;font-size:12px;text-align:right;border-bottom:1px solid #eee">${fmt(it.rate)}</td>
+          <td style="padding:8px 10px;font-size:12px;text-align:right;border-bottom:1px solid #eee">${it.taxPct}%</td>
+          <td style="padding:8px 10px;font-size:12px;text-align:right;border-bottom:1px solid #eee;font-weight:600">${fmt(it.qty*it.rate*(1+it.taxPct/100))}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+      <div style="display:flex;justify-content:flex-end">
+        <div style="width:240px">
+          <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12px"><span>Subtotal</span><span>${fmt(inv.subtotal)}</span></div>
+          <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12px"><span>Tax</span><span>${fmt(inv.taxTotal)}</span></div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:15px;font-weight:800;border-top:2px solid #173a91;margin-top:4px"><span>Total</span><span>${fmt(inv.grandTotal)}</span></div>
+        </div>
+      </div>
+      <div style="margin-top:40px;font-size:11px;color:#999;text-align:center">Thank you for your business.</div>
+    </div>`;
+  document.getElementById('invoice-preview-content').innerHTML = html;
+  document.getElementById('invoice-preview-modal').style.display='flex';
+}
+function closeInvoicePreview(){
+  document.getElementById('invoice-preview-modal').style.display='none';
+}
+function printInvoice(){
+  window.print();
+}
+async function deleteInvoice(id){
+  if(!confirm('Delete this invoice record?')) return;
+  const r = await apiCall('POST','/business',{type:'invoices',action:'delete',id});
+  if(r&&r.ok) loadInvoices();
+  else alert('Error deleting');
+}
+function rInvoices(){
+  const q = (document.getElementById('inv-q')?.value||'').toLowerCase();
+  const filtered = INVOICES_DATA.filter(i=>{
+    const c = i.clientSnapshot||{};
+    const hay = ((c.name||'')+(c.company||'')+(i.invoiceNumber||'')).toLowerCase();
+    return !q || hay.includes(q);
+  });
+  const el = document.getElementById('invoices-list');
+  if(!el) return;
+  if(!filtered.length){ el.innerHTML='<div style="padding:24px;text-align:center;color:var(--text2)">No invoices yet.</div>'; return; }
+  el.innerHTML = `<div class="tw"><table>
+    <thead><tr><th>Invoice #</th><th>Type</th><th>Date</th><th>Client</th><th>Amount</th><th></th></tr></thead>
+    <tbody>${filtered.map(i=>`<tr>
+      <td style="font-weight:700">${i.invoiceNumber}</td>
+      <td><span class="badge b-blue">${i.type}</span></td>
+      <td>${i.date}</td>
+      <td>${(i.clientSnapshot&&i.clientSnapshot.name)||'-'}</td>
+      <td style="font-weight:700">${fmt(i.grandTotal)}</td>
+      <td><button class="btn btn-sm" onclick="viewInvoice('${i.id}')">👁️ View</button> <button class="btn btn-sm btn-d" onclick="deleteInvoice('${i.id}')">🗑️</button></td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
 
 function toHHMM(iso){
   if(!iso) return '';

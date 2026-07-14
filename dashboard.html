@@ -141,10 +141,24 @@ hr.div{border:none;border-top:1px solid var(--border);margin:16px 0}
 .sheet-card:hover{box-shadow:var(--sh2);transform:translateY(-1px)}
 .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 @media print{
-  body *{visibility:hidden}
-  #invoice-preview-content,#invoice-preview-content *{visibility:visible}
-  #invoice-preview-content{position:absolute;left:0;top:0;width:100%;padding:0}
-  #invoice-preview-modal{position:absolute;background:none}
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+  body > *:not(#invoice-preview-modal){display:none !important}
+  #invoice-preview-modal{
+    display:block !important;
+    position:static !important;
+    background:none !important;
+    padding:0 !important;
+    inset:auto !important;
+  }
+  #invoice-preview-modal > div{
+    box-shadow:none !important;
+    max-width:100% !important;
+    max-height:none !important;
+    border-radius:0 !important;
+    overflow:visible !important;
+  }
+  #invoice-preview-modal > div > div:first-child{display:none !important}
+  #invoice-preview-content{padding:16px !important}
 }
 </style>
 <script>

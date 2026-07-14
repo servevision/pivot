@@ -32,6 +32,42 @@
     "subtotal": 50917.6116,
     "taxTotal": 9165.170087999999,
     "grandTotal": 60082.781687999995,
+    "id": "mrkkpqfspx5n",
+    "createdAt": "2026-07-14T11:34:09.688Z"
+  },
+  {
+    "invoiceNumber": "SV-2026-001",
+    "type": "Tax Invoice",
+    "date": "2026-07-14",
+    "clientId": "mrkko63lfgmq",
+    "clientSnapshot": {
+      "name": "MGID India Private Ltd",
+      "company": "MGID India Private Ltd",
+      "email": "pankaj.sharma@mgid.com",
+      "phone": "",
+      "gst": "06AAMCM7983M1ZJ",
+      "address": "Augusta Point, Level 2,Unit No. 3, Sector 53,Golf Course Road,Gurugram, Haryana, india 122002",
+      "description": "colorfulclearwater.com (April 2025)\n($ 595.11 x 85.56)\"",
+      "id": "mrkko63lfgmq",
+      "createdAt": "2026-07-14T11:32:56.673Z"
+    },
+    "companySnapshot": {
+      "name": "Serve Vision Pvt Ltd",
+      "gstin": "",
+      "pan": "",
+      "address": ""
+    },
+    "items": [
+      {
+        "description": "\"colorfulclearwater.com (April 2025) ($ 595.11 x 85.56)\"",
+        "qty": 1,
+        "rate": 50917.6116,
+        "taxPct": 18
+      }
+    ],
+    "subtotal": 50917.6116,
+    "taxTotal": 9165.170087999999,
+    "grandTotal": 60082.781687999995,
     "id": "mrkkpmek7tp0",
     "createdAt": "2026-07-14T11:34:04.460Z"
   }

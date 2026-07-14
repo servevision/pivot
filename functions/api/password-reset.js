@@ -6,6 +6,7 @@ const GH_OWNER = 'servevision';
 const GH_REPO  = 'pivot';
 const GH_BRANCH = 'main';
 const API_KEY = 'sv_api_2026_karnal_pivot';
+const ADMIN_EMAIL = 'Payments@servevision.io';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -33,96 +34,95 @@ async function ghWrite(file,content,sha){
   return r.ok;
 }
 
-async function sendEmail(resendKey, to, subject, html){
-  if(!resendKey) return false;
+async function sendEmail(resendKey,to,subject,html){
+  if(!resendKey)return false;
   try{
-    const r = await fetch('https://api.resend.com/emails',{
-      method:'POST',
-      headers:{'Authorization':`Bearer ${resendKey}`,'Content-Type':'application/json'},
-      body:JSON.stringify({from:'Serve Vision <onboarding@resend.dev>',to:[to],subject,html})
-    });
+    const r=await fetch('https://api.resend.com/emails',{method:'POST',headers:{'Authorization':`Bearer ${resendKey}`,'Content-Type':'application/json'},body:JSON.stringify({from:'Serve Vision <onboarding@resend.dev>',to:[to],subject,html})});
     return r.ok;
-  }catch(e){ return false; }
+  }catch(e){return false;}
 }
 
-export async function onRequestOptions(){
-  return new Response(null,{status:204,headers:CORS});
-}
+export async function onRequestOptions(){return new Response(null,{status:204,headers:CORS});}
 
-// GET ?scope=admin — list all reset requests (admin only)
+// GET ?scope=all (admin) — list pending reset requests
 export async function onRequestGet(context){
-  const {request} = context;
-  const auth = (request.headers.get('Authorization')||'').replace('Bearer ','').trim();
+  const {request}=context;
+  const auth=(request.headers.get('Authorization')||'').replace('Bearer ','').trim();
   if(auth!==API_KEY) return respond({error:'Unauthorized'},401);
-  const {content} = await ghRead('password-reset-requests');
+  const {content}=await ghRead('password-resets');
   return respond(content||[]);
 }
 
 export async function onRequestPost(context){
-  const {request, env} = context;
-  const body = await request.json().catch(()=>({}));
-  const {action} = body;
+  const {request,env}=context;
+  const body=await request.json().catch(()=>({}));
+  const {action}=body;
 
-  // ── Employee requests a reset ───────────────────────────
+  // ── Employee requests a reset ──────────────────────────
   if(action==='request'){
-    const email = (body.email||'').toLowerCase().trim();
+    const email=(body.email||'').toLowerCase().trim();
     if(!email) return respond({ok:false,error:'Email is required'},400);
 
-    const {content:logins} = await ghRead('employee-logins');
-    const loginMap = logins||{};
-    const info = loginMap[email];
+    const {content:logins}=await ghRead('employee-logins');
+    const loginMap=logins||{};
+    if(!loginMap[email]) return respond({ok:false,error:'No account found with this email'},404);
 
-    // Always return a generic success message, whether or not the email
-    // exists, so this can't be used to check which emails are registered.
-    if(info){
-      const {content:reqs, sha} = await ghRead('password-reset-requests');
-      const list = reqs||[];
-      // Avoid piling up duplicate pending requests for the same person
-      const already = list.find(r=>r.email===email && r.status==='pending');
-      if(!already){
-        list.unshift({
-          id: Date.now().toString(36)+Math.random().toString(36).substr(2,4),
-          email, employeeId: info.employeeId, name: info.name,
-          status: 'pending', requestedAt: new Date().toISOString()
-        });
-        await ghWrite('password-reset-requests', list, sha);
-      }
-    }
-    return respond({ok:true, message:'If this email is registered, admin has been notified and will reset your password shortly.'});
+    const {content:resets,sha}=await ghRead('password-resets');
+    const list=resets||[];
+    const already=list.find(r=>r.email===email && r.status==='pending');
+    if(already) return respond({ok:false,error:'A reset request for this email is already pending'},400);
+
+    const reqItem={
+      id:Date.now().toString(36)+Math.random().toString(36).substr(2,4),
+      email, name:loginMap[email].name, employeeId:loginMap[email].employeeId,
+      status:'pending', requestedAt:new Date().toISOString()
+    };
+    list.unshift(reqItem);
+    await ghWrite('password-resets',list,sha);
+
+    await sendEmail(env.RESEND_API_KEY, ADMIN_EMAIL,
+      `Password reset request - ${reqItem.name}`,
+      `<div style="font-family:sans-serif;max-width:480px">
+        <h2 style="color:#0a3570">Password reset requested</h2>
+        <p><b>${reqItem.name}</b> (${reqItem.employeeId}) has requested a password reset.</p>
+        <p>Login to the HR dashboard to set a new password for them.</p>
+      </div>`
+    );
+
+    return respond({ok:true,message:'Request sent to admin. You will be notified once your password is reset.'});
   }
 
-  // ── Admin resolves a reset (sets new password) ──────────
-  if(action==='resolve'){
-    const auth = (request.headers.get('Authorization')||'').replace('Bearer ','').trim();
+  // ── Admin sets a new password ──────────────────────────
+  if(action==='fulfill'){
+    const auth=(request.headers.get('Authorization')||'').replace('Bearer ','').trim();
     if(auth!==API_KEY) return respond({error:'Unauthorized'},401);
 
-    const {requestId, newPassword} = body;
+    const {requestId,newPassword}=body;
     if(!requestId||!newPassword) return respond({ok:false,error:'Missing fields'},400);
 
-    const {content:reqs, sha:reqSha} = await ghRead('password-reset-requests');
-    const list = reqs||[];
-    const idx = list.findIndex(r=>r.id===requestId);
+    const {content:resets,sha}=await ghRead('password-resets');
+    const list=resets||[];
+    const idx=list.findIndex(r=>r.id===requestId);
     if(idx<0) return respond({ok:false,error:'Request not found'},404);
 
-    const {content:logins, sha:loginSha} = await ghRead('employee-logins');
-    const loginMap = logins||{};
-    if(!loginMap[list[idx].email]) return respond({ok:false,error:'Employee login not found'},404);
+    const {content:logins,sha:loginSha}=await ghRead('employee-logins');
+    const loginMap=logins||{};
+    if(!loginMap[list[idx].email]) return respond({ok:false,error:'Employee login no longer exists'},404);
+    loginMap[list[idx].email].password=newPassword;
+    await ghWrite('employee-logins',loginMap,loginSha);
 
-    loginMap[list[idx].email].password = newPassword;
-    await ghWrite('employee-logins', loginMap, loginSha);
-
-    list[idx].status = 'resolved';
-    list[idx].resolvedAt = new Date().toISOString();
-    await ghWrite('password-reset-requests', list, reqSha);
+    list[idx].status='fulfilled';
+    list[idx].fulfilledAt=new Date().toISOString();
+    await ghWrite('password-resets',list,sha);
 
     await sendEmail(env.RESEND_API_KEY, list[idx].email,
-      'Your Serve Vision password has been reset',
+      'Your password has been reset',
       `<div style="font-family:sans-serif;max-width:480px">
-        <h2 style="color:#0a3570">Password Reset</h2>
+        <h2 style="color:#0a5239">Password reset ✓</h2>
         <p>Hi ${list[idx].name},</p>
-        <p>Your password has been reset by admin. Your new password is:</p>
+        <p>Admin has reset your password. Your new password is:</p>
         <p style="font-size:18px;font-weight:700;background:#f3f4f6;padding:10px 16px;border-radius:8px;display:inline-block">${newPassword}</p>
-        <p>Please login and change it if you'd like.</p>
+        <p style="margin-top:14px">Please login and consider it saved somewhere safe.</p>
         <a href="https://pivot-eb5.pages.dev/employee.html" style="background:#1758a8;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block;margin-top:10px">Login →</a>
       </div>`
     );
@@ -130,16 +130,18 @@ export async function onRequestPost(context){
     return respond({ok:true});
   }
 
-  // ── Admin dismisses a request without resetting ─────────
+  // ── Admin dismisses a request without resetting ────────
   if(action==='dismiss'){
-    const auth = (request.headers.get('Authorization')||'').replace('Bearer ','').trim();
+    const auth=(request.headers.get('Authorization')||'').replace('Bearer ','').trim();
     if(auth!==API_KEY) return respond({error:'Unauthorized'},401);
-    const {requestId} = body;
-    const {content:reqs, sha} = await ghRead('password-reset-requests');
-    const list = reqs||[];
-    const idx = list.findIndex(r=>r.id===requestId);
-    if(idx>=0){ list[idx].status='dismissed'; list[idx].resolvedAt=new Date().toISOString(); }
-    await ghWrite('password-reset-requests', list, sha);
+    const {requestId}=body;
+    const {content:resets,sha}=await ghRead('password-resets');
+    const list=resets||[];
+    const idx=list.findIndex(r=>r.id===requestId);
+    if(idx<0) return respond({ok:false,error:'Request not found'},404);
+    list[idx].status='dismissed';
+    list[idx].fulfilledAt=new Date().toISOString();
+    await ghWrite('password-resets',list,sha);
     return respond({ok:true});
   }
 

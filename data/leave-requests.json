@@ -9,8 +9,9 @@
     "toDate": "2026-07-16",
     "isHalfDay": false,
     "reason": "Hello Sir,\n\nI'm feeling unwell today and won't be able to come to work. I'll be taking sick leave for today to rest and recover. Please approve my leave.\n\nThank you for your understanding.",
-    "status": "pending",
-    "appliedAt": "2026-07-16T08:54:40.972Z"
+    "status": "approved",
+    "appliedAt": "2026-07-16T08:54:40.972Z",
+    "decidedAt": "2026-07-18T15:27:24.470Z"
   },
   {
     "id": "mris27dc4mq8",

@@ -9,8 +9,9 @@
     "toDate": "2026-07-20",
     "isHalfDay": false,
     "reason": "Hospital",
-    "status": "pending",
-    "appliedAt": "2026-07-19T14:52:57.749Z"
+    "status": "approved",
+    "appliedAt": "2026-07-19T14:52:57.749Z",
+    "decidedAt": "2026-07-19T15:51:58.540Z"
   },
   {
     "id": "mrn9wci46n6u",

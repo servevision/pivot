@@ -1,56 +1,5 @@
 [
   {
-    "invoiceNumber": "SVPL/25-26/118",
-    "type": "Export Invoice",
-    "date": "2026-07-14",
-    "clientId": "mrklnvlve6og",
-    "clientSnapshot": {
-      "name": "Alexander krivotsuk",
-      "company": "Alexander krivotsuk",
-      "email": "krivotsuk@gmail.com",
-      "phone": "",
-      "gst": "",
-      "state": "Other / Outside India",
-      "address": "Linkup Studio OU,Narva mnt 5, Kesklinna linnaosa, Tallinn, Harju maakond, 10117, Cuba",
-      "description": "",
-      "id": "mrklnvlve6og",
-      "createdAt": "2026-07-14T12:00:42.691Z",
-      "updatedAt": "2026-07-14T15:03:21.862Z"
-    },
-    "companySnapshot": {
-      "name": "SERVE VISION PRIVATE LIMITED",
-      "gstin": "06ABGCS4675K1ZU",
-      "pan": "ABGCS4675K",
-      "address": "SCO-112, 2nd Floor, old Tehsil Complex, Karnal, Haryana, 132001",
-      "phone": "+91 9802387131",
-      "email": "payments@servevision.io"
-    },
-    "bankSnapshot": {
-      "name": "Axis Bank",
-      "holder": "SERVE VISION PRIVATE LIMITED",
-      "account": "922020009391539",
-      "ifsc": "UTIB0003628",
-      "id": "mrklao3g7eqz",
-      "createdAt": "2026-07-14T11:50:26.428Z"
-    },
-    "items": [
-      {
-        "description": "\"Adverstisement on:  Websites\"",
-        "sac": "998361",
-        "amount": 316.38
-      }
-    ],
-    "usdRate": 95.69368,
-    "taxable": 316.38,
-    "igst": 0,
-    "cgst": 0,
-    "sgst": 0,
-    "taxTotal": 0,
-    "grandTotal": 30275.5664784,
-    "id": "mrkse6zq8fjp",
-    "createdAt": "2026-07-14T15:09:08.198Z"
-  },
-  {
     "invoiceNumber": "SVPL/25-26/117",
     "type": "Tax Invoice",
     "date": "2026-07-14",

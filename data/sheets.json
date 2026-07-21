@@ -4,25 +4,25 @@
     "name": "Ansh",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbw5wcr-BJaE6qkBFv0IqIADPEnVHPEtben4HYYK0wKQKbfL2pwSKz6o5JFios1buZqT-g/exec",
-    "status": "pending",
-    "rows": 122,
-    "lastSync": "9:58:05 am"
+    "status": "ok",
+    "rows": 127,
+    "lastSync": "4:50:58 pm"
   },
   {
     "id": "s2",
     "name": "Aman Khokhar",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbybIabQUdjvOhZHuNf0wuvZXr2f3JfEnsI6zICqbKoVsl3VfM3ILdDON-TWZxqgh70/exec",
-    "status": "pending",
-    "rows": 817,
-    "lastSync": "9:58:06 am"
+    "status": "ok",
+    "rows": 823,
+    "lastSync": "4:50:58 pm"
   },
   {
     "id": "s3",
     "name": "Bhuvan Gaur",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbzoZ-d01wEzuIGdTuF3EOJntf1N5KCxoEGR4rIkvy7ig6q8wEAOlM1kBOf5Zl7eTQlJtg/exec",
-    "status": "pending",
+    "status": "loading",
     "rows": 370,
     "lastSync": "9:58:07 am"
   },
@@ -31,16 +31,16 @@
     "name": "Sakshi",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbynMafp2BwQBk_zS4exzweR0otJyOflpmaoRfU4DdLDcwjUi5WvwWyvYaeGgcbah90/exec",
-    "status": "pending",
-    "rows": 367,
-    "lastSync": "9:58:09 am"
+    "status": "ok",
+    "rows": 391,
+    "lastSync": "4:51:00 pm"
   },
   {
     "id": "s5",
     "name": "Sunita Mahata",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbx99TDIA2OdkP-bG02go1nXhXFoscmxoEb5YMc58MCqwR_BbL1fnvknDuZM5XCN6jDE/exec",
-    "status": "pending",
+    "status": "loading",
     "rows": 1096,
     "lastSync": "9:58:10 am"
   },
@@ -58,7 +58,7 @@
     "name": "Joydeep Mahata",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbzQOcj6Au_p3k6q87p5i3gfhhuXeKwRIc1_5cC9s4Dq6dsIEh0FEwZIZcySaM_dtxs-fA/exec",
-    "status": "pending",
+    "status": "loading",
     "rows": 896,
     "lastSync": "9:58:12 am"
   },

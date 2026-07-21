@@ -5,6 +5,9 @@
 <title>Serve Vision — HR Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
@@ -141,6 +144,8 @@ hr.div{border:none;border-top:1px solid var(--border);margin:16px 0}
 .sheet-card:hover{box-shadow:var(--sh2);transform:translateY(-1px)}
 .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 @media print{
+  @page { margin: 10mm; }
+  html, body { height:auto !important; min-height:0 !important; }
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
   body > *:not(#invoice-preview-modal){display:none !important}
   #invoice-preview-modal{
@@ -149,16 +154,19 @@ hr.div{border:none;border-top:1px solid var(--border);margin:16px 0}
     background:none !important;
     padding:0 !important;
     inset:auto !important;
+    height:auto !important;
+    min-height:0 !important;
   }
   #invoice-preview-modal > div{
     box-shadow:none !important;
     max-width:100% !important;
     max-height:none !important;
+    height:auto !important;
     border-radius:0 !important;
     overflow:visible !important;
   }
   #invoice-preview-modal > div > div:first-child{display:none !important}
-  #invoice-preview-content{padding:16px !important}
+  #invoice-preview-content{padding:16px !important;height:auto !important}
 }
 </style>
 <script>
@@ -745,6 +753,7 @@ async function pushAllToGitHub() {
             <div class="fg"><label>Full Name *</label><input type="text" id="ef-name" placeholder="Full name"></div>
             <div class="fg"><label>Email *</label><input type="email" id="ef-email" placeholder="email@example.com"></div>
             <div class="fg"><label>Phone</label><input type="text" id="ef-phone" placeholder="9876543210"></div>
+            <div class="fg"><label>Date of Birth</label><input type="date" id="ef-dob"></div>
             <div class="fg"><label>Designation</label><input type="text" id="ef-desig" placeholder="e.g. Developer"></div>
             <div class="fg"><label>Department</label>
               <select id="ef-dept" style="width:100%">
@@ -2213,7 +2222,7 @@ function openEmpForm(){
   document.getElementById('ef-edit-id').value='';
   document.getElementById('ef-doj').value=new Date().toISOString().split('T')[0];
   document.getElementById('emp-form-msg').textContent='';
-  ['ef-name','ef-email','ef-phone','ef-desig','ef-sal','ef-acc','ef-ifsc','ef-bank'].forEach(id=>document.getElementById(id).value='');
+  ['ef-name','ef-email','ef-phone','ef-dob','ef-desig','ef-sal','ef-acc','ef-ifsc','ef-bank'].forEach(id=>document.getElementById(id).value='');
 }
 
 function closeEmpForm(){
@@ -2235,6 +2244,7 @@ async function saveEmpRecord(){
     name:     document.getElementById('ef-name').value.trim(),
     email:    document.getElementById('ef-email').value.trim().toLowerCase(),
     phone:    document.getElementById('ef-phone').value.trim(),
+    dateOfBirth: document.getElementById('ef-dob').value,
     designation: document.getElementById('ef-desig').value.trim(),
     department:  document.getElementById('ef-dept').value,
     dateOfJoining: document.getElementById('ef-doj').value,
@@ -2283,6 +2293,7 @@ function editEmpRecord(id){
   document.getElementById('ef-name').value=emp.name||'';
   document.getElementById('ef-email').value=emp.email||'';
   document.getElementById('ef-phone').value=emp.phone||'';
+  document.getElementById('ef-dob').value=emp.dateOfBirth||'';
   document.getElementById('ef-desig').value=emp.designation||'';
   document.getElementById('ef-dept').value=emp.department||'';
   document.getElementById('ef-doj').value=emp.dateOfJoining||'';
@@ -2318,7 +2329,7 @@ function rEmpRecords(){
     </tr></thead>
     <tbody>${EMP_RECORDS.map(emp=>`<tr>
       <td style="padding:9px 14px;border-bottom:1px solid var(--border);font-weight:700;color:var(--blue-t)">${emp.employeeId}</td>
-      <td style="padding:9px 14px;border-bottom:1px solid var(--border);font-weight:600">${emp.name}</td>
+      <td style="padding:9px 14px;border-bottom:1px solid var(--border);font-weight:600">${emp.name}${emp.dateOfBirth?`<div style="font-size:10px;color:var(--text3);font-weight:500;margin-top:1px">🎂 DOB: ${emp.dateOfBirth}</div>`:''}</td>
       <td style="padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text2)">${emp.email}</td>
       <td style="padding:9px 14px;border-bottom:1px solid var(--border)">${emp.designation||'—'}</td>
       <td style="padding:9px 14px;border-bottom:1px solid var(--border)">${emp.department||'—'}</td>
@@ -3242,6 +3253,16 @@ async function generateInvoice(){
   if(r&&r.ok){
     msg.textContent='✓ Invoice generated'; msg.style.color='var(--green-t)';
     invoice.id = r.id;
+
+    // Auto-create a matching Sales entry so it shows up in the Sales section
+    const saleDesc = items.map(it=>it.description).filter(Boolean).join(', ');
+    await apiCall('POST','/business',{type:'sales',action:'create',item:{
+      date, clientId,
+      amount: grandTotal,
+      description: `Invoice ${invoiceNumber}${saleDesc?' — '+saleDesc:''}`,
+      invoiceId: invoice.id, invoiceNumber
+    }});
+
     showGenInvoicePreview(invoice);
     loadInvoices();
   } else {
@@ -3254,7 +3275,7 @@ function viewGenInvoice(id){
   if(inv) showGenInvoicePreview(inv);
 }
 
-function showGenInvoicePreview(inv){
+function buildInvoiceHTML(inv){
   const c = inv.clientSnapshot||{};
   const co = inv.companySnapshot||{};
   const bank = inv.bankSnapshot||{};
@@ -3356,7 +3377,10 @@ function showGenInvoicePreview(inv){
       </div>
       <div style="text-align:center;font-size:10px;color:#999;margin-top:10px">This is computer generated, no signature required</div>
     </div>`;
-  document.getElementById('invoice-preview-content').innerHTML = html;
+  return html;
+}
+function showGenInvoicePreview(inv){
+  document.getElementById('invoice-preview-content').innerHTML = buildInvoiceHTML(inv);
   document.getElementById('invoice-preview-modal').style.display='flex';
 }
 function closeInvoicePreview(){
@@ -3364,6 +3388,106 @@ function closeInvoicePreview(){
 }
 function printInvoice(){
   window.print();
+}
+
+// ── GOOGLE DRIVE UPLOAD ────────────────────────────────────
+// >>> FILL THIS IN <<< — paste your own Google OAuth Client ID here.
+// See setup instructions below the code (also explained in chat).
+const GOOGLE_DRIVE_CLIENT_ID = 'PASTE_YOUR_GOOGLE_CLIENT_ID_HERE.apps.googleusercontent.com';
+
+let _driveTokenClient = null;
+let _driveAccessToken = null;
+
+function getDriveAccessToken(){
+  return new Promise((resolve, reject)=>{
+    if(!window.google || !google.accounts || !google.accounts.oauth2){
+      reject(new Error('Google Sign-In script not loaded yet — try again in a moment'));
+      return;
+    }
+    if(_driveAccessToken){ resolve(_driveAccessToken); return; }
+    if(!_driveTokenClient){
+      _driveTokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_DRIVE_CLIENT_ID,
+        scope: 'https://www.googleapis.com/auth/drive.file',
+        callback: (resp)=>{
+          if(resp && resp.access_token){
+            _driveAccessToken = resp.access_token;
+            resolve(_driveAccessToken);
+          } else {
+            reject(new Error('Google sign-in was cancelled or failed'));
+          }
+        }
+      });
+    }
+    _driveTokenClient.requestAccessToken();
+  });
+}
+
+async function uploadInvoiceToDrive(id){
+  const inv = INVOICES_DATA.find(i=>i.id===id);
+  if(!inv){ alert('Invoice not found'); return; }
+  if(GOOGLE_DRIVE_CLIENT_ID.includes('PASTE_YOUR')){
+    alert('Google Drive upload is not set up yet. An admin needs to add a Google OAuth Client ID in the dashboard code — see the setup guide.');
+    return;
+  }
+
+  const btn = document.getElementById('drive-btn-'+id);
+  const originalText = btn ? btn.innerHTML : '';
+  if(btn){ btn.disabled=true; btn.innerHTML='Uploading...'; }
+
+  try{
+    // 1. Render the invoice off-screen so we can capture it, without disturbing the visible page
+    const holder = document.createElement('div');
+    holder.style.cssText = 'position:fixed;left:-9999px;top:0;width:720px;background:#fff;padding:16px';
+    holder.innerHTML = buildInvoiceHTML(inv);
+    document.body.appendChild(holder);
+
+    const canvas = await html2canvas(holder, {scale:2, backgroundColor:'#ffffff'});
+    document.body.removeChild(holder);
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p','pt','a4');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const imgHeight = canvas.height * (pageWidth/canvas.width);
+    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, pageWidth, imgHeight);
+    const pdfBlob = pdf.output('blob');
+
+    // 2. Get a Google Drive access token (opens Google's sign-in popup the first time)
+    const token = await getDriveAccessToken();
+
+    // 3. Upload via multipart to Drive
+    const fileName = `Invoice_${inv.invoiceNumber||id}.pdf`;
+    const metadata = { name: fileName, mimeType: 'application/pdf' };
+    const boundary = '-------svpivotboundary';
+    const metaPart = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`;
+    const closeDelim = `\r\n--${boundary}--`;
+
+    const pdfArrayBuffer = await pdfBlob.arrayBuffer();
+    const bodyParts = [
+      new Blob([metaPart], {type:'text/plain'}),
+      new Blob([`--${boundary}\r\nContent-Type: application/pdf\r\n\r\n`], {type:'text/plain'}),
+      new Blob([pdfArrayBuffer], {type:'application/pdf'}),
+      new Blob([closeDelim], {type:'text/plain'})
+    ];
+    const uploadBody = new Blob(bodyParts);
+
+    const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer '+token, 'Content-Type': 'multipart/related; boundary='+boundary },
+      body: uploadBody
+    });
+    const data = await r.json();
+    if(data.id){
+      if(btn){ btn.innerHTML='✓ Uploaded'; }
+      alert('Uploaded to Google Drive: '+fileName);
+      setTimeout(()=>{ if(btn){ btn.disabled=false; btn.innerHTML=originalText; } }, 2500);
+    } else {
+      throw new Error(data.error && data.error.message || 'Upload failed');
+    }
+  }catch(e){
+    alert('Google Drive upload failed: '+e.message);
+    if(btn){ btn.disabled=false; btn.innerHTML=originalText; }
+  }
 }
 async function deleteInvoice(id){
   if(!confirm('Delete this invoice record?')) return;
@@ -3389,7 +3513,7 @@ function rInvoices(){
       <td>${i.date}</td>
       <td>${(i.clientSnapshot&&i.clientSnapshot.name)||'-'}</td>
       <td style="font-weight:700">${fmt(i.grandTotal)}</td>
-      <td><button class="btn btn-sm" onclick="viewGenInvoice('${i.id}')">👁️ View</button> <button class="btn btn-sm btn-d" onclick="deleteInvoice('${i.id}')">🗑️</button></td>
+      <td><button class="btn btn-sm" onclick="viewGenInvoice('${i.id}')">👁️ View</button> <button class="btn btn-sm" id="drive-btn-${i.id}" onclick="uploadInvoiceToDrive('${i.id}')">☁️ Upload to Drive</button> <button class="btn btn-sm btn-d" onclick="deleteInvoice('${i.id}')">🗑️</button></td>
     </tr>`).join('')}</tbody>
   </table></div>`;
 }

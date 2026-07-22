@@ -9,8 +9,9 @@
     "toDate": "2026-07-20",
     "isHalfDay": false,
     "reason": "stomach infection",
-    "status": "pending",
-    "appliedAt": "2026-07-20T04:02:42.731Z"
+    "status": "approved",
+    "appliedAt": "2026-07-20T04:02:42.731Z",
+    "decidedAt": "2026-07-22T09:46:20.759Z"
   },
   {
     "id": "mrrx0nitkj1g",

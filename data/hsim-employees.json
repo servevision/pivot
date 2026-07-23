@@ -32,5 +32,22 @@
     "documents": {},
     "status": "active",
     "createdAt": "2026-07-23T09:15:57.041Z"
+  },
+  {
+    "employeeId": "HSIM-EMP-003",
+    "name": "Muskan Soni",
+    "email": "sonimuskan.hsim@gmail.com",
+    "designation": "",
+    "department": "Other",
+    "phone": "9729670244",
+    "dateOfJoining": "2026-07-23",
+    "exitDate": "",
+    "salary": 0,
+    "bankAccountNo": "",
+    "bankIFSC": "",
+    "bankName": "",
+    "documents": {},
+    "status": "active",
+    "createdAt": "2026-07-23T09:34:09.230Z"
   }
 ]

@@ -3428,22 +3428,87 @@ function getDriveAccessToken(){
   });
 }
 
-async function getOrCreateDriveFolder(token, folderName){
-  const q = encodeURIComponent(`mimeType='application/vnd.google-apps.folder' and name='${folderName}' and trashed=false`);
-  const searchR = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`, {
+async function getOrCreateDriveFolder(token, folderName, parentId){
+  let q = `mimeType='application/vnd.google-apps.folder' and name='${folderName}' and trashed=false`;
+  if(parentId) q += ` and '${parentId}' in parents`;
+  const searchR = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)`, {
     headers: { 'Authorization': 'Bearer '+token }
   });
   const searchData = await searchR.json();
   if(searchData.files && searchData.files.length){
     return searchData.files[0].id;
   }
+  const body = { name: folderName, mimeType: 'application/vnd.google-apps.folder' };
+  if(parentId) body.parents = [parentId];
   const createR = await fetch('https://www.googleapis.com/drive/v3/files', {
     method: 'POST',
     headers: { 'Authorization': 'Bearer '+token, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: folderName, mimeType: 'application/vnd.google-apps.folder' })
+    body: JSON.stringify(body)
   });
   const createData = await createR.json();
   return createData.id;
+}
+
+async function getAccDataSubfolder(token, subfolderName){
+  const rootId = await getOrCreateDriveFolder(token, 'Serve Vision Acc Data 26-27');
+  return await getOrCreateDriveFolder(token, subfolderName, rootId);
+}
+
+async function uploadBlobToDrive(token, folderId, fileName, mimeType, blob){
+  const metadata = { name: fileName, mimeType, parents: [folderId] };
+  const boundary = '-------svpivotboundary';
+  const metaPart = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`;
+  const closeDelim = `\r\n--${boundary}--`;
+  const arrayBuffer = await blob.arrayBuffer();
+  const bodyParts = [
+    new Blob([metaPart], {type:'text/plain'}),
+    new Blob([`--${boundary}\r\nContent-Type: ${mimeType}\r\n\r\n`], {type:'text/plain'}),
+    new Blob([arrayBuffer], {type:mimeType}),
+    new Blob([closeDelim], {type:'text/plain'})
+  ];
+  const uploadBody = new Blob(bodyParts);
+  const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer '+token, 'Content-Type': 'multipart/related; boundary='+boundary },
+    body: uploadBody
+  });
+  return await r.json();
+}
+
+async function uploadExpenseToDrive(id){
+  const exp = EXP.find(e=>e.id===id);
+  if(!exp || !exp.file){ alert('No receipt/invoice file attached to this expense'); return; }
+  if(GOOGLE_DRIVE_CLIENT_ID.includes('PASTE_YOUR')){
+    alert('Google Drive upload is not set up yet.');
+    return;
+  }
+  const btn = document.getElementById('drive-exp-btn-'+id);
+  const originalText = btn ? btn.innerHTML : '';
+  if(btn){ btn.disabled=true; btn.innerHTML='Uploading...'; }
+  try{
+    const token = await getDriveAccessToken();
+    if(btn) btn.innerHTML='Finding folder...';
+    const folderId = await getAccDataSubfolder(token, 'Serve Vision Expense 26-27');
+
+    if(btn) btn.innerHTML='Uploading...';
+    const isImage = exp.file.startsWith('data:image');
+    const mimeType = isImage ? (exp.file.match(/^data:(image\/[a-zA-Z+]+);/)||[])[1]||'image/jpeg' : 'application/pdf';
+    const ext = isImage ? mimeType.split('/')[1] : 'pdf';
+    const fileName = exp.fileName || `Expense_${exp.name||id}.${ext}`;
+    const blob = await (await fetch(exp.file)).blob();
+
+    const data = await uploadBlobToDrive(token, folderId, fileName, mimeType, blob);
+    if(data.id){
+      if(btn) btn.innerHTML='✓ Uploaded';
+      alert('Uploaded to Google Drive → "Serve Vision Acc Data 26-27 / Serve Vision Expense 26-27": '+fileName);
+      setTimeout(()=>{ if(btn){ btn.disabled=false; btn.innerHTML=originalText; } }, 2500);
+    } else {
+      throw new Error(data.error && data.error.message || 'Upload failed');
+    }
+  }catch(e){
+    alert('Google Drive upload failed: '+e.message);
+    if(btn){ btn.disabled=false; btn.innerHTML=originalText; }
+  }
 }
 
 async function uploadInvoiceToDrive(id){
@@ -3478,36 +3543,18 @@ async function uploadInvoiceToDrive(id){
     // 2. Get a Google Drive access token (opens Google's sign-in popup the first time)
     const token = await getDriveAccessToken();
 
-    // 2b. Find (or create) the "Serve Vision Invoice 25-26" folder
+    // 2b. Find (or create) "Serve Vision Acc Data 26-27" / "Serve Vision Invoice 26-27"
     if(btn) btn.innerHTML='Finding folder...';
-    const folderId = await getOrCreateDriveFolder(token, 'Serve Vision Invoice 25-26');
+    const folderId = await getAccDataSubfolder(token, 'Serve Vision Invoice 26-27');
 
-    // 3. Upload via multipart to Drive, inside that folder
+    // 3. Upload
     if(btn) btn.innerHTML='Uploading...';
     const fileName = `Invoice_${inv.invoiceNumber||id}.pdf`;
-    const metadata = { name: fileName, mimeType: 'application/pdf', parents: [folderId] };
-    const boundary = '-------svpivotboundary';
-    const metaPart = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`;
-    const closeDelim = `\r\n--${boundary}--`;
+    const data = await uploadBlobToDrive(token, folderId, fileName, 'application/pdf', pdfBlob);
 
-    const pdfArrayBuffer = await pdfBlob.arrayBuffer();
-    const bodyParts = [
-      new Blob([metaPart], {type:'text/plain'}),
-      new Blob([`--${boundary}\r\nContent-Type: application/pdf\r\n\r\n`], {type:'text/plain'}),
-      new Blob([pdfArrayBuffer], {type:'application/pdf'}),
-      new Blob([closeDelim], {type:'text/plain'})
-    ];
-    const uploadBody = new Blob(bodyParts);
-
-    const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer '+token, 'Content-Type': 'multipart/related; boundary='+boundary },
-      body: uploadBody
-    });
-    const data = await r.json();
     if(data.id){
       if(btn){ btn.innerHTML='✓ Uploaded'; }
-      alert('Uploaded to Google Drive → "Serve Vision Invoice 25-26" folder: '+fileName);
+      alert('Uploaded to Google Drive → "Serve Vision Acc Data 26-27 / Serve Vision Invoice 26-27": '+fileName);
       setTimeout(()=>{ if(btn){ btn.disabled=false; btn.innerHTML=originalText; } }, 2500);
     } else {
       throw new Error(data.error && data.error.message || 'Upload failed');
@@ -4177,7 +4224,7 @@ function rExp(){
       <td style="padding:9px 14px;border-bottom:1px solid var(--border)">${e.cat?`<span class="badge b-gray">${e.cat}${e.subcat?' › '+e.subcat:''}</span>`:'—'}</td>
       <td style="padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text2);font-size:12px">${e.notes||'—'}</td>
       <td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:center">
-        ${e.file?`<button class="btn btn-sm" onclick="viewInvoice('${e.id}')" style="background:var(--green-bg);color:var(--green-t);border-color:var(--green-bg)">📎 View</button>`:`<span style="color:var(--text3);font-size:11px">—</span>`}
+        ${e.file?`<button class="btn btn-sm" onclick="viewInvoice('${e.id}')" style="background:var(--green-bg);color:var(--green-t);border-color:var(--green-bg)">📎 View</button> <button class="btn btn-sm" id="drive-exp-btn-${e.id}" onclick="uploadExpenseToDrive('${e.id}')">☁️ Drive</button>`:`<span style="color:var(--text3);font-size:11px">—</span>`}
       </td>
       <td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:center">
         <div style="display:flex;gap:4px;justify-content:center">

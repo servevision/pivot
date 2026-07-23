@@ -15,5 +15,22 @@
     "documents": {},
     "status": "active",
     "createdAt": "2026-07-08T04:43:35.984Z"
+  },
+  {
+    "employeeId": "HSIM-EMP-002",
+    "name": "Aman",
+    "email": "amanbhardwaj67890@gmail.com",
+    "designation": "Marketing Executive",
+    "department": "Marketing",
+    "phone": "7988229192",
+    "dateOfJoining": "2026-07-23",
+    "exitDate": "",
+    "salary": 0,
+    "bankAccountNo": "",
+    "bankIFSC": "",
+    "bankName": "",
+    "documents": {},
+    "status": "active",
+    "createdAt": "2026-07-23T09:15:57.041Z"
   }
 ]

@@ -1,1 +1,52 @@
-[]
+[
+  {
+    "invoiceNumber": "SVPL1",
+    "type": "Tax Invoice",
+    "date": "2026-07-23",
+    "clientId": "mrklobh04e13",
+    "clientSnapshot": {
+      "name": "Jeremy Clark",
+      "company": "Jeremy Clark",
+      "email": "jeremyclark727@gmail.com",
+      "phone": "",
+      "gst": "",
+      "state": "Other / Outside India",
+      "address": "Jeremy, Clark, 48 Ravenscourt Road, Hammersmith and Fulham, W6 0UG, United Kingdom",
+      "description": "",
+      "id": "mrklobh04e13",
+      "createdAt": "2026-07-14T12:01:03.252Z"
+    },
+    "companySnapshot": {
+      "name": "SERVE VISION PRIVATE LIMITED",
+      "gstin": "06ABGCS4675K1ZU",
+      "pan": "ABGCS4675K",
+      "address": "SCO-112, 2nd Floor, old Tehsil Complex, Karnal, Haryana, 132001",
+      "phone": "+91 9802387131",
+      "email": "payments@servevision.io"
+    },
+    "bankSnapshot": {
+      "name": "Axis Bank",
+      "holder": "SERVE VISION PRIVATE LIMITED",
+      "account": "922020009391539",
+      "ifsc": "UTIB0003628",
+      "id": "mrklao3g7eqz",
+      "createdAt": "2026-07-14T11:50:26.428Z"
+    },
+    "items": [
+      {
+        "description": "Advertisement on website",
+        "sac": "998361",
+        "amount": 10000
+      }
+    ],
+    "usdRate": null,
+    "taxable": 10000,
+    "igst": 0,
+    "cgst": 900,
+    "sgst": 900,
+    "taxTotal": 1800,
+    "grandTotal": 11800,
+    "id": "mrx1tlgsrskq",
+    "createdAt": "2026-07-23T05:06:17.452Z"
+  }
+]

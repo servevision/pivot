@@ -1,1 +1,52 @@
-[]
+[
+  {
+    "invoiceNumber": "SVPL/25-26/094",
+    "type": "Export Invoice",
+    "date": "2026-04-07",
+    "clientId": "mrklktarwr0g",
+    "clientSnapshot": {
+      "name": "AD MARKET LIMITED",
+      "company": "AD MARKET LIMITED",
+      "email": "invoice@adsterra.com",
+      "phone": "",
+      "gst": "",
+      "state": "Other / Outside India",
+      "address": "Christaki Kranou 49, Germasogeia,4041 Limassol, Cyprus",
+      "description": "",
+      "id": "mrklktarwr0g",
+      "createdAt": "2026-07-14T11:58:19.731Z"
+    },
+    "companySnapshot": {
+      "name": "SERVE VISION PRIVATE LIMITED",
+      "gstin": "06ABGCS4675K1ZU",
+      "pan": "ABGCS4675K",
+      "address": "SCO-112, 2nd Floor, old Tehsil Complex, Karnal, Haryana, 132001",
+      "phone": "+91 9802387131",
+      "email": "payments@servevision.io"
+    },
+    "bankSnapshot": {
+      "name": "HDFC Bank",
+      "holder": "SERVE VISION PRIVATE LIMITED",
+      "account": "50200071839230",
+      "ifsc": "HDFC0000195",
+      "id": "mrklb6m3as9d",
+      "createdAt": "2026-07-14T11:50:50.427Z"
+    },
+    "items": [
+      {
+        "description": "Run on Network popunder and banner ads according to contract #3033514",
+        "sac": "998361",
+        "amount": 1605.06
+      }
+    ],
+    "usdRate": 91.11,
+    "taxable": 1605.06,
+    "igst": 0,
+    "cgst": 0,
+    "sgst": 0,
+    "taxTotal": 0,
+    "grandTotal": 146237.0166,
+    "id": "mrx78twaw27o",
+    "createdAt": "2026-07-23T07:38:06.298Z"
+  }
+]

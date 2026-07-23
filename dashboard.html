@@ -145,7 +145,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:16px 0}
 .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 @media print{
   @page { margin: 10mm; }
-  html, body { height:auto !important; min-height:0 !important; }
+  html, body { height:auto !important; min-height:0 !important; overflow:visible !important; }
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
   body > *:not(#invoice-preview-modal){display:none !important}
   #invoice-preview-modal{
@@ -156,17 +156,22 @@ hr.div{border:none;border-top:1px solid var(--border);margin:16px 0}
     inset:auto !important;
     height:auto !important;
     min-height:0 !important;
+    max-height:none !important;
+    overflow:visible !important;
   }
   #invoice-preview-modal > div{
     box-shadow:none !important;
     max-width:100% !important;
     max-height:none !important;
     height:auto !important;
+    min-height:0 !important;
     border-radius:0 !important;
     overflow:visible !important;
+    position:static !important;
   }
   #invoice-preview-modal > div > div:first-child{display:none !important}
-  #invoice-preview-content{padding:16px !important;height:auto !important}
+  #invoice-preview-content{padding:16px !important;height:auto !important;min-height:0 !important;overflow:visible !important}
+  #invoice-preview-content > div{height:auto !important;min-height:0 !important}
 }
 </style>
 <script>

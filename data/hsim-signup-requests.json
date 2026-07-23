@@ -1,5 +1,16 @@
 [
   {
+    "id": "mrxapu58wzis",
+    "name": "Aman",
+    "email": "amanbhardwaj67890@gmail.com",
+    "password": "Aman@678901$$",
+    "designation": "Marketing Executive",
+    "department": "Marketing",
+    "phone": "7988229192",
+    "status": "pending",
+    "requestedAt": "2026-07-23T09:15:18.620Z"
+  },
+  {
     "id": "mrbl3gajhn20",
     "name": "Vivek Attri",
     "email": "vivek.hsim@gmail.com",

@@ -3478,9 +3478,9 @@ async function uploadInvoiceToDrive(id){
     // 2. Get a Google Drive access token (opens Google's sign-in popup the first time)
     const token = await getDriveAccessToken();
 
-    // 2b. Find (or create) the "Serve Vision Invoices" folder
+    // 2b. Find (or create) the "Serve Vision Invoice 25-26" folder
     if(btn) btn.innerHTML='Finding folder...';
-    const folderId = await getOrCreateDriveFolder(token, 'Serve Vision Invoices');
+    const folderId = await getOrCreateDriveFolder(token, 'Serve Vision Invoice 25-26');
 
     // 3. Upload via multipart to Drive, inside that folder
     if(btn) btn.innerHTML='Uploading...';
@@ -3507,7 +3507,7 @@ async function uploadInvoiceToDrive(id){
     const data = await r.json();
     if(data.id){
       if(btn){ btn.innerHTML='✓ Uploaded'; }
-      alert('Uploaded to Google Drive → "Serve Vision Invoices" folder: '+fileName);
+      alert('Uploaded to Google Drive → "Serve Vision Invoice 25-26" folder: '+fileName);
       setTimeout(()=>{ if(btn){ btn.disabled=false; btn.innerHTML=originalText; } }, 2500);
     } else {
       throw new Error(data.error && data.error.message || 'Upload failed');

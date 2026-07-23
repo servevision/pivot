@@ -1,5 +1,18 @@
 [
   {
+    "id": "mrxat7sjmmb0",
+    "employeeId": "HSIM-EMP-002",
+    "employeeName": "Aman",
+    "employeeEmail": "amanbhardwaj67890@gmail.com",
+    "leaveType": "CL",
+    "fromDate": "2026-07-06",
+    "toDate": "2026-07-13",
+    "isHalfDay": false,
+    "reason": "Went for Vacation",
+    "status": "pending",
+    "appliedAt": "2026-07-23T09:17:56.275Z"
+  },
+  {
     "id": "mrblijeumc4v",
     "employeeId": "HSIM-EMP-001",
     "employeeName": "Vivek Attri",

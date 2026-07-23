@@ -3428,6 +3428,24 @@ function getDriveAccessToken(){
   });
 }
 
+async function getOrCreateDriveFolder(token, folderName){
+  const q = encodeURIComponent(`mimeType='application/vnd.google-apps.folder' and name='${folderName}' and trashed=false`);
+  const searchR = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`, {
+    headers: { 'Authorization': 'Bearer '+token }
+  });
+  const searchData = await searchR.json();
+  if(searchData.files && searchData.files.length){
+    return searchData.files[0].id;
+  }
+  const createR = await fetch('https://www.googleapis.com/drive/v3/files', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer '+token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: folderName, mimeType: 'application/vnd.google-apps.folder' })
+  });
+  const createData = await createR.json();
+  return createData.id;
+}
+
 async function uploadInvoiceToDrive(id){
   const inv = INVOICES_DATA.find(i=>i.id===id);
   if(!inv){ alert('Invoice not found'); return; }
@@ -3460,9 +3478,14 @@ async function uploadInvoiceToDrive(id){
     // 2. Get a Google Drive access token (opens Google's sign-in popup the first time)
     const token = await getDriveAccessToken();
 
-    // 3. Upload via multipart to Drive
+    // 2b. Find (or create) the "Serve Vision Invoices" folder
+    if(btn) btn.innerHTML='Finding folder...';
+    const folderId = await getOrCreateDriveFolder(token, 'Serve Vision Invoices');
+
+    // 3. Upload via multipart to Drive, inside that folder
+    if(btn) btn.innerHTML='Uploading...';
     const fileName = `Invoice_${inv.invoiceNumber||id}.pdf`;
-    const metadata = { name: fileName, mimeType: 'application/pdf' };
+    const metadata = { name: fileName, mimeType: 'application/pdf', parents: [folderId] };
     const boundary = '-------svpivotboundary';
     const metaPart = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`;
     const closeDelim = `\r\n--${boundary}--`;
@@ -3484,7 +3507,7 @@ async function uploadInvoiceToDrive(id){
     const data = await r.json();
     if(data.id){
       if(btn){ btn.innerHTML='✓ Uploaded'; }
-      alert('Uploaded to Google Drive: '+fileName);
+      alert('Uploaded to Google Drive → "Serve Vision Invoices" folder: '+fileName);
       setTimeout(()=>{ if(btn){ btn.disabled=false; btn.innerHTML=originalText; } }, 2500);
     } else {
       throw new Error(data.error && data.error.message || 'Upload failed');

@@ -1,5 +1,18 @@
 [
   {
+    "id": "mryfwz3d4pp2",
+    "employeeId": "SV-EMP-006",
+    "employeeName": "Monika Bhardwaj",
+    "employeeEmail": "monikaservevision567@gmail.com",
+    "leaveType": "WFH",
+    "fromDate": "2026-07-24",
+    "toDate": "2026-07-24",
+    "isHalfDay": false,
+    "reason": "I have to go to the doctor",
+    "status": "pending",
+    "appliedAt": "2026-07-24T04:28:35.881Z"
+  },
+  {
     "id": "mrsp8a0biilm",
     "employeeId": "SV-EMP-011",
     "employeeName": "Yogesh Miglani",

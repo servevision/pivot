@@ -4237,8 +4237,8 @@ function rExp(){
 }
 
 function expExpCSV(){
-  const rows = [['Name','USD','INR','Date','Partner','Category','Notes','Has Invoice']];
-  EXP.forEach(e=>rows.push([e.name,e.usd,e.inr,e.date,e.partner,e.cat,e.notes,e.file?'Yes':'No']));
+  const rows = [['Name','USD','INR','Date','Partner','Payment Method','Category','Sub Category','Notes','Has Invoice']];
+  EXP.forEach(e=>rows.push([e.name,e.usd,e.inr,e.date,e.partner,e.payment||'',e.cat,e.subcat||'',e.notes,e.file?'Yes':'No']));
   dlC(rows,'expenses.csv');
 }
 

@@ -244,8 +244,8 @@ async function loadFromDB() {
     const [sheetsData, salData, holData, expData] = await Promise.all([
       dbRead('sheets'), dbRead('salary'), dbRead('holiday'), dbRead('expenses')
     ]);
-    if(expData && Array.isArray(expData)) EXP = expData;
     let changed = false;
+    if(expData && Array.isArray(expData)){ EXP = expData; changed = true; }
     if (sheetsData && Array.isArray(sheetsData) && sheetsData.length) {
       SHEETS = sheetsData.map(s => ({...s, rows: Number(s.rows)||0, status: s.url ? 'pending' : 'no-url'}));
       changed = true;

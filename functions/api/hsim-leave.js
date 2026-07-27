@@ -24,7 +24,15 @@ async function ghRead(file){
   const r=await fetch(url,{headers:{Authorization:`token ${GH_TOKEN}`,Accept:'application/vnd.github.v3+json','User-Agent':'SV-Dashboard'}});
   if(!r.ok) return {content:null,sha:null};
   const d=await r.json();
-  return {content:JSON.parse(atob(d.content.replace(/\n/g,''))),sha:d.sha};
+  let content;
+  if(d.content){
+    content = JSON.parse(atob(d.content.replace(/\n/g,'')));
+  } else {
+    const rawUrl = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/data/${file}.json`;
+    const rawRes = await fetch(rawUrl, {headers:{Authorization:`token ${GH_TOKEN}`}});
+    content = rawRes.ok ? await rawRes.json() : null;
+  }
+  return {content, sha:d.sha};
 }
 
 async function ghWrite(file,content,sha){

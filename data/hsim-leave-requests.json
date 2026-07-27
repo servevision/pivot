@@ -9,8 +9,9 @@
     "toDate": "2026-07-22",
     "isHalfDay": false,
     "reason": "Some personal work.",
-    "status": "pending",
-    "appliedAt": "2026-07-27T10:44:24.505Z"
+    "status": "approved",
+    "appliedAt": "2026-07-27T10:44:24.505Z",
+    "decidedAt": "2026-07-27T10:44:37.898Z"
   },
   {
     "id": "mrxat7sjmmb0",

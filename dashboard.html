@@ -541,8 +541,19 @@ async function pushAllToGitHub() {
           <div style="font-size:11px;color:var(--text2);margin-top:2px">AI-powered invoice scanning • Auto-fill from receipts</div>
         </div>
         <div style="display:flex;gap:6px">
+          <button class="btn" id="drive-scan-btn" onclick="scanDriveForMissingBills()">☁️ Check Drive for Missing Bills</button>
           <button class="btn" onclick="expExpCSV()">↓ Export CSV</button>
           <button class="btn btn-p" onclick="toggleExpForm()">+ Add Expense</button>
+        </div>
+      </div>
+
+      <div id="drive-scan-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.6);align-items:center;justify-content:center;overflow-y:auto;padding:20px">
+        <div style="background:#fff;border-radius:12px;width:100%;max-width:600px;max-height:80vh;overflow-y:auto">
+          <div style="position:sticky;top:0;background:#fff;padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+            <div style="font-weight:800;font-size:14px">Bills found on Drive, not in Expenses</div>
+            <button class="btn btn-sm" onclick="closeDriveScanModal()">✕ Close</button>
+          </div>
+          <div id="drive-scan-results" style="padding:16px 20px"></div>
         </div>
       </div>
 
@@ -3413,7 +3424,7 @@ function getDriveAccessToken(){
     if(!_driveTokenClient){
       _driveTokenClient = google.accounts.oauth2.initTokenClient({
         client_id: GOOGLE_DRIVE_CLIENT_ID,
-        scope: 'https://www.googleapis.com/auth/drive.file',
+        scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly',
         callback: (resp)=>{
           if(resp && resp.access_token){
             _driveAccessToken = resp.access_token;
@@ -3473,6 +3484,99 @@ async function uploadBlobToDrive(token, folderId, fileName, mimeType, blob){
     body: uploadBody
   });
   return await r.json();
+}
+
+async function scanDriveForMissingBills(){
+  if(GOOGLE_DRIVE_CLIENT_ID.includes('PASTE_YOUR')){ alert('Google Drive is not set up yet.'); return; }
+  const btn = document.getElementById('drive-scan-btn');
+  const originalText = btn ? btn.innerHTML : '';
+  if(btn){ btn.disabled=true; btn.innerHTML='Scanning Drive...'; }
+
+  try{
+    const token = await getDriveAccessToken();
+    const q = "trashed=false and (mimeType='application/pdf' or mimeType contains 'image/')";
+    let files = [];
+    let pageToken = '';
+    do{
+      const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=nextPageToken,files(id,name,createdTime,webViewLink,mimeType)&pageSize=1000&orderBy=createdTime desc${pageToken?'&pageToken='+pageToken:''}`;
+      const r = await fetch(url, { headers: { 'Authorization': 'Bearer '+token } });
+      if(!r.ok){
+        const errData = await r.json().catch(()=>({}));
+        throw new Error((errData.error && errData.error.message) || 'Drive search failed');
+      }
+      const data = await r.json();
+      if(data.files) files = files.concat(data.files);
+      pageToken = data.nextPageToken || '';
+    } while(pageToken);
+
+    const existingNames = new Set(EXP.map(e=>(e.fileName||'').toLowerCase().trim()).filter(Boolean));
+    const missing = files.filter(f=>!existingNames.has((f.name||'').toLowerCase().trim()));
+
+    showDriveScanResults(missing);
+  }catch(e){
+    alert('Drive scan failed: '+e.message+'\n\nIf this is the first scan since the upgrade, you may need to re-approve Drive access (a Google sign-in popup should have appeared) — try again.');
+  }finally{
+    if(btn){ btn.disabled=false; btn.innerHTML=originalText; }
+  }
+}
+
+function showDriveScanResults(files){
+  const el = document.getElementById('drive-scan-results');
+  if(!files.length){
+    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text2)">No extra bills found on Drive — everything in Drive already has a matching expense record (matched by file name).</div>';
+  } else {
+    el.innerHTML = `<div style="font-size:11.5px;color:var(--text2);margin-bottom:12px">${files.length} file(s) found on Drive with no matching expense. Click "Import" to open the Add Expense form with that bill attached.</div>` +
+      files.map(f=>`
+        <div class="sheet-card" style="padding:10px 14px">
+          <div style="flex:1;min-width:180px">
+            <div style="font-weight:600;font-size:12.5px">${f.name}</div>
+            <div style="font-size:10.5px;color:var(--text3);margin-top:2px">${f.createdTime ? new Date(f.createdTime).toLocaleDateString('en-IN') : ''}</div>
+          </div>
+          <a class="btn btn-sm" href="${f.webViewLink||'#'}" target="_blank" rel="noopener">👁️ View</a>
+          <button class="btn btn-sm btn-p" onclick="importDriveFileAsExpense('${f.id}','${f.name.replace(/'/g,"\\'")}','${f.mimeType}')">+ Import</button>
+        </div>`).join('');
+  }
+  document.getElementById('drive-scan-modal').style.display='flex';
+}
+function closeDriveScanModal(){
+  document.getElementById('drive-scan-modal').style.display='none';
+}
+
+async function importDriveFileAsExpense(fileId, fileName, mimeType){
+  try{
+    const token = await getDriveAccessToken();
+    const r = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+      headers: { 'Authorization': 'Bearer '+token }
+    });
+    if(!r.ok) throw new Error('Could not download file from Drive');
+    const blob = await r.blob();
+    const b64 = await new Promise((res,rej)=>{
+      const reader = new FileReader();
+      reader.onload = ()=>res(reader.result);
+      reader.onerror = rej;
+      reader.readAsDataURL(blob);
+    });
+
+    currentInvoiceData = b64;
+    currentInvoiceName = fileName;
+    closeDriveScanModal();
+
+    const empBtn = document.querySelector("button[onclick*=\"gp('expenses'\"]");
+    gp('expenses', empBtn);
+
+    setTimeout(()=>{
+      const w = document.getElementById('exp-form-wrap');
+      if(w.style.display==='none') toggleExpForm();
+      document.getElementById('exp-name').value = fileName.replace(/\.(pdf|jpg|jpeg|png)$/i,'');
+      const previewName = document.getElementById('ai-preview-name');
+      if(previewName) previewName.textContent = '📎 '+fileName;
+      if(typeof showInvoicePreview==='function') showInvoicePreview(b64, mimeType);
+      const zone = document.getElementById('ai-upload-zone');
+      if(zone) zone.style.display='none';
+    }, 300);
+  }catch(e){
+    alert('Could not import file: '+e.message);
+  }
 }
 
 async function uploadExpenseToDrive(id){

@@ -67,31 +67,36 @@ export async function onRequestPost(context){
   const {type,action}=body;
   if(!['sales','clients','invoices','banks'].includes(type)) return respond({error:'Invalid type'},400);
 
-  const {content:list,sha}=await ghRead(type);
-  let arr=list||[];
+  // Retry loop: if the write fails (e.g. someone else wrote to this file a
+  // moment ago and our SHA is now stale), re-read fresh data and try again
+  // instead of silently dropping the change.
+  let ok=false, resultId=null;
+  for(let attempt=0; attempt<5 && !ok; attempt++){
+    const {content:list,sha}=await ghRead(type);
+    let arr=list||[];
 
-  if(action==='create'){
-    const item=body.item;
-    item.id=Date.now().toString(36)+Math.random().toString(36).substr(2,4);
-    item.createdAt=new Date().toISOString();
-    arr.unshift(item);
-    const ok=await ghWrite(type,arr,sha);
-    return respond({ok,id:item.id});
+    if(action==='create'){
+      const item={...body.item};
+      item.id=Date.now().toString(36)+Math.random().toString(36).substr(2,4)+attempt;
+      item.createdAt=new Date().toISOString();
+      arr.unshift(item);
+      ok=await ghWrite(type,arr,sha);
+      if(ok) resultId=item.id;
+    } else if(action==='update'){
+      const idx=arr.findIndex(x=>x.id===body.id);
+      if(idx<0) return respond({error:'Not found'},404);
+      arr[idx]={...arr[idx],...body.item,updatedAt:new Date().toISOString()};
+      ok=await ghWrite(type,arr,sha);
+    } else if(action==='delete'){
+      arr=arr.filter(x=>x.id!==body.id);
+      ok=await ghWrite(type,arr,sha);
+    } else {
+      return respond({error:'Unknown action'},400);
+    }
+
+    if(!ok) await new Promise(res=>setTimeout(res, 300 + Math.random()*400));
   }
 
-  if(action==='update'){
-    const idx=arr.findIndex(x=>x.id===body.id);
-    if(idx<0) return respond({error:'Not found'},404);
-    arr[idx]={...arr[idx],...body.item,updatedAt:new Date().toISOString()};
-    const ok=await ghWrite(type,arr,sha);
-    return respond({ok});
-  }
-
-  if(action==='delete'){
-    arr=arr.filter(x=>x.id!==body.id);
-    const ok=await ghWrite(type,arr,sha);
-    return respond({ok});
-  }
-
-  return respond({error:'Unknown action'},400);
+  if(!ok) return respond({ok:false,error:'Could not save — please try again'},500);
+  return respond({ok:true, id:resultId});
 }

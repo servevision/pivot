@@ -3706,17 +3706,52 @@ const DEFAULT_CATEGORIES = {
   'Other':             []
 };
 
+let PAY_METHODS_CACHE = null;
+let CATEGORIES_CACHE = null;
+
 function getPayMethods(){
+  if(PAY_METHODS_CACHE) return PAY_METHODS_CACHE;
   try{ const s=localStorage.getItem('sv_pay_methods'); if(s) return JSON.parse(s); }catch(e){}
   return [...DEFAULT_PAY_METHODS];
 }
-function savePayMethods(m){ try{ localStorage.setItem('sv_pay_methods',JSON.stringify(m)); }catch(e){} }
+async function savePayMethods(m){
+  PAY_METHODS_CACHE = m;
+  try{ localStorage.setItem('sv_pay_methods',JSON.stringify(m)); }catch(e){}
+  try{
+    const current = await apiCall('GET',dp('exp-settings')) || {};
+    current.payMethods = m;
+    await apiCall('POST',dp('exp-settings'), current);
+  }catch(e){ console.error('savePayMethods sync failed', e); }
+}
 
 function getCategories(){
+  if(CATEGORIES_CACHE) return CATEGORIES_CACHE;
   try{ const s=localStorage.getItem('sv_categories'); if(s) return JSON.parse(s); }catch(e){}
   return JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
 }
-function saveCategories(c){ try{ localStorage.setItem('sv_categories',JSON.stringify(c)); }catch(e){} }
+async function saveCategories(c){
+  CATEGORIES_CACHE = c;
+  try{ localStorage.setItem('sv_categories',JSON.stringify(c)); }catch(e){}
+  try{
+    const current = await apiCall('GET',dp('exp-settings')) || {};
+    current.categories = c;
+    await apiCall('POST',dp('exp-settings'), current);
+  }catch(e){ console.error('saveCategories sync failed', e); }
+}
+
+async function loadExpSettings(){
+  try{
+    const d = await apiCall('GET',dp('exp-settings'));
+    if(d && typeof d==='object'){
+      let changed=false;
+      if(Array.isArray(d.payMethods) && d.payMethods.length){ PAY_METHODS_CACHE = d.payMethods; changed=true; }
+      if(d.categories && typeof d.categories==='object' && Object.keys(d.categories).length){ CATEGORIES_CACHE = d.categories; changed=true; }
+      if(changed && typeof populatePaySelects==='function' && curP==='expenses'){
+        populatePaySelects(); populateCatSelects(); rExp();
+      }
+    }
+  }catch(e){ console.error('loadExpSettings failed', e); }
+}
 
 function populateExpMonths(){
   const sel=document.getElementById('exp-fmonth');
@@ -4284,6 +4319,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Pull latest data from GitHub
     if (typeof loadFromDB === 'function') loadFromDB();
+    if (typeof loadExpSettings === 'function') loadExpSettings();
 
     // Auto-sync every 3 minutes
     if (typeof loadFromDB === 'function') setInterval(loadFromDB, 3 * 60 * 1000);

@@ -19,7 +19,17 @@ async function ghRead(table){
   const res=await fetch(url,{headers:{Authorization:`token ${GH_TOKEN}`,Accept:'application/vnd.github.v3+json','User-Agent':'SV-Dashboard'}});
   if(!res.ok) return {content:null,sha:null};
   const d=await res.json();
-  return {content:JSON.parse(atob(d.content.replace(/\n/g,''))),sha:d.sha};
+  let content;
+  if(d.content){
+    content = JSON.parse(atob(d.content.replace(/\n/g,'')));
+  } else {
+    // GitHub's Contents API omits inline content for files over ~1MB.
+    // Fall back to fetching the raw file directly (no size limit there).
+    const rawUrl = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/data/${table}.json`;
+    const rawRes = await fetch(rawUrl, {headers:{Authorization:`token ${GH_TOKEN}`}});
+    content = rawRes.ok ? await rawRes.json() : null;
+  }
+  return {content, sha:d.sha};
 }
 
 async function ghWrite(table,content,sha){

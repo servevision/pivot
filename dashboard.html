@@ -4139,20 +4139,35 @@ async function saveExpense(){
     updatedAt:new Date().toISOString(),
   };
 
+  setMsg('exp-msg','Saving...','info');
+
+  // Re-fetch the latest expenses from the server right before saving, so we
+  // never overwrite entries that another tab/session added since this page
+  // was loaded (this was previously causing recently-added expenses to
+  // silently disappear).
+  let freshExp = EXP;
+  try{
+    const serverExp = await apiCall('GET', dp('expenses'));
+    if(Array.isArray(serverExp)) freshExp = serverExp;
+  }catch(e){ console.error('Could not fetch latest expenses before saving, using local copy', e); }
+
   if(editId){
-    const idx=EXP.findIndex(e=>e.id===editId);
+    const idx=freshExp.findIndex(e=>e.id===editId);
     if(idx>=0){
-      if(!currentInvoiceData&&EXP[idx].file) expense.file=EXP[idx].file;
-      if(!currentInvoiceName&&EXP[idx].fileName) expense.fileName=EXP[idx].fileName;
-      expense.createdAt=EXP[idx].createdAt;
-      EXP[idx]=expense;
+      if(!currentInvoiceData&&freshExp[idx].file) expense.file=freshExp[idx].file;
+      if(!currentInvoiceName&&freshExp[idx].fileName) expense.fileName=freshExp[idx].fileName;
+      expense.createdAt=freshExp[idx].createdAt;
+      freshExp[idx]=expense;
+    } else {
+      freshExp.unshift(expense);
     }
   } else {
-    EXP.unshift(expense);
+    freshExp.unshift(expense);
   }
 
+  EXP = freshExp;
   svE();
-  if(typeof dbWrite!=='undefined') dbWrite('expenses',EXP);
+  if(typeof dbWrite!=='undefined') await dbWrite('expenses',EXP);
   rExp();
   toggleExpForm();
 }
@@ -4180,11 +4195,16 @@ function editExpense(id){
   document.getElementById('exp-form-wrap').scrollIntoView({behavior:'smooth'});
 }
 
-function deleteExpense(id){
+async function deleteExpense(id){
   if(!confirm('Delete this expense?')) return;
-  EXP=EXP.filter(e=>e.id!==id);
+  let freshExp = EXP;
+  try{
+    const serverExp = await apiCall('GET', dp('expenses'));
+    if(Array.isArray(serverExp)) freshExp = serverExp;
+  }catch(e){ console.error('Could not fetch latest expenses before deleting, using local copy', e); }
+  EXP = freshExp.filter(e=>e.id!==id);
   svE();
-  if(typeof dbWrite!=='undefined') dbWrite('expenses',EXP);
+  if(typeof dbWrite!=='undefined') await dbWrite('expenses',EXP);
   rExp();
 }
 

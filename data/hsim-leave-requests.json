@@ -23,8 +23,9 @@
     "toDate": "2026-07-13",
     "isHalfDay": false,
     "reason": "Went for Vacation",
-    "status": "pending",
-    "appliedAt": "2026-07-23T09:17:56.275Z"
+    "status": "approved",
+    "appliedAt": "2026-07-23T09:17:56.275Z",
+    "decidedAt": "2026-07-27T10:44:45.950Z"
   },
   {
     "id": "mrblijeumc4v",

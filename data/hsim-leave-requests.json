@@ -1,5 +1,18 @@
 [
   {
+    "id": "ms69sn46rk07",
+    "employeeId": "HSIM-EMP-003",
+    "employeeName": "Muskan Soni",
+    "employeeEmail": "sonimuskan.hsim@gmail.com",
+    "leaveType": "SL",
+    "fromDate": "2026-07-29",
+    "toDate": "2026-07-30",
+    "isHalfDay": false,
+    "reason": "I’m not feeling well so I won’t be able to come to the office I’ll be taking a sick leave Thank you for your understanding.",
+    "status": "pending",
+    "appliedAt": "2026-07-29T15:59:25.446Z"
+  },
+  {
     "id": "ms33ntq10r84",
     "employeeId": "HSIM-EMP-001",
     "employeeName": "Vivek Attri",

@@ -1,1 +1,13 @@
-{}
+{
+  "payMethods": [
+    "Credit Card",
+    "Debit Card",
+    "UPI",
+    "Bank Transfer",
+    "PayPal",
+    "Crypto",
+    "Cash",
+    "Sv Hdfc CC-5089",
+    "Other"
+  ]
+}

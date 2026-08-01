@@ -1,5 +1,18 @@
 [
   {
+    "id": "ms9z2ogr75wa",
+    "employeeId": "SV-EMP-004",
+    "employeeName": "Gourav Madaan",
+    "employeeEmail": "gouravsv1@gmail.com",
+    "leaveType": "WFH",
+    "fromDate": "2026-08-01",
+    "toDate": "2026-08-01",
+    "isHalfDay": false,
+    "reason": "Dear Sir,\n\nI hope you are doing well.\n\nI would like to request permission to work from home today, as some guests are visiting my home and my presence is required to manage the arrangements. I will remain fully available during working hours, attend all meetings, and ensure that all my assigned tasks are completed on time without any disruption.\n\nThank you for your understanding.\n\nKind regards,\nGourav Madaan",
+    "status": "pending",
+    "appliedAt": "2026-08-01T06:10:22.683Z"
+  },
+  {
     "id": "ms8g3nkmvlkc",
     "employeeId": "SV-EMP-010",
     "employeeName": "Aman Khokhar",

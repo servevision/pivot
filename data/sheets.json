@@ -4,80 +4,80 @@
     "name": "Ansh",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbw5wcr-BJaE6qkBFv0IqIADPEnVHPEtben4HYYK0wKQKbfL2pwSKz6o5JFios1buZqT-g/exec",
-    "status": "ok",
+    "status": "pending",
     "rows": 143,
-    "lastSync": "3:03:46 pm"
+    "lastSync": "12:01:17 pm"
   },
   {
     "id": "s2",
     "name": "Aman Khokhar",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbybIabQUdjvOhZHuNf0wuvZXr2f3JfEnsI6zICqbKoVsl3VfM3ILdDON-TWZxqgh70/exec",
-    "status": "ok",
-    "rows": 843,
-    "lastSync": "3:03:50 pm"
+    "status": "pending",
+    "rows": 841,
+    "lastSync": "12:02:33 pm"
   },
   {
     "id": "s3",
     "name": "Bhuvan Gaur",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbzoZ-d01wEzuIGdTuF3EOJntf1N5KCxoEGR4rIkvy7ig6q8wEAOlM1kBOf5Zl7eTQlJtg/exec",
-    "status": "ok",
+    "status": "pending",
     "rows": 501,
-    "lastSync": "3:03:56 pm"
+    "lastSync": "12:01:56 pm"
   },
   {
     "id": "s4",
     "name": "Sakshi",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbynMafp2BwQBk_zS4exzweR0otJyOflpmaoRfU4DdLDcwjUi5WvwWyvYaeGgcbah90/exec",
-    "status": "ok",
-    "rows": 428,
-    "lastSync": "3:04:01 pm"
+    "status": "pending",
+    "rows": 425,
+    "lastSync": "12:01:59 pm"
   },
   {
     "id": "s5",
     "name": "Sunita Mahata",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbx99TDIA2OdkP-bG02go1nXhXFoscmxoEb5YMc58MCqwR_BbL1fnvknDuZM5XCN6jDE/exec",
-    "status": "ok",
+    "status": "pending",
     "rows": 1119,
-    "lastSync": "3:04:06 pm"
+    "lastSync": "12:02:03 pm"
   },
   {
     "id": "s6",
     "name": "Gourav Madaan",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbxgauMxVYptoIPrnXJoHqTaHX8SAuTjvwfKsFE0P9QNL4f4fZqQqQMhjEJ-Od6X1MVn/exec",
-    "status": "ok",
+    "status": "pending",
     "rows": 147,
-    "lastSync": "3:06:18 pm"
+    "lastSync": "12:02:00 pm"
   },
   {
     "id": "s7",
     "name": "Joydeep Mahata",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbzQOcj6Au_p3k6q87p5i3gfhhuXeKwRIc1_5cC9s4Dq6dsIEh0FEwZIZcySaM_dtxs-fA/exec",
-    "status": "ok",
+    "status": "pending",
     "rows": 944,
-    "lastSync": "3:06:24 pm"
+    "lastSync": "10:39:15 am"
   },
   {
     "id": "s8",
     "name": "Monika Bhardwaj",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbxY7ZUbQxEZdN9Bbc_cj1CWy03rb8nDTvMjG4QYusLubGcFwVV5lSOUo1DNCCxXrtam8g/exec",
-    "status": "ok",
-    "rows": 636,
-    "lastSync": "3:06:29 pm"
+    "status": "pending",
+    "rows": 633,
+    "lastSync": "12:07:38 pm"
   },
   {
     "id": "s9",
     "name": "Payal",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbws-YI_t1sJ6pDxLcRCWHWi7FfZC6ZS1O9SgcNBLXNbmLmqI43ApNfA4DBY92-tpzLQrQ/exec",
-    "status": "ok",
+    "status": "pending",
     "rows": 193,
-    "lastSync": "3:06:34 pm"
+    "lastSync": "12:02:08 pm"
   }
 ]

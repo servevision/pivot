@@ -36,8 +36,9 @@
     "toDate": "2026-07-31",
     "isHalfDay": false,
     "reason": "Not well",
-    "status": "pending",
-    "appliedAt": "2026-07-31T04:31:29.302Z"
+    "status": "approved",
+    "appliedAt": "2026-07-31T04:31:29.302Z",
+    "decidedAt": "2026-08-03T05:59:53.531Z"
   },
   {
     "id": "mrzvpl81ixh0",

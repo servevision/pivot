@@ -4269,10 +4269,23 @@ async function saveExpense(){
     freshExp.unshift(expense);
   }
 
+  const originalExp = EXP;
   EXP = freshExp;
+  rExp(); // optimistic UI update
+
+  let result;
+  try{
+    result = await dbWrite('expenses', EXP);
+  }catch(e){ result = null; }
+
+  if(!result || !result.ok){
+    EXP = originalExp; // roll back — the save did not actually persist
+    rExp();
+    setMsg('exp-msg','⚠️ Could not save — the server did not confirm the write. Please try again.','red');
+    return;
+  }
   svE();
-  if(typeof dbWrite!=='undefined') await dbWrite('expenses',EXP);
-  rExp();
+  setMsg('exp-msg','✓ Saved','green');
   toggleExpForm();
 }
 
@@ -4301,15 +4314,29 @@ function editExpense(id){
 
 async function deleteExpense(id){
   if(!confirm('Delete this expense?')) return;
+  const originalExp = EXP;
   let freshExp = EXP;
   try{
     const serverExp = await apiCall('GET', dp('expenses'));
     if(Array.isArray(serverExp)) freshExp = serverExp;
   }catch(e){ console.error('Could not fetch latest expenses before deleting, using local copy', e); }
-  EXP = freshExp.filter(e=>e.id!==id);
+
+  const newExp = freshExp.filter(e=>e.id!==id);
+  EXP = newExp;
+  rExp(); // optimistic UI update
+
+  let result;
+  try{
+    result = await dbWrite('expenses', newExp);
+  }catch(e){ result = null; }
+
+  if(!result || !result.ok){
+    EXP = originalExp; // roll back — the delete did not actually save
+    rExp();
+    alert('⚠️ Could not delete — the change was not saved to the server. Please try again.\n\n(If this keeps happening, tell the admin: expense delete/save is failing.)');
+    return;
+  }
   svE();
-  if(typeof dbWrite!=='undefined') await dbWrite('expenses',EXP);
-  rExp();
 }
 
 function viewInvoice(id){

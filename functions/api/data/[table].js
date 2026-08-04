@@ -61,7 +61,12 @@ export async function onRequestPost(context){
   const table=params.table;
   if(!ALLOWED.includes(table)) return respond({error:'Unknown table'},400);
   const data=await request.json();
-  const {sha}=await ghRead(table);
-  const ok=await ghWrite(table,data,sha);
+
+  let ok=false;
+  for(let attempt=0; attempt<4 && !ok; attempt++){
+    const {sha}=await ghRead(table);
+    ok=await ghWrite(table,data,sha);
+    if(!ok) await new Promise(res=>setTimeout(res, 250 + Math.random()*350));
+  }
   return respond({ok,saved:ok});
 }

@@ -8,9 +8,10 @@
     "fromDate": "2026-07-29",
     "toDate": "2026-07-30",
     "isHalfDay": false,
-    "reason": "I’m not feeling well so I won’t be able to come to the office I’ll be taking a sick leave Thank you for your understanding.",
-    "status": "pending",
-    "appliedAt": "2026-07-29T15:59:25.446Z"
+    "reason": "Iâm not feeling well so I wonât be able to come to the office Iâll be taking a sick leave Thank you for your understanding.",
+    "status": "approved",
+    "appliedAt": "2026-07-29T15:59:25.446Z",
+    "decidedAt": "2026-08-05T09:35:59.030Z"
   },
   {
     "id": "ms33ntq10r84",

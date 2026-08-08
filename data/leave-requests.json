@@ -1,5 +1,18 @@
 [
   {
+    "id": "msjvdll2ue6v",
+    "employeeId": "SV-EMP-005",
+    "employeeName": "Joydeep Mahata",
+    "employeeEmail": "joydeepservevision@gmail.com",
+    "leaveType": "CL",
+    "fromDate": "2026-08-07",
+    "toDate": "2026-08-07",
+    "isHalfDay": false,
+    "reason": ".",
+    "status": "pending",
+    "appliedAt": "2026-08-08T04:24:35.462Z"
+  },
+  {
     "id": "msh2cqcu4kfb",
     "employeeId": "SV-EMP-010",
     "employeeName": "Aman Khokhar",
@@ -21,7 +34,7 @@
     "fromDate": "2026-08-05",
     "toDate": "2026-08-05",
     "isHalfDay": false,
-    "reason": "I have a personal emergency, and I need to travel to Yamuna Nagar urgently. Therefore, I wonÃ¢ÂÂt be able to come to work today. Thank you for your understanding.",
+    "reason": "I have a personal emergency, and I need to travel to Yamuna Nagar urgently. Therefore, I wonÃÂ¢ÃÂÃÂt be able to come to work today. Thank you for your understanding.",
     "status": "pending",
     "appliedAt": "2026-08-05T05:59:04.314Z"
   },

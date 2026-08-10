@@ -1,5 +1,18 @@
 [
   {
+    "id": "msn46kj0ovg7",
+    "employeeId": "SV-EMP-008",
+    "employeeName": "Sakshi Grover",
+    "employeeEmail": "sakshigrover.servevision@gmail.com",
+    "leaveType": "WFH",
+    "fromDate": "2026-08-10",
+    "toDate": "2026-08-10",
+    "isHalfDay": false,
+    "reason": "Sear sir,\nI’ll be working from home tomorrow, 10-Aug-2026, due to some personal reasons. I will be online during regular hours and reachable as usual.",
+    "status": "pending",
+    "appliedAt": "2026-08-10T10:54:22.572Z"
+  },
+  {
     "id": "msmxkjp73zaj",
     "employeeId": "SV-EMP-009",
     "employeeName": "Sunita Mahata",
@@ -73,7 +86,7 @@
     "fromDate": "2026-08-05",
     "toDate": "2026-08-05",
     "isHalfDay": false,
-    "reason": "I have a personal emergency, and I need to travel to Yamuna Nagar urgently. Therefore, I wonÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂt be able to come to work today. Thank you for your understanding.",
+    "reason": "I have a personal emergency, and I need to travel to Yamuna Nagar urgently. Therefore, I wonÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂt be able to come to work today. Thank you for your understanding.",
     "status": "pending",
     "appliedAt": "2026-08-05T05:59:04.314Z"
   },

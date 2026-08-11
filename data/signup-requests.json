@@ -7,8 +7,9 @@
     "designation": "PPC Executive",
     "department": "Marketing",
     "phone": "8168702048",
-    "status": "pending",
-    "requestedAt": "2026-08-11T11:21:33.311Z"
+    "status": "approved",
+    "requestedAt": "2026-08-11T11:21:33.311Z",
+    "decidedAt": "2026-08-11T11:21:56.001Z"
   },
   {
     "id": "mrbl78zni5ed",

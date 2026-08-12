@@ -45,5 +45,10 @@
     "monthly": 24000,
     "wdays": 30,
     "ov": {}
+  },
+  "Vaishali": {
+    "ov": {},
+    "monthly": 12000,
+    "wdays": 26
   }
 }

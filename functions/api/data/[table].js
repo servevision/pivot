@@ -21,7 +21,7 @@ async function ghRead(table){
   const d=await res.json();
   let content;
   if(d.content){
-    content = JSON.parse(atob(d.content.replace(/\n/g,'')));
+    content = JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\n/g,'')))));
   } else {
     // GitHub's Contents API omits inline content for files over ~1MB.
     // Fall back to fetching the raw file directly (no size limit there).

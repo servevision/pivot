@@ -24,7 +24,7 @@ async function ghRead(file){
   const d=await r.json();
   let content;
   if(d.content){
-    content = JSON.parse(atob(d.content.replace(/\n/g,'')));
+    content = JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\n/g,'')))));
   } else {
     const rawUrl = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/data/${file}.json`;
     const rawRes = await fetch(rawUrl, {headers:{Authorization:`token ${GH_TOKEN}`}});

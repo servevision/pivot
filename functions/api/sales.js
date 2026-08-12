@@ -22,7 +22,7 @@ async function ghRead(file){
   const r=await fetch(url,{headers:{Authorization:`token ${GH_TOKEN}`,Accept:'application/vnd.github.v3+json','User-Agent':'SV-Dashboard'}});
   if(!r.ok) return {content:null,sha:null};
   const d=await r.json();
-  return {content:JSON.parse(atob(d.content.replace(/\n/g,''))),sha:d.sha};
+  return {content:JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\n/g,''))))),sha:d.sha};
 }
 
 async function ghWrite(file,content,sha){

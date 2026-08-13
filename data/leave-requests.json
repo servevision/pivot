@@ -9,8 +9,9 @@
     "toDate": "2026-08-13",
     "isHalfDay": false,
     "reason": "wfh needed for today",
-    "status": "pending",
-    "appliedAt": "2026-08-13T04:46:30.840Z"
+    "status": "approved",
+    "appliedAt": "2026-08-13T04:46:30.840Z",
+    "decidedAt": "2026-08-13T05:48:56.206Z"
   },
   {
     "id": "msr0l3s74lsj",

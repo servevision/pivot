@@ -22,8 +22,9 @@
     "toDate": "2026-08-12",
     "isHalfDay": false,
     "reason": ".",
-    "status": "pending",
-    "appliedAt": "2026-08-13T04:24:46.951Z"
+    "status": "approved",
+    "appliedAt": "2026-08-13T04:24:46.951Z",
+    "decidedAt": "2026-08-13T05:48:50.231Z"
   },
   {
     "id": "msoahd8hlbdg",

@@ -1,5 +1,18 @@
 [
   {
+    "id": "msr1d1vchvj4",
+    "employeeId": "SV-EMP-011",
+    "employeeName": "Yogesh Miglani",
+    "employeeEmail": "myogesh805@gmail.com",
+    "leaveType": "WFH",
+    "fromDate": "2026-08-13",
+    "toDate": "2026-08-13",
+    "isHalfDay": false,
+    "reason": "wfh needed for today",
+    "status": "pending",
+    "appliedAt": "2026-08-13T04:46:30.840Z"
+  },
+  {
     "id": "msr0l3s74lsj",
     "employeeId": "SV-EMP-005",
     "employeeName": "Joydeep Mahata",

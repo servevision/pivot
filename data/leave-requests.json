@@ -1,5 +1,18 @@
 [
   {
+    "id": "msrgard7f82o",
+    "employeeId": "SV-EMP-009",
+    "employeeName": "Sunita Mahata",
+    "employeeEmail": "sunitamahata.servevision.io",
+    "leaveType": "HalfDay",
+    "fromDate": "2026-08-13",
+    "toDate": "2026-08-13",
+    "isHalfDay": true,
+    "reason": "Dear Sir,\n\nI would like to request a half day leave for today as I had to go for SIR verification after lunch.\n\nKindly approve my half day leave request.\n\nRegards,\nSunita",
+    "status": "pending",
+    "appliedAt": "2026-08-13T11:44:38.155Z"
+  },
+  {
     "id": "msr1d1vchvj4",
     "employeeId": "SV-EMP-011",
     "employeeName": "Yogesh Miglani",

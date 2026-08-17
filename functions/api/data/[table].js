@@ -6,7 +6,7 @@ const GH_TOKEN  = _t1 + _t2;
 const GH_OWNER  = 'servevision';
 const GH_REPO   = 'pivot';
 const GH_BRANCH = 'main';
-const ALLOWED   = ['sheets','salary','holiday','expenses','employees','signup-requests','leave-requests','employee-logins','workrecord-cache','hsim-employees','hsim-signup-requests','hsim-leave-requests','hsim-employee-logins','hsim-attendance','hsim-settings','password-reset-requests','hsim-password-reset-requests','sales','clients','invoices','company-settings','exp-settings'];
+const ALLOWED   = ['sheets','salary','holiday','expenses','employees','signup-requests','leave-requests','employee-logins','workrecord-cache','hsim-employees','hsim-signup-requests','hsim-leave-requests','hsim-employee-logins','hsim-attendance','hsim-settings','password-reset-requests','hsim-password-reset-requests','sales','clients','invoices','company-settings','exp-settings','leave-adjustments'];
 
 const CORS = {'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET,POST,OPTIONS','Access-Control-Allow-Headers':'Content-Type,Authorization'};
 

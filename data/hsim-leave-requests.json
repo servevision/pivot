@@ -9,8 +9,9 @@
     "toDate": "2026-08-12",
     "isHalfDay": true,
     "reason": "Travelling",
-    "status": "pending",
-    "appliedAt": "2026-08-19T01:14:06.463Z"
+    "status": "approved",
+    "appliedAt": "2026-08-19T01:14:06.463Z",
+    "decidedAt": "2026-08-19T11:38:43.875Z"
   },
   {
     "id": "mszeer1r9e3n",

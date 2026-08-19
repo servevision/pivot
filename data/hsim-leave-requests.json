@@ -1,5 +1,18 @@
 [
   {
+    "id": "mszedw57yff3",
+    "employeeId": "HSIM-EMP-001",
+    "employeeName": "Vivek Attri",
+    "employeeEmail": "vivek.hsim@gmail.com",
+    "leaveType": "HalfDay",
+    "fromDate": "2026-08-10",
+    "toDate": "2026-08-10",
+    "isHalfDay": true,
+    "reason": "Urjent work",
+    "status": "pending",
+    "appliedAt": "2026-08-19T01:13:14.491Z"
+  },
+  {
     "id": "ms69sn46rk07",
     "employeeId": "HSIM-EMP-003",
     "employeeName": "Muskan Soni",

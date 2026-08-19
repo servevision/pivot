@@ -23,8 +23,9 @@
     "toDate": "2026-08-13",
     "isHalfDay": true,
     "reason": "Dear Sir,\n\nI would like to request a half day leave for today as I had to go for SIR verification after lunch.\n\nKindly approve my half day leave request.\n\nRegards,\nSunita",
-    "status": "pending",
-    "appliedAt": "2026-08-13T11:44:38.155Z"
+    "status": "approved",
+    "appliedAt": "2026-08-13T11:44:38.155Z",
+    "decidedAt": "2026-08-19T11:38:24.383Z"
   },
   {
     "id": "msr1d1vchvj4",

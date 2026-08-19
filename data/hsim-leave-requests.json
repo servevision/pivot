@@ -1,5 +1,18 @@
 [
   {
+    "id": "mszef08vtaxb",
+    "employeeId": "HSIM-EMP-001",
+    "employeeName": "Vivek Attri",
+    "employeeEmail": "vivek.hsim@gmail.com",
+    "leaveType": "HalfDay",
+    "fromDate": "2026-08-12",
+    "toDate": "2026-08-12",
+    "isHalfDay": true,
+    "reason": "Travelling",
+    "status": "pending",
+    "appliedAt": "2026-08-19T01:14:06.463Z"
+  },
+  {
     "id": "mszeer1r9e3n",
     "employeeId": "HSIM-EMP-001",
     "employeeName": "Vivek Attri",

@@ -9,8 +9,9 @@
     "toDate": "2026-08-13",
     "isHalfDay": false,
     "reason": "Due to a family function, I need to take a holiday to be with my family and attend the function.",
-    "status": "pending",
-    "appliedAt": "2026-08-13T11:45:33.921Z"
+    "status": "approved",
+    "appliedAt": "2026-08-13T11:45:33.921Z",
+    "decidedAt": "2026-08-19T11:38:17.763Z"
   },
   {
     "id": "msrgard7f82o",

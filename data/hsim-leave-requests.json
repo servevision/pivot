@@ -35,8 +35,9 @@
     "toDate": "2026-08-10",
     "isHalfDay": true,
     "reason": "Urjent work",
-    "status": "pending",
-    "appliedAt": "2026-08-19T01:13:14.491Z"
+    "status": "approved",
+    "appliedAt": "2026-08-19T01:13:14.491Z",
+    "decidedAt": "2026-08-19T11:38:34.933Z"
   },
   {
     "id": "ms69sn46rk07",

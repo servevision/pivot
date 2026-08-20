@@ -9,8 +9,9 @@
     "toDate": "2026-08-20",
     "isHalfDay": false,
     "reason": "Hi, I’m feeling unwell today, so I’d like to work from home. I’ll remain available and complete my work as usual. Thank you for understanding.",
-    "status": "pending",
-    "appliedAt": "2026-08-20T04:28:41.020Z"
+    "status": "approved",
+    "appliedAt": "2026-08-20T04:28:41.020Z",
+    "decidedAt": "2026-08-20T06:39:17.466Z"
   },
   {
     "id": "msrgbye91i6b",

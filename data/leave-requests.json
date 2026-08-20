@@ -1,5 +1,18 @@
 [
   {
+    "id": "mt10t3248l4s",
+    "employeeId": "SV-EMP-002",
+    "employeeName": "Ansh",
+    "employeeEmail": "ansh24.sv@gmail.com",
+    "leaveType": "WFH",
+    "fromDate": "2026-08-20",
+    "toDate": "2026-08-20",
+    "isHalfDay": false,
+    "reason": "Hi, I’m feeling unwell today, so I’d like to work from home. I’ll remain available and complete my work as usual. Thank you for understanding.",
+    "status": "pending",
+    "appliedAt": "2026-08-20T04:28:41.020Z"
+  },
+  {
     "id": "msrgbye91i6b",
     "employeeId": "SV-EMP-004",
     "employeeName": "Gourav Madaan",

@@ -9,8 +9,9 @@
     "toDate": "2026-08-21",
     "isHalfDay": false,
     "reason": ".",
-    "status": "pending",
-    "appliedAt": "2026-08-21T04:24:44.778Z"
+    "status": "approved",
+    "appliedAt": "2026-08-21T04:24:44.778Z",
+    "decidedAt": "2026-08-21T07:46:28.900Z"
   },
   {
     "id": "mt10t3248l4s",

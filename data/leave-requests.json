@@ -1,5 +1,18 @@
 [
   {
+    "id": "mt2ni5iz1g5m",
+    "employeeId": "SV-EMP-004",
+    "employeeName": "Gourav Madaan",
+    "employeeEmail": "gouravsv1@gmail.com",
+    "leaveType": "HalfDay",
+    "fromDate": "2026-08-20",
+    "toDate": "2026-08-20",
+    "isHalfDay": true,
+    "reason": "due to some urgent work",
+    "status": "pending",
+    "appliedAt": "2026-08-21T07:51:48.347Z"
+  },
+  {
     "id": "mt2g3vfu5nda",
     "employeeId": "SV-EMP-005",
     "employeeName": "Joydeep Mahata",

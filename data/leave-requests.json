@@ -1,5 +1,18 @@
 [
   {
+    "id": "mt6vh0yqw8pe",
+    "employeeId": "SV-EMP-004",
+    "employeeName": "Gourav Madaan",
+    "employeeEmail": "gouravsv1@gmail.com",
+    "leaveType": "WFH",
+    "fromDate": "2026-08-24",
+    "toDate": "2026-08-24",
+    "isHalfDay": false,
+    "reason": "Hi Sir, I’m experiencing back pain today, which is making it difficult for me to travel to the office. Kindly allow me to work from home today. I’ll be available throughout the day and will manage all my work from home. Thank you.",
+    "status": "pending",
+    "appliedAt": "2026-08-24T06:45:57.410Z"
+  },
+  {
     "id": "mt2ni5iz1g5m",
     "employeeId": "SV-EMP-004",
     "employeeName": "Gourav Madaan",

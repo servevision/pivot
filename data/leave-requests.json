@@ -9,8 +9,9 @@
     "toDate": "2026-08-24",
     "isHalfDay": false,
     "reason": "Hi Sir, I’m experiencing back pain today, which is making it difficult for me to travel to the office. Kindly allow me to work from home today. I’ll be available throughout the day and will manage all my work from home. Thank you.",
-    "status": "pending",
-    "appliedAt": "2026-08-24T06:45:57.410Z"
+    "status": "approved",
+    "appliedAt": "2026-08-24T06:45:57.410Z",
+    "decidedAt": "2026-08-25T17:27:59.110Z"
   },
   {
     "id": "mt2ni5iz1g5m",

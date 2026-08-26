@@ -49,5 +49,22 @@
     "documents": {},
     "status": "active",
     "createdAt": "2026-07-23T09:34:09.230Z"
+  },
+  {
+    "employeeId": "HSIM-EMP-004",
+    "name": "richa",
+    "email": "richa.hsim@gmail.com",
+    "designation": "assistant career counsellor",
+    "department": "Other",
+    "phone": "8307918194",
+    "dateOfJoining": "2026-08-26",
+    "exitDate": "",
+    "salary": 0,
+    "bankAccountNo": "",
+    "bankIFSC": "",
+    "bankName": "",
+    "documents": {},
+    "status": "active",
+    "createdAt": "2026-08-26T09:14:47.450Z"
   }
 ]

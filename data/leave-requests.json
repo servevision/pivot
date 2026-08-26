@@ -1,5 +1,18 @@
 [
   {
+    "id": "mtaahcsx3e75",
+    "employeeId": "SV-EMP-006",
+    "employeeName": "Monika Bhardwaj",
+    "employeeEmail": "monikaservevision567@gmail.com",
+    "leaveType": "WFH",
+    "fromDate": "2026-08-27",
+    "toDate": "2026-08-27",
+    "isHalfDay": false,
+    "reason": "I have some personal work, so I need to work from home",
+    "status": "pending",
+    "appliedAt": "2026-08-26T16:09:25.521Z"
+  },
+  {
     "id": "mt6vh0yqw8pe",
     "employeeId": "SV-EMP-004",
     "employeeName": "Gourav Madaan",

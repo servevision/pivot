@@ -1,5 +1,18 @@
 [
   {
+    "id": "mtaakakhv137",
+    "employeeId": "SV-EMP-006",
+    "employeeName": "Monika Bhardwaj",
+    "employeeEmail": "monikaservevision567@gmail.com",
+    "leaveType": "CL",
+    "fromDate": "2026-08-29",
+    "toDate": "2026-08-29",
+    "isHalfDay": false,
+    "reason": "I am going home to celebrate the festival of Raksha Bandhan",
+    "status": "pending",
+    "appliedAt": "2026-08-26T16:11:42.593Z"
+  },
+  {
     "id": "mtaahcsx3e75",
     "employeeId": "SV-EMP-006",
     "employeeName": "Monika Bhardwaj",

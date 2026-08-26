@@ -1,5 +1,18 @@
 [
   {
+    "id": "mt9w8yi1l894",
+    "employeeId": "HSIM-EMP-004",
+    "employeeName": "richa",
+    "employeeEmail": "richa.hsim@gmail.com",
+    "leaveType": "WFH",
+    "fromDate": "2026-08-26",
+    "toDate": "2026-08-26",
+    "isHalfDay": false,
+    "reason": "work from home",
+    "status": "pending",
+    "appliedAt": "2026-08-26T09:30:59.113Z"
+  },
+  {
     "id": "mszef08vtaxb",
     "employeeId": "HSIM-EMP-001",
     "employeeName": "Vivek Attri",

@@ -58,9 +58,9 @@
     "name": "Joydeep Mahata",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbzQOcj6Au_p3k6q87p5i3gfhhuXeKwRIc1_5cC9s4Dq6dsIEh0FEwZIZcySaM_dtxs-fA/exec",
-    "status": "loading",
+    "status": "ok",
     "rows": 977,
-    "lastSync": "10:26:00 am"
+    "lastSync": "12:22:44 pm"
   },
   {
     "id": "s8",
@@ -76,7 +76,7 @@
     "name": "Payal",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbws-YI_t1sJ6pDxLcRCWHWi7FfZC6ZS1O9SgcNBLXNbmLmqI43ApNfA4DBY92-tpzLQrQ/exec",
-    "status": "ok",
+    "status": "loading",
     "rows": 203,
     "lastSync": "12:21:54 pm"
   },
@@ -85,7 +85,7 @@
     "name": "Vaishali",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbwPs2F9HXoWEmd0fv2H2RE9by8irlL313kSNgMk6J7r5XcndSTcvs5u8uUz1n7s4eDYPw/exec",
-    "status": "pending",
+    "status": "loading",
     "rows": 16,
     "lastSync": "10:27:28 am"
   },
@@ -94,7 +94,7 @@
     "name": "Yogesh Miglani",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbwzmjExrlbenxcUjzAAL9LnMiiZ6MCjb-te0J3Q9F8t3A-b6-cr4LDEVuhsj735GWGe/exec",
-    "status": "pending",
+    "status": "loading",
     "rows": 31,
     "lastSync": "10:27:42 am"
   }

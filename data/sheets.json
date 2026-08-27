@@ -22,9 +22,9 @@
     "name": "Bhuvan Gaur",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbzoZ-d01wEzuIGdTuF3EOJntf1N5KCxoEGR4rIkvy7ig6q8wEAOlM1kBOf5Zl7eTQlJtg/exec",
-    "status": "ok",
+    "status": "loading",
     "rows": 501,
-    "lastSync": "12:22:38 pm"
+    "lastSync": "10:25:39 am"
   },
   {
     "id": "s4",
@@ -58,7 +58,7 @@
     "name": "Joydeep Mahata",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbzQOcj6Au_p3k6q87p5i3gfhhuXeKwRIc1_5cC9s4Dq6dsIEh0FEwZIZcySaM_dtxs-fA/exec",
-    "status": "loading",
+    "status": "pending",
     "rows": 977,
     "lastSync": "10:26:00 am"
   },

@@ -100,13 +100,26 @@ export async function onRequestPost(context){
     if(ex.ok){ const ed=await ex.json(); sha=ed.sha; }
   }catch(e){}
 
-  const payload={message:`Store expense file ${ref}`,content:b64,branch:GH_BRANCH};
-  if(sha) payload.sha=sha;
+  // Retry on conflict/transient failures, re-reading the sha each time so a
+  // stale sha can't permanently block the save.
+  let lastErr='';
+  for(let attempt=0; attempt<3; attempt++){
+    const payload={message:`Store expense file ${ref}`,content:b64,branch:GH_BRANCH};
+    if(sha) payload.sha=sha;
 
-  const w=await fetch(api,{method:'PUT',headers:{Authorization:`token ${GH_TOKEN}`,Accept:'application/vnd.github.v3+json','Content-Type':'application/json','User-Agent':'SV-Dashboard'},body:JSON.stringify(payload)});
-  if(!w.ok){
-    const err=await w.text();
-    return respond({ok:false,error:'Could not store file: '+err.slice(0,200)},500);
+    const w=await fetch(api,{method:'PUT',headers:{Authorization:`token ${GH_TOKEN}`,Accept:'application/vnd.github.v3+json','Content-Type':'application/json','User-Agent':'SV-Dashboard'},body:JSON.stringify(payload)});
+    if(w.ok) return respond({ok:true,ref});
+
+    lastErr = `${w.status} ${(await w.text()).slice(0,180)}`;
+
+    // Re-read the current sha before trying again
+    try{
+      const ex=await fetch(`${api}?ref=${GH_BRANCH}`,{headers:{Authorization:`token ${GH_TOKEN}`,Accept:'application/vnd.github.v3+json','User-Agent':'SV-Dashboard'}});
+      sha = ex.ok ? (await ex.json()).sha : null;
+    }catch(e){ sha=null; }
+
+    await new Promise(r=>setTimeout(r, 300 + Math.random()*400));
   }
-  return respond({ok:true,ref});
+
+  return respond({ok:false,error:'Could not store file — '+lastErr},500);
 }

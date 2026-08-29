@@ -40,36 +40,36 @@
     "name": "Sunita Mahata",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbx99TDIA2OdkP-bG02go1nXhXFoscmxoEb5YMc58MCqwR_BbL1fnvknDuZM5XCN6jDE/exec",
-    "status": "loading",
-    "rows": 1172,
-    "lastSync": "10:25:49 am"
+    "status": "ok",
+    "rows": 1175,
+    "lastSync": "10:31:51 am"
   },
   {
     "id": "s6",
     "name": "Gourav Madaan",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbxgauMxVYptoIPrnXJoHqTaHX8SAuTjvwfKsFE0P9QNL4f4fZqQqQMhjEJ-Od6X1MVn/exec",
-    "status": "loading",
-    "rows": 178,
-    "lastSync": "12:22:46 pm"
+    "status": "ok",
+    "rows": 181,
+    "lastSync": "10:31:52 am"
   },
   {
     "id": "s7",
     "name": "Joydeep Mahata",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbzQOcj6Au_p3k6q87p5i3gfhhuXeKwRIc1_5cC9s4Dq6dsIEh0FEwZIZcySaM_dtxs-fA/exec",
-    "status": "loading",
-    "rows": 977,
-    "lastSync": "12:22:44 pm"
+    "status": "ok",
+    "rows": 981,
+    "lastSync": "10:31:55 am"
   },
   {
     "id": "s8",
     "name": "Monika Bhardwaj",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbxY7ZUbQxEZdN9Bbc_cj1CWy03rb8nDTvMjG4QYusLubGcFwVV5lSOUo1DNCCxXrtam8g/exec",
-    "status": "pending",
+    "status": "ok",
     "rows": 681,
-    "lastSync": "10:26:08 am"
+    "lastSync": "10:31:55 am"
   },
   {
     "id": "s9",
@@ -85,7 +85,7 @@
     "name": "Vaishali",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbwPs2F9HXoWEmd0fv2H2RE9by8irlL313kSNgMk6J7r5XcndSTcvs5u8uUz1n7s4eDYPw/exec",
-    "status": "pending",
+    "status": "loading",
     "rows": 16,
     "lastSync": "12:22:46 pm"
   },
@@ -94,7 +94,7 @@
     "name": "Yogesh Miglani",
     "tab": "Work Record",
     "url": "https://script.google.com/macros/s/AKfycbwzmjExrlbenxcUjzAAL9LnMiiZ6MCjb-te0J3Q9F8t3A-b6-cr4LDEVuhsj735GWGe/exec",
-    "status": "pending",
+    "status": "loading",
     "rows": 31,
     "lastSync": "10:27:42 am"
   }

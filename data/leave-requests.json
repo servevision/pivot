@@ -22,8 +22,9 @@
     "toDate": "2026-08-29",
     "isHalfDay": false,
     "reason": "I am going home to celebrate the festival of Raksha Bandhan",
-    "status": "pending",
-    "appliedAt": "2026-08-26T16:11:42.593Z"
+    "status": "approved",
+    "appliedAt": "2026-08-26T16:11:42.593Z",
+    "decidedAt": "2026-08-29T07:03:08.735Z"
   },
   {
     "id": "mtaahcsx3e75",

@@ -1,5 +1,21 @@
 [
   {
+    "id": "mtdx2wvln14l",
+    "name": "Instantly Growth Plan",
+    "usd": 42.3,
+    "inr": 4110,
+    "date": "2026-06-01",
+    "partner": "Serve Vision",
+    "payment": "Sv Hdfc CC-5089",
+    "cat": "Software / SaaS",
+    "subcat": "Subscription",
+    "notes": "Invoice II77Z7OM-0001, Receipt 2274-3602, 10% discount applied (Partnerships - Lead Gen Jay)",
+    "fileName": "Receipt-2274-3602.pdf",
+    "createdAt": "2026-08-29T05:05:21.393Z",
+    "updatedAt": "2026-08-29T05:05:21.393Z",
+    "fileRef": "expense-files/mtdx2wvln14l.pdf"
+  },
+  {
     "id": "mtb5sez6858l",
     "name": "Domain Registrations (Bulk - 111 domains)",
     "usd": 99.85,

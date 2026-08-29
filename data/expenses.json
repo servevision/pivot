@@ -1,5 +1,21 @@
 [
   {
+    "id": "mte028oldvvx",
+    "name": "OpenRouter Credits",
+    "usd": 21.1,
+    "inr": 2026,
+    "date": "2026-08-03",
+    "partner": "Serve Vision",
+    "payment": "Sv Hdfc CC-5089",
+    "cat": "Software / SaaS",
+    "subcat": "",
+    "notes": "Invoice YY3NIKLL-0005, OpenRouter Invoice #1371-9174, EIN: 92-3594255",
+    "fileName": "Invoice-YY3NIKLL-0005.pdf",
+    "createdAt": "2026-08-29T06:28:48.885Z",
+    "updatedAt": "2026-08-29T06:28:48.885Z",
+    "fileRef": "expense-files/mte028oldvvx.pdf"
+  },
+  {
     "id": "mtdzzkzodlqa",
     "name": "volumemaster.org Domain Renewal",
     "usd": 13.9,

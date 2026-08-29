@@ -548,7 +548,7 @@ async function pushAllToGitHub() {
           <div style="font-size:11px;color:var(--text2);margin-top:2px">AI-powered invoice scanning • Auto-fill from receipts</div>
         </div>
         <div style="display:flex;gap:6px">
-          <button class="btn" id="drive-scan-btn" onclick="scanDriveForMissingBills()">☁️ Check Drive for Missing Bills</button>
+          <button class="btn" id="drive-scan-btn" onclick="scanDriveForMissingBills()">☁️ Check Missing Bills</button>
           <button class="btn" onclick="expExpCSV()">↓ Export CSV</button>
           <button class="btn btn-p" onclick="toggleExpForm()">+ Add Expense</button>
         </div>
@@ -557,7 +557,7 @@ async function pushAllToGitHub() {
       <div id="drive-scan-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.6);align-items:center;justify-content:center;overflow-y:auto;padding:20px">
         <div style="background:#fff;border-radius:12px;width:100%;max-width:600px;max-height:80vh;overflow-y:auto">
           <div style="position:sticky;top:0;background:#fff;padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
-            <div style="font-weight:800;font-size:14px">Bills found on Drive, not in Expenses</div>
+            <div style="font-weight:800;font-size:14px">Missing Bills — Expense Folder</div>
             <button class="btn btn-sm" onclick="closeDriveScanModal()">✕ Close</button>
           </div>
           <div id="drive-scan-results" style="padding:16px 20px"></div>
@@ -3833,15 +3833,39 @@ async function uploadBlobToDrive(token, folderId, fileName, mimeType, blob){
   return await r.json();
 }
 
+// Looks up an existing Drive folder by name (optionally inside a parent).
+// Returns null instead of creating it, so a scan never makes stray folders.
+async function findDriveFolder(token, folderName, parentId){
+  let q = `mimeType='application/vnd.google-apps.folder' and name='${folderName}' and trashed=false`;
+  if(parentId) q += ` and '${parentId}' in parents`;
+  const r = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)`, {
+    headers: { 'Authorization': 'Bearer '+token }
+  });
+  if(!r.ok) return null;
+  const d = await r.json();
+  return (d.files && d.files.length) ? d.files[0].id : null;
+}
+
 async function scanDriveForMissingBills(){
   if(GOOGLE_DRIVE_CLIENT_ID.includes('PASTE_YOUR')){ alert('Google Drive is not set up yet.'); return; }
   const btn = document.getElementById('drive-scan-btn');
   const originalText = btn ? btn.innerHTML : '';
-  if(btn){ btn.disabled=true; btn.innerHTML='Scanning Drive...'; }
+  if(btn){ btn.disabled=true; btn.innerHTML='Finding folder...'; }
+
+  const ROOT_FOLDER = 'Serve Vision Acc Data 26-27';
+  const SUB_FOLDER  = 'Serve Vision Expense 26-27';
 
   try{
     const token = await getDriveAccessToken();
-    const q = "trashed=false and (mimeType='application/pdf' or mimeType contains 'image/')";
+
+    // Only look inside the expense folder — not the whole Drive.
+    const rootId = await findDriveFolder(token, ROOT_FOLDER);
+    if(!rootId) throw new Error(`Folder "${ROOT_FOLDER}" not found in your Drive.`);
+    const folderId = await findDriveFolder(token, SUB_FOLDER, rootId);
+    if(!folderId) throw new Error(`Folder "${SUB_FOLDER}" not found inside "${ROOT_FOLDER}".`);
+
+    if(btn) btn.innerHTML='Scanning folder...';
+    const q = `'${folderId}' in parents and trashed=false and (mimeType='application/pdf' or mimeType contains 'image/')`;
     let files = [];
     let pageToken = '';
     do{
@@ -3859,20 +3883,21 @@ async function scanDriveForMissingBills(){
     const existingNames = new Set(EXP.map(e=>(e.fileName||'').toLowerCase().trim()).filter(Boolean));
     const missing = files.filter(f=>!existingNames.has((f.name||'').toLowerCase().trim()));
 
-    showDriveScanResults(missing);
+    showDriveScanResults(missing, files.length, `${ROOT_FOLDER} / ${SUB_FOLDER}`);
   }catch(e){
-    alert('Drive scan failed: '+e.message+'\n\nIf this is the first scan since the upgrade, you may need to re-approve Drive access (a Google sign-in popup should have appeared) — try again.');
+    alert('Drive scan failed: '+e.message);
   }finally{
     if(btn){ btn.disabled=false; btn.innerHTML=originalText; }
   }
 }
 
-function showDriveScanResults(files){
+function showDriveScanResults(files, scannedCount, folderLabel){
   const el = document.getElementById('drive-scan-results');
+  const where = folderLabel ? `<div style="font-size:11px;color:var(--text3);margin-bottom:10px">📁 Scanned: ${folderLabel}${scannedCount!=null?` — ${scannedCount} file(s) in folder`:''}</div>` : '';
   if(!files.length){
-    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text2)">No extra bills found on Drive — everything in Drive already has a matching expense record (matched by file name).</div>';
+    el.innerHTML = where + '<div style="padding:20px;text-align:center;color:var(--text2)">No missing bills — every file in this folder already has a matching expense record (matched by file name).</div>';
   } else {
-    el.innerHTML = `<div style="font-size:11.5px;color:var(--text2);margin-bottom:12px">${files.length} file(s) found on Drive with no matching expense. Click "Import" to open the Add Expense form with that bill attached.</div>` +
+    el.innerHTML = where + `<div style="font-size:11.5px;color:var(--text2);margin-bottom:12px">${files.length} file(s) here with no matching expense. Click "Import" to open the Add Expense form with that bill attached.</div>` +
       files.map(f=>`
         <div class="sheet-card" style="padding:10px 14px">
           <div style="flex:1;min-width:180px">

@@ -35,8 +35,9 @@
     "toDate": "2026-08-27",
     "isHalfDay": false,
     "reason": "I have some personal work, so I need to work from home",
-    "status": "pending",
-    "appliedAt": "2026-08-26T16:09:25.521Z"
+    "status": "approved",
+    "appliedAt": "2026-08-26T16:09:25.521Z",
+    "decidedAt": "2026-08-29T07:03:05.224Z"
   },
   {
     "id": "mt6vh0yqw8pe",

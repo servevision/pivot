@@ -3878,7 +3878,7 @@ async function importDriveFileAsExpense(fileId, fileName, mimeType){
 
 async function uploadExpenseToDrive(id){
   const exp = EXP.find(e=>e.id===id);
-  if(!exp || !exp.file){ alert('No receipt/invoice file attached to this expense'); return; }
+  if(!expenseHasFile(exp)){ alert('No receipt/invoice file attached to this expense'); return; }
   if(GOOGLE_DRIVE_CLIENT_ID.includes('PASTE_YOUR')){
     alert('Google Drive upload is not set up yet.');
     return;
@@ -3887,16 +3887,20 @@ async function uploadExpenseToDrive(id){
   const originalText = btn ? btn.innerHTML : '';
   if(btn){ btn.disabled=true; btn.innerHTML='Uploading...'; }
   try{
+    if(btn) btn.innerHTML='Loading bill...';
+    const fileData = await getExpenseFileData(exp);
+    if(!fileData) throw new Error('Could not load the bill file');
+
     const token = await getDriveAccessToken();
     if(btn) btn.innerHTML='Finding folder...';
     const folderId = await getAccDataSubfolder(token, 'Serve Vision Expense 26-27');
 
     if(btn) btn.innerHTML='Uploading...';
-    const isImage = exp.file.startsWith('data:image');
-    const mimeType = isImage ? (exp.file.match(/^data:(image\/[a-zA-Z+]+);/)||[])[1]||'image/jpeg' : 'application/pdf';
+    const isImage = fileData.startsWith('data:image');
+    const mimeType = isImage ? (fileData.match(/^data:(image\/[a-zA-Z+]+);/)||[])[1]||'image/jpeg' : 'application/pdf';
     const ext = isImage ? mimeType.split('/')[1] : 'pdf';
     const fileName = exp.fileName || `Expense_${exp.name||id}.${ext}`;
-    const blob = await (await fetch(exp.file)).blob();
+    const blob = await (await fetch(fileData)).blob();
 
     const data = await uploadBlobToDrive(token, folderId, fileName, mimeType, blob);
     if(data.id){
@@ -4531,16 +4535,34 @@ async function saveExpense(){
   if(!payment){setMsg('exp-msg','Please select payment method!','red');return;}
 
   const subcat=document.getElementById('exp-subcat')?.value||'';
+  const expId = editId||Date.now().toString(36)+Math.random().toString(36).substr(2,4);
   const expense={
-    id:editId||Date.now().toString(36)+Math.random().toString(36).substr(2,4),
+    id:expId,
     name,usd,inr,date,partner,payment,cat,subcat,notes,
-    file:currentInvoiceData,
     fileName:currentInvoiceName,
     createdAt:editId?undefined:new Date().toISOString(),
     updatedAt:new Date().toISOString(),
   };
 
   setMsg('exp-msg','Saving...','info');
+
+  // Bills are stored as their own file, so expenses.json stays small and a
+  // single save can never wipe out megabytes of attachments.
+  if(currentInvoiceData && currentInvoiceData.startsWith('data:')){
+    setMsg('exp-msg','Uploading bill...','info');
+    try{
+      const up = await apiCall('POST','/expense-file',{id:expId, dataUrl:currentInvoiceData});
+      if(up && up.ok && up.ref){
+        expense.fileRef = up.ref;
+      } else {
+        setMsg('exp-msg','⚠️ Could not upload the bill file. Please try again.','red');
+        return;
+      }
+    }catch(e){
+      setMsg('exp-msg','⚠️ Could not upload the bill file. Please try again.','red');
+      return;
+    }
+  }
 
   // Re-fetch the latest expenses from the server right before saving, so we
   // never overwrite entries that another tab/session added since this page
@@ -4555,7 +4577,11 @@ async function saveExpense(){
   if(editId){
     const idx=freshExp.findIndex(e=>e.id===editId);
     if(idx>=0){
-      if(!currentInvoiceData&&freshExp[idx].file) expense.file=freshExp[idx].file;
+      // Keep the existing attachment if the user didn't pick a new one
+      if(!expense.fileRef){
+        if(freshExp[idx].fileRef) expense.fileRef=freshExp[idx].fileRef;
+        else if(freshExp[idx].file) expense.file=freshExp[idx].file;
+      }
       if(!currentInvoiceName&&freshExp[idx].fileName) expense.fileName=freshExp[idx].fileName;
       expense.createdAt=freshExp[idx].createdAt;
       freshExp[idx]=expense;
@@ -4602,10 +4628,17 @@ function editExpense(id){
   document.getElementById('exp-notes').value=exp.notes||'';
   document.getElementById('exp-edit-id').value=exp.id;
   document.getElementById('ai-badge').style.display='none';
-  currentInvoiceData=exp.file||null;
+  currentInvoiceData=null;
   currentInvoiceName=exp.fileName||null;
   if(exp.fileName) document.getElementById('ai-preview-name').textContent='📎 '+exp.fileName;
-  if(exp.file) showInvoicePreview(exp.file, exp.file.startsWith('data:image')?'image/jpeg':'application/pdf');
+  if(expenseHasFile(exp)){
+    getExpenseFileData(exp).then(data=>{
+      if(!data) return;
+      // Only adopt it if the user hasn't picked a different file meanwhile
+      if(!currentInvoiceData) currentInvoiceData = data;
+      showInvoicePreview(data, data.startsWith('data:image')?'image/jpeg':'application/pdf');
+    });
+  }
   document.getElementById('exp-form-wrap').scrollIntoView({behavior:'smooth'});
 }
 
@@ -4636,14 +4669,37 @@ async function deleteExpense(id){
   svE();
 }
 
-function viewInvoice(id){
+// Resolves an expense's bill into a usable data URL, whether it's stored the
+// new way (its own file, referenced by fileRef) or the old inline way.
+const _expFileCache = {};
+async function getExpenseFileData(exp){
+  if(!exp) return null;
+  if(exp.file) return exp.file;               // legacy inline
+  if(!exp.fileRef) return null;
+  if(_expFileCache[exp.fileRef]) return _expFileCache[exp.fileRef];
+  try{
+    const r = await apiCall('GET','/expense-file?ref='+encodeURIComponent(exp.fileRef));
+    if(r && r.dataUrl){ _expFileCache[exp.fileRef]=r.dataUrl; return r.dataUrl; }
+  }catch(e){ console.error('Could not load bill file', e); }
+  return null;
+}
+
+function expenseHasFile(exp){ return !!(exp && (exp.file || exp.fileRef)); }
+
+async function viewInvoice(id){
   const exp=EXP.find(e=>e.id===id);
-  if(!exp||!exp.file) return;
+  if(!expenseHasFile(exp)) return;
   const win=window.open();
-  if(exp.file.startsWith('data:image')){
-    win.document.write(`<img src="${exp.file}" style="max-width:100%;height:auto">`);
+  win.document.write('<p style="font-family:sans-serif;padding:20px">Loading bill…</p>');
+  const data = await getExpenseFileData(exp);
+  if(!data){
+    win.document.body.innerHTML='<p style="font-family:sans-serif;padding:20px;color:#b00">Could not load this bill.</p>';
+    return;
+  }
+  if(data.startsWith('data:image')){
+    win.document.body.innerHTML=`<img src="${data}" style="max-width:100%;height:auto">`;
   } else {
-    win.document.write(`<iframe src="${exp.file}" style="width:100%;height:100vh;border:none"></iframe>`);
+    win.document.body.innerHTML=`<iframe src="${data}" style="width:100%;height:100vh;border:none"></iframe>`;
   }
 }
 
@@ -4707,7 +4763,7 @@ function rExp(){
       <td style="padding:9px 14px;border-bottom:1px solid var(--border)">${e.cat?`<span class="badge b-gray">${e.cat}${e.subcat?' › '+e.subcat:''}</span>`:'—'}</td>
       <td style="padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text2);font-size:12px">${e.notes||'—'}</td>
       <td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:center">
-        ${e.file?`<button class="btn btn-sm" onclick="viewInvoice('${e.id}')" style="background:var(--green-bg);color:var(--green-t);border-color:var(--green-bg)">📎 View</button> <button class="btn btn-sm" id="drive-exp-btn-${e.id}" onclick="uploadExpenseToDrive('${e.id}')">☁️ Drive</button>`:`<span style="color:var(--text3);font-size:11px">—</span>`}
+        ${expenseHasFile(e)?`<button class="btn btn-sm" onclick="viewInvoice('${e.id}')" style="background:var(--green-bg);color:var(--green-t);border-color:var(--green-bg)">📎 View</button> <button class="btn btn-sm" id="drive-exp-btn-${e.id}" onclick="uploadExpenseToDrive('${e.id}')">☁️ Drive</button>`:`<span style="color:var(--text3);font-size:11px">—</span>`}
       </td>
       <td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:center">
         <div style="display:flex;gap:4px;justify-content:center">
@@ -4721,7 +4777,7 @@ function rExp(){
 
 function expExpCSV(){
   const rows = [['Name','USD','INR','Date','Partner','Payment Method','Category','Sub Category','Notes','Has Invoice']];
-  EXP.forEach(e=>rows.push([e.name,e.usd,e.inr,e.date,e.partner,e.payment||'',e.cat,e.subcat||'',e.notes,e.file?'Yes':'No']));
+  EXP.forEach(e=>rows.push([e.name,e.usd,e.inr,e.date,e.partner,e.payment||'',e.cat,e.subcat||'',e.notes,expenseHasFile(e)?'Yes':'No']));
   dlC(rows,'expenses.csv');
 }
 

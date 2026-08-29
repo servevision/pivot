@@ -9,8 +9,9 @@
     "toDate": "2026-08-27",
     "isHalfDay": false,
     "reason": "WFH",
-    "status": "pending",
-    "appliedAt": "2026-08-27T04:17:09.144Z"
+    "status": "approved",
+    "appliedAt": "2026-08-27T04:17:09.144Z",
+    "decidedAt": "2026-08-29T07:03:15.628Z"
   },
   {
     "id": "mtaakakhv137",

@@ -241,11 +241,19 @@ function showDbStatus(msg, type) {
 async function loadFromDB() {
   showDbStatus('Syncing...', 'info');
   try {
-    const [sheetsData, salData, holData, expData] = await Promise.all([
-      dbRead('sheets'), dbRead('salary'), dbRead('holiday'), dbRead('expenses')
+    const [sheetsData, salData, holData, expData, wrCache] = await Promise.all([
+      dbRead('sheets'), dbRead('salary'), dbRead('holiday'), dbRead('expenses'), dbRead('workrecord-cache')
     ]);
     let changed = false;
     if(expData && Array.isArray(expData)){ EXP = expData; changed = true; }
+
+    // Restore the last synced Work Record data so the dashboard shows the
+    // previous numbers immediately instead of sitting empty until the next
+    // sheet sync finishes.
+    if (wrCache && Array.isArray(wrCache) && wrCache.length && !ALL.length) {
+      ALL = wrCache; changed = true;
+    }
+
     if (sheetsData && Array.isArray(sheetsData) && sheetsData.length) {
       SHEETS = sheetsData.map(s => ({...s, rows: Number(s.rows)||0, status: s.url ? 'pending' : 'no-url'}));
       changed = true;
@@ -470,17 +478,6 @@ async function pushAllToGitHub() {
         <div class="card" style="margin-bottom:0"><div class="card-t">Partner-wise Salary</div><div style="position:relative;height:195px"><canvas id="ch2" role="img" aria-label="Partner wise salary">data</canvas></div></div>
       </div>
       <div class="card"><div class="card-t">Employee Summary</div><div id="emp-ov"></div></div>
-      <div class="card">
-        <div class="card-t">🗓️ Leave Balance & Month-wise History</div>
-        <div class="card-sub" style="font-size:11px;color:var(--text2);margin-bottom:10px">CL: 1.5 days earned per month, carries forward · SL: 6 days per financial year (resets each Apr) · Click an employee to see every month</div>
-        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
-          <input type="text" id="lb-q" placeholder="Search employee..." oninput="renderLeaveBank()" style="flex:1;min-width:180px">
-          <button class="btn btn-sm" onclick="expandAllLeaveBank(true)">Expand all</button>
-          <button class="btn btn-sm" onclick="expandAllLeaveBank(false)">Collapse all</button>
-          <button class="btn btn-sm" onclick="exportLeaveBankCSV()">↓ Export CSV</button>
-        </div>
-        <div id="leave-bank-ov"></div>
-      </div>
       <div class="card">
         <div class="card-t">📋 Leave Log — Who Took Leave, When & How Many Days</div>
         <div class="card-sub" style="font-size:11px;color:var(--text2);margin-bottom:10px">From employee-applied leave requests · click a name to expand their dates</div>
@@ -829,8 +826,20 @@ async function pushAllToGitHub() {
     <!-- LEAVE APPROVALS -->
     <div class="page" id="page-leave-approvals">
       <div style="margin-bottom:14px"><div style="font-size:14px;font-weight:800">Leave Approvals</div>
-      <div style="font-size:11px;color:var(--text2);margin-top:2px">Approve or reject employee leave requests</div></div>
+      <div style="font-size:11px;color:var(--text2);margin-top:2px">Approve or reject employee leave requests — check their balance below before deciding</div></div>
       <div id="leave-approvals-list">Loading...</div>
+
+      <div class="card" style="margin-top:18px">
+        <div class="card-t">🗓️ Leave Balance & Month-wise History</div>
+        <div class="card-sub" style="font-size:11px;color:var(--text2);margin-bottom:10px">CL: 1.5 days earned per month, carries forward · SL: 6 days per financial year (resets each Apr) · WFH: 2 days per month · Click an employee to see every month</div>
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+          <input type="text" id="lb-q" placeholder="Search employee..." oninput="renderLeaveBank()" style="flex:1;min-width:180px">
+          <button class="btn btn-sm" onclick="expandAllLeaveBank(true)">Expand all</button>
+          <button class="btn btn-sm" onclick="expandAllLeaveBank(false)">Collapse all</button>
+          <button class="btn btn-sm" onclick="exportLeaveBankCSV()">↓ Export CSV</button>
+        </div>
+        <div id="leave-bank-ov"></div>
+      </div>
     </div>
 
     <!-- ATTENDANCE -->
@@ -1558,19 +1567,25 @@ async function syncOne(id){
   }catch(e){s.status='error';console.error(s.name,e);}
   rSheets();uFoot();
 }
-async function syncAll(){
+async function syncAll(silent){
   const btn=document.getElementById('sync-btn');
-  btn.disabled=true;
-  btn.innerHTML='<span class="spin">↻</span> Syncing...';
-  const ts=SHEETS.filter(s=>s.url&&s.url.trim());
-  if(!ts.length){
+  const restoreBtn=()=>{
+    if(!btn) return;
     btn.disabled=false;
     btn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23,4 23,10 17,10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Sync All Sheets';
-    alert('Koi sheet URL set nahi hai. Sheet Registry mein URLs add karo.');
+  };
+  if(btn){
+    btn.disabled=true;
+    btn.innerHTML='<span class="spin">↻</span> '+(silent?'Auto-syncing...':'Syncing...');
+  }
+  const ts=SHEETS.filter(s=>s.url&&s.url.trim());
+  if(!ts.length){
+    restoreBtn();
+    if(!silent) alert('Koi sheet URL set nahi hai. Sheet Registry mein URLs add karo.');
     return;
   }
-  const progWrap=document.getElementById('sync-prog');
-  const progList=document.getElementById('sync-prog-list');
+  const progWrap=silent?null:document.getElementById('sync-prog');
+  const progList=silent?null:document.getElementById('sync-prog-list');
   if(progWrap)progWrap.style.display='block';
   if(progList)progList.innerHTML=ts.map(s=>`<div id="sp-${s.id}" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--r);margin-bottom:3px;background:var(--bg2);border:1px solid var(--border);font-size:12px"><span class="spin" style="color:var(--amber)">↻</span><span style="flex:1;font-weight:600">${s.name}</span><span id="sps-${s.id}" style="color:var(--text3)">Connecting...</span></div>`).join('');
 
@@ -1590,14 +1605,23 @@ async function syncAll(){
       s.status='error';
       errCount++;
       console.error('Sync error:',s.name,e.message);
+      // Leave this sheet's previously synced rows in ALL untouched — a failed
+      // fetch should never erase data that was working a minute ago.
       if(pg)pg.innerHTML=`<span style="color:var(--red);font-size:16px">✗</span><span style="flex:1;font-weight:600">${s.name}</span><span style="color:var(--red-t)">${e.message||'Fetch failed'}</span>`;
     }
   }
 
   recalc();sv();rFilters();rCurrent();rSheets();uFoot();
-  try{ await dbWrite('workrecord-cache', ALL); }catch(e){ console.error('workrecord-cache save failed', e); }
-  btn.disabled=false;
-  btn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23,4 23,10 17,10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Sync All Sheets';
+  // Only overwrite the saved cache if at least one sheet came through, so a
+  // total network failure can't blank out the stored Work Record data.
+  if(okCount>0){
+    try{ await dbWrite('workrecord-cache', ALL); }catch(e){ console.error('workrecord-cache save failed', e); }
+  }
+  restoreBtn();
+  if(silent){
+    showDbStatus(`✓ Auto-synced ${okCount}/${ts.length}`, okCount?'ok':'warn');
+    return;
+  }
 
   // Show summary
   const summary=document.createElement('div');
@@ -1804,7 +1828,6 @@ function doR(id){
   if(id==='overview'){
     rOv();
     loadLeaveLog();
-    loadLeaveAdjustments().then(()=>renderLeaveBank());
   }
   else if(id==='salaries')rSal();
   else if(id==='partner-pivot')rPP();
@@ -1813,7 +1836,10 @@ function doR(id){
   else if(id==='expenses')rExp();
   else if(id==='emp-records')loadEmpData();
   else if(id==='signup-requests')rSignupRequests();
-  else if(id==='leave-approvals')rLeaveApprovals();
+  else if(id==='leave-approvals'){
+    rLeaveApprovals();
+    loadLeaveAdjustments().then(()=>renderLeaveBank());
+  }
   else if(id==='attendance')loadAttendance();
   else if(id==='password-resets')loadPasswordResets();
   else if(id==='sales')loadSales();
@@ -1895,6 +1921,30 @@ function fyLabelOf(month){
   return mi>=3 ? `${y}-${String(y+1).slice(-2)}` : `${y-1}-${String(y).slice(-2)}`;
 }
 
+// Counts approved WFH days for an employee in a given month (e.g. "Aug-2026").
+// WFH isn't recorded in the Work Record sheet, so it comes from leave requests.
+function countWFHDays(emp, month){
+  const src = (typeof LEAVE_REQUESTS!=='undefined' && LEAVE_REQUESTS.length) ? LEAVE_REQUESTS
+            : (typeof LLOG_DATA!=='undefined' ? LLOG_DATA : []);
+  if(!src || !src.length) return 0;
+  const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const [mn,yr]=month.split('-');
+  const mi=MN.indexOf(mn), y=parseInt(yr);
+  if(mi<0||isNaN(y)) return 0;
+
+  let days=0;
+  src.filter(l=>l.employeeName===emp && l.leaveType==='WFH' && l.status==='approved').forEach(l=>{
+    let d=new Date(l.fromDate);
+    const end=new Date(l.toDate||l.fromDate);
+    if(isNaN(d)||isNaN(end)) return;
+    while(d<=end){
+      if(d.getMonth()===mi && d.getFullYear()===y) days++;
+      d.setDate(d.getDate()+1);
+    }
+  });
+  return days;
+}
+
 function empMonthsSorted(emp){
   const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const months=[...new Set(ALL.filter(r=>r.name===emp&&r.month).map(r=>r.month))];
@@ -1929,7 +1979,7 @@ function getLeaveMonthlyTable(emp){
     const o = ov[month] || {};
     const clTaken  = hasOverride(o.cl)  ? Number(o.cl)  : sheetCL;
     const slTaken  = hasOverride(o.sl)  ? Number(o.sl)  : sheetSL;
-    const wfhTaken = hasOverride(o.wfh) ? Number(o.wfh) : 0;
+    const wfhTaken = hasOverride(o.wfh) ? Number(o.wfh) : countWFHDays(emp, month);
 
     // ── Casual Leave: earn 1.5/month, carries forward ──
     clBank += CL_EARN_PER_MONTH;
@@ -2016,7 +2066,7 @@ function renderLeaveBank(){
         <td style="text-align:center">${r.slTaken||'—'}</td>
         <td style="text-align:center;color:${r.slUnpaid?'var(--red-t)':'var(--text2)'}">${r.slUnpaid||'—'}</td>
         <td style="text-align:center;font-weight:700;color:var(--purple-t)">${r.slRemaining}</td>
-        <td style="text-align:center">${r.wfhTaken||'—'}</td>
+        <td style="text-align:center;color:${r.wfhTaken>2?'var(--red-t)':'var(--text)'};font-weight:${r.wfhTaken>2?'700':'400'}" title="${r.wfhTaken>2?'Over the 2/month WFH allowance':''}">${r.wfhTaken||'—'}${r.wfhTaken>2?' ⚠':''}</td>
       </tr>`).join('');
 
     return `<div style="border-bottom:1px solid var(--border);padding:10px 0">
@@ -4827,6 +4877,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Auto-sync every 3 minutes
     if (typeof loadFromDB === 'function') setInterval(loadFromDB, 3 * 60 * 1000);
+
+    // Auto-sync the Work Record sheets every 5 minutes, quietly in the
+    // background. Existing data stays on screen throughout — nothing is
+    // cleared while the sync runs.
+    if (typeof syncAll === 'function') {
+      setInterval(function(){
+        if (document.hidden) return;              // skip while tab is in the background
+        if (typeof SHEETS === 'undefined') return;
+        if (!SHEETS.some(s => s.url && s.url.trim())) return;
+        syncAll(true);
+      }, 5 * 60 * 1000);
+    }
 
     // Show pending-request counts on sidebar badges right away
     if (typeof loadEmpData === 'function') loadEmpData();

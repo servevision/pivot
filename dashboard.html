@@ -4633,15 +4633,23 @@ async function saveExpense(){
   if(currentInvoiceData && currentInvoiceData.startsWith('data:')){
     setMsg('exp-msg','Uploading bill...','info');
     try{
+      const approxKB = Math.round(currentInvoiceData.length * 0.75 / 1024);
       const up = await apiCall('POST','/expense-file',{id:expId, dataUrl:currentInvoiceData});
       if(up && up.ok && up.ref){
         expense.fileRef = up.ref;
       } else {
-        setMsg('exp-msg','⚠️ Could not upload the bill file. Please try again.','red');
+        // Surface the real reason instead of a generic message, so the
+        // problem is actually fixable rather than a guessing game.
+        const detail = (up && up.error) ? up.error
+                     : (up === null ? 'no response from server (possibly too large — bill is ~'+approxKB+' KB)'
+                                    : 'unexpected response');
+        console.error('Bill upload failed:', up);
+        setMsg('exp-msg','⚠️ Bill upload failed: '+detail,'red');
         return;
       }
     }catch(e){
-      setMsg('exp-msg','⚠️ Could not upload the bill file. Please try again.','red');
+      console.error('Bill upload threw:', e);
+      setMsg('exp-msg','⚠️ Bill upload failed: '+(e.message||'unknown error'),'red');
       return;
     }
   }

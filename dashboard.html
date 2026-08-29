@@ -3922,29 +3922,36 @@ async function importDriveFileAsExpense(fileId, fileName, mimeType){
     });
     if(!r.ok) throw new Error('Could not download file from Drive');
     const blob = await r.blob();
-    const b64 = await new Promise((res,rej)=>{
-      const reader = new FileReader();
-      reader.onload = ()=>res(reader.result);
-      reader.onerror = rej;
-      reader.readAsDataURL(blob);
-    });
 
-    currentInvoiceData = b64;
-    currentInvoiceName = fileName;
     closeDriveScanModal();
 
     const empBtn = document.querySelector("button[onclick*=\"gp('expenses'\"]");
     gp('expenses', empBtn);
 
+    // Wrap the downloaded bill in a real File object and run it through the
+    // same AI scan an uploaded file gets, so the form is auto-filled instead
+    // of the user having to type everything again.
+    const file = new File([blob], fileName, { type: mimeType || blob.type || 'application/pdf' });
+
     setTimeout(()=>{
       const w = document.getElementById('exp-form-wrap');
-      if(w.style.display==='none') toggleExpForm();
-      document.getElementById('exp-name').value = fileName.replace(/\.(pdf|jpg|jpeg|png)$/i,'');
-      const previewName = document.getElementById('ai-preview-name');
-      if(previewName) previewName.textContent = '📎 '+fileName;
-      if(typeof showInvoicePreview==='function') showInvoicePreview(b64, mimeType);
-      const zone = document.getElementById('ai-upload-zone');
-      if(zone) zone.style.display='none';
+      if(w && w.style.display==='none') toggleExpForm();
+      // Fallback name in case the AI can't read this bill
+      const nameEl = document.getElementById('exp-name');
+      if(nameEl && !nameEl.value) nameEl.value = fileName.replace(/\.(pdf|jpg|jpeg|png|webp)$/i,'');
+
+      if(typeof scanWithAI==='function'){
+        scanWithAI(file);
+      } else {
+        // Very unlikely, but still attach the bill so nothing is lost
+        const reader = new FileReader();
+        reader.onload = ()=>{
+          currentInvoiceData = reader.result;
+          currentInvoiceName = fileName;
+          if(typeof showInvoicePreview==='function') showInvoicePreview(reader.result, mimeType);
+        };
+        reader.readAsDataURL(blob);
+      }
     }, 300);
   }catch(e){
     alert('Could not import file: '+e.message);

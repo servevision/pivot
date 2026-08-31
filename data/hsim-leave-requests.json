@@ -9,9 +9,10 @@
     "toDate": "2026-08-26",
     "isHalfDay": false,
     "reason": "work from home",
-    "status": "pending",
+    "status": "approved",
     "appliedAt": "2026-08-26T09:30:59.113Z",
-    "editedAt": "2026-08-26T09:31:32.566Z"
+    "editedAt": "2026-08-26T09:31:32.566Z",
+    "decidedAt": "2026-08-31T12:28:02.773Z"
   },
   {
     "id": "mszef08vtaxb",

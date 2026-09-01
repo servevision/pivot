@@ -9,8 +9,9 @@
     "toDate": "2026-09-01",
     "isHalfDay": false,
     "reason": "Hi, I’m having a bad headache and not feeling well today. I’d like to take sick leave for the first half. Please approve my leave. Thank you.",
-    "status": "pending",
-    "appliedAt": "2026-09-01T04:28:37.172Z"
+    "status": "rejected",
+    "appliedAt": "2026-09-01T04:28:37.172Z",
+    "decidedAt": "2026-09-01T06:07:41.533Z"
   },
   {
     "id": "mtb0h7vc4kdj",

@@ -1,5 +1,18 @@
 [
   {
+    "id": "mti64m8n2wlu",
+    "employeeId": "HSIM-EMP-003",
+    "employeeName": "Muskan Soni",
+    "employeeEmail": "sonimuskan.hsim@gmail.com",
+    "leaveType": "SL",
+    "fromDate": "2026-08-31",
+    "toDate": "2026-08-31",
+    "isHalfDay": false,
+    "reason": "I am feeling unwell and have a fever so I will not be able to attend the office I kindly request you to grant me leave for the day.",
+    "status": "pending",
+    "appliedAt": "2026-09-01T04:29:42.167Z"
+  },
+  {
     "id": "mt9w8yi1l894",
     "employeeId": "HSIM-EMP-004",
     "employeeName": "richa",

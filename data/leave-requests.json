@@ -1,5 +1,18 @@
 [
   {
+    "id": "mtim99lpgur3",
+    "employeeId": "SV-EMP-008",
+    "employeeName": "Sakshi Grover",
+    "employeeEmail": "sakshigrover.servevision@gmail.com",
+    "leaveType": "CL",
+    "fromDate": "2026-09-02",
+    "toDate": "2026-09-02",
+    "isHalfDay": false,
+    "reason": "I would like to request leave tomorrow due to personal work. please approve my leave.",
+    "status": "pending",
+    "appliedAt": "2026-09-01T12:01:12.925Z"
+  },
+  {
     "id": "mti9o460hkcf",
     "employeeId": "SV-EMP-002",
     "employeeName": "Ansh",

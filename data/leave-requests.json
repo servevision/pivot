@@ -1,5 +1,18 @@
 [
   {
+    "id": "mti9o460hkcf",
+    "employeeId": "SV-EMP-002",
+    "employeeName": "Ansh",
+    "employeeEmail": "ansh24.sv@gmail.com",
+    "leaveType": "HalfDay",
+    "fromDate": "2026-09-01",
+    "toDate": "2026-09-01",
+    "isHalfDay": true,
+    "reason": "Hi, I’m having a bad headache and not feeling well today. I’d like to take half day leave for the first half. Please approve my leave. Thank you.",
+    "status": "pending",
+    "appliedAt": "2026-09-01T06:08:50.712Z"
+  },
+  {
     "id": "mti638389li5",
     "employeeId": "SV-EMP-002",
     "employeeName": "Ansh",

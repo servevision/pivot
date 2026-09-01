@@ -9,8 +9,9 @@
     "toDate": "2026-09-01",
     "isHalfDay": true,
     "reason": "Hi, I’m having a bad headache and not feeling well today. I’d like to take half day leave for the first half. Please approve my leave. Thank you.",
-    "status": "pending",
-    "appliedAt": "2026-09-01T06:08:50.712Z"
+    "status": "approved",
+    "appliedAt": "2026-09-01T06:08:50.712Z",
+    "decidedAt": "2026-09-01T09:35:43.994Z"
   },
   {
     "id": "mti638389li5",

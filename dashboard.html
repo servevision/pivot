@@ -1838,7 +1838,16 @@ function doR(id){
   else if(id==='signup-requests')rSignupRequests();
   else if(id==='leave-approvals'){
     rLeaveApprovals();
-    loadLeaveAdjustments().then(()=>renderLeaveBank());
+    // Load everything the balance table needs before drawing it, so WFH and
+    // leave counts are never rendered from empty data.
+    (async ()=>{
+      const jobs = [loadLeaveAdjustments(), loadLeaveRequestsCache()];
+      if(currentCompany==='hsim' && (typeof EMP_RECORDS==='undefined' || !EMP_RECORDS.length)){
+        jobs.push(loadEmpData());
+      }
+      await Promise.all(jobs);
+      renderLeaveBank();
+    })();
   }
   else if(id==='attendance')loadAttendance();
   else if(id==='password-resets')loadPasswordResets();
@@ -1923,30 +1932,57 @@ function fyLabelOf(month){
 
 // Counts approved WFH days for an employee in a given month (e.g. "Aug-2026").
 // WFH isn't recorded in the Work Record sheet, so it comes from leave requests.
-function countWFHDays(emp, month){
-  const src = (typeof LEAVE_REQUESTS!=='undefined' && LEAVE_REQUESTS.length) ? LEAVE_REQUESTS
-            : (typeof LLOG_DATA!=='undefined' ? LLOG_DATA : []);
-  if(!src || !src.length) return 0;
+// Leave requests are fetched into their own cache so the balance table never
+// depends on whether the approvals list happened to load first.
+let LEAVE_REQ_CACHE = [];
+async function loadLeaveRequestsCache(){
+  try{
+    const d = await apiCall('GET', dp('leave-requests'));
+    LEAVE_REQ_CACHE = Array.isArray(d) ? d : [];
+  }catch(e){ LEAVE_REQ_CACHE = []; }
+}
+
+function leaveReqSource(){
+  if(LEAVE_REQ_CACHE.length) return LEAVE_REQ_CACHE;
+  if(typeof LEAVE_REQUESTS!=='undefined' && LEAVE_REQUESTS.length) return LEAVE_REQUESTS;
+  if(typeof LLOG_DATA!=='undefined' && LLOG_DATA.length) return LLOG_DATA;
+  return [];
+}
+
+// Counts approved leave days of a given type for an employee in one month.
+// 'CL' also picks up Half Days, each counting as 0.5.
+function countLeaveDaysByType(emp, month, type){
+  const src = leaveReqSource();
+  if(!src.length) return 0;
   const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const [mn,yr]=month.split('-');
   const mi=MN.indexOf(mn), y=parseInt(yr);
   if(mi<0||isNaN(y)) return 0;
 
   let days=0;
-  src.filter(l=>l.employeeName===emp && l.leaveType==='WFH' && l.status==='approved').forEach(l=>{
+  src.filter(l=>l.employeeName===emp && l.status==='approved').forEach(l=>{
+    const t = l.leaveType;
+    const isHalf = !!l.isHalfDay || t==='HalfDay';
+    let matches = (t===type);
+    if(type==='CL' && t==='HalfDay') matches = true;
+    if(!matches) return;
+
     let d=new Date(l.fromDate);
     const end=new Date(l.toDate||l.fromDate);
     if(isNaN(d)||isNaN(end)) return;
     while(d<=end){
-      if(d.getMonth()===mi && d.getFullYear()===y) days++;
+      if(d.getMonth()===mi && d.getFullYear()===y) days += isHalf ? 0.5 : 1;
       d.setDate(d.getDate()+1);
     }
   });
   return days;
 }
 
+function countWFHDays(emp, month){ return countLeaveDaysByType(emp, month, 'WFH'); }
+
 function empMonthsSorted(emp){
   const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  if(currentCompany==='hsim') return fyMonthsToDate();
   const months=[...new Set(ALL.filter(r=>r.name===emp&&r.month).map(r=>r.month))];
   months.sort((a,b)=>{
     const [ma,ya]=a.split('-'),[mb,yb]=b.split('-');
@@ -1970,15 +2006,24 @@ function getLeaveMonthlyTable(emp){
 
   const rows = [];
   months.forEach(month=>{
-    const ms = getMonthSal(emp, month);
-    if(!ms) return; // not employed / no salary configured that month
+    const isHsim = currentCompany==='hsim';
+    if(!isHsim){
+      const ms = getMonthSal(emp, month);
+      if(!ms) return; // not employed / no salary configured that month
+    }
 
-    const sheetCL = [...new Set(ALL.filter(r=>r.name===emp&&r.month===month&&r.isCasualLeave&&r.date).map(r=>r.date))].length;
-    const sheetSL = [...new Set(ALL.filter(r=>r.name===emp&&r.month===month&&r.isSickLeave&&r.date).map(r=>r.date))].length;
+    // Serve Vision's Work Record sheet is the source of truth for CL/SL.
+    // HSIM has no sheet, so its figures come from approved leave requests.
+    const baseCL = isHsim
+      ? countLeaveDaysByType(emp, month, 'CL')
+      : [...new Set(ALL.filter(r=>r.name===emp&&r.month===month&&r.isCasualLeave&&r.date).map(r=>r.date))].length;
+    const baseSL = isHsim
+      ? countLeaveDaysByType(emp, month, 'SL')
+      : [...new Set(ALL.filter(r=>r.name===emp&&r.month===month&&r.isSickLeave&&r.date).map(r=>r.date))].length;
 
     const o = ov[month] || {};
-    const clTaken  = hasOverride(o.cl)  ? Number(o.cl)  : sheetCL;
-    const slTaken  = hasOverride(o.sl)  ? Number(o.sl)  : sheetSL;
+    const clTaken  = hasOverride(o.cl)  ? Number(o.cl)  : baseCL;
+    const slTaken  = hasOverride(o.sl)  ? Number(o.sl)  : baseSL;
     const wfhTaken = hasOverride(o.wfh) ? Number(o.wfh) : countWFHDays(emp, month);
 
     // ── Casual Leave: earn 1.5/month, carries forward ──
@@ -2012,7 +2057,28 @@ function getLeaveMonthlyTable(emp){
 }
 
 function leaveBankEmployees(){
+  // HSIM has no Work Record sheets, so its list comes from Employee Records
+  // and its leave figures come purely from leave requests.
+  if(currentCompany==='hsim'){
+    return (typeof EMP_RECORDS!=='undefined' ? EMP_RECORDS : [])
+      .map(e=>e.name).filter(Boolean).sort();
+  }
   return [...new Set(ALL.filter(r=>r.name && SAL[r.name]).map(r=>r.name))].sort();
+}
+
+// Months from the start of the current financial year (April) up to now.
+function fyMonthsToDate(){
+  const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const now=new Date();
+  const y=now.getFullYear(), m=now.getMonth();
+  const startYear = m>=3 ? y : y-1;
+  const out=[];
+  let yy=startYear, mm=3;
+  while(yy<y || (yy===y && mm<=m)){
+    out.push(MN[mm]+'-'+yy);
+    mm++; if(mm>11){ mm=0; yy++; }
+  }
+  return out;
 }
 
 function safeId(name){ return name.replace(/[^a-zA-Z0-9]/g,''); }

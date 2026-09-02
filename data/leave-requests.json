@@ -9,8 +9,9 @@
     "toDate": "2026-09-02",
     "isHalfDay": false,
     "reason": "I would like to request leave tomorrow due to personal work. please approve my leave.",
-    "status": "pending",
-    "appliedAt": "2026-09-01T12:01:12.925Z"
+    "status": "approved",
+    "appliedAt": "2026-09-01T12:01:12.925Z",
+    "decidedAt": "2026-09-02T09:29:21.629Z"
   },
   {
     "id": "mti9o460hkcf",

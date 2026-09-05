@@ -164,11 +164,13 @@
     "dateOfJoining": "2026-08-11",
     "exitDate": "",
     "salary": 0,
-    "bankAccountNo": "",
+    "bankAccountNo": "5103330899",
     "bankIFSC": "",
-    "bankName": "",
+    "bankName": "Central Bank of India",
     "documents": {},
     "status": "active",
-    "createdAt": "2026-08-11T11:21:53.631Z"
+    "createdAt": "2026-08-11T11:21:53.631Z",
+    "dateOfBirth": "",
+    "updatedAt": "2026-09-05T06:46:35.351Z"
   }
 ]

@@ -1,5 +1,18 @@
 [
   {
+    "id": "mtnxns70nsmo",
+    "employeeId": "HSIM-EMP-004",
+    "employeeName": "richa",
+    "employeeEmail": "richa.hsim@gmail.com",
+    "leaveType": "CL",
+    "fromDate": "2026-09-04",
+    "toDate": "2026-09-04",
+    "isHalfDay": false,
+    "reason": "I am unable to attend due to an urgent personal matter that required my immediate attention.",
+    "status": "pending",
+    "appliedAt": "2026-09-05T05:19:16.860Z"
+  },
+  {
     "id": "mti64m8n2wlu",
     "employeeId": "HSIM-EMP-003",
     "employeeName": "Muskan Soni",

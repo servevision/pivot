@@ -1,5 +1,18 @@
 [
   {
+    "id": "mtnv1q0l4rhn",
+    "employeeId": "SV-EMP-006",
+    "employeeName": "Monika Bhardwaj",
+    "employeeEmail": "monikaservevision567@gmail.com",
+    "leaveType": "WFH",
+    "fromDate": "2026-09-05",
+    "toDate": "2026-09-05",
+    "isHalfDay": false,
+    "reason": "I have a doctor's appointment",
+    "status": "pending",
+    "appliedAt": "2026-09-05T04:06:08.373Z"
+  },
+  {
     "id": "mtmfisy3n52t",
     "employeeId": "SV-EMP-005",
     "employeeName": "Joydeep Mahata",

@@ -9,8 +9,9 @@
     "toDate": "2026-09-05",
     "isHalfDay": false,
     "reason": "WFH",
-    "status": "pending",
-    "appliedAt": "2026-09-09T04:31:15.255Z"
+    "status": "approved",
+    "appliedAt": "2026-09-09T04:31:15.255Z",
+    "decidedAt": "2026-09-09T06:25:16.369Z"
   },
   {
     "id": "mtnv1q0l4rhn",

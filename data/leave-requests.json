@@ -1,5 +1,18 @@
 [
   {
+    "id": "mttv37tqjqo4",
+    "employeeId": "SV-EMP-004",
+    "employeeName": "Gourav Madaan",
+    "employeeEmail": "gouravsv1@gmail.com",
+    "leaveType": "HalfDay",
+    "fromDate": "2026-09-09",
+    "toDate": "2026-09-09",
+    "isHalfDay": true,
+    "reason": "Dear Sir,\n\nI had taken a half-day leave as I needed to get my vehicle serviced.\n\nKindly consider my half-day leave for the same.\n\nThank you for your understanding.\n\nRegards,\nGourav",
+    "status": "pending",
+    "appliedAt": "2026-09-09T08:53:55.166Z"
+  },
+  {
     "id": "mttlpfef2t6j",
     "employeeId": "SV-EMP-010",
     "employeeName": "Aman Khokhar",

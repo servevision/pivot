@@ -37,8 +37,9 @@
     "toDate": "2026-09-03",
     "isHalfDay": false,
     "reason": ".",
-    "status": "pending",
-    "appliedAt": "2026-09-04T04:03:45.291Z"
+    "status": "approved",
+    "appliedAt": "2026-09-04T04:03:45.291Z",
+    "decidedAt": "2026-09-09T06:25:32.074Z"
   },
   {
     "id": "mtlggpks1ee9",

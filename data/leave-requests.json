@@ -51,8 +51,9 @@
     "toDate": "2026-09-05",
     "isHalfDay": false,
     "reason": "family event",
-    "status": "pending",
-    "appliedAt": "2026-09-03T11:42:21.052Z"
+    "status": "approved",
+    "appliedAt": "2026-09-03T11:42:21.052Z",
+    "decidedAt": "2026-09-09T06:25:38.084Z"
   },
   {
     "id": "mtim99lpgur3",

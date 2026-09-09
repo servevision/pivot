@@ -23,8 +23,9 @@
     "toDate": "2026-09-05",
     "isHalfDay": false,
     "reason": "I have a doctor's appointment",
-    "status": "pending",
-    "appliedAt": "2026-09-05T04:06:08.373Z"
+    "status": "approved",
+    "appliedAt": "2026-09-05T04:06:08.373Z",
+    "decidedAt": "2026-09-09T06:25:19.590Z"
   },
   {
     "id": "mtmfisy3n52t",

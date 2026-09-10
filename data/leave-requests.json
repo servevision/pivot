@@ -1,5 +1,18 @@
 [
   {
+    "id": "mtv19t4mtuux",
+    "employeeId": "SV-EMP-004",
+    "employeeName": "Gourav Madaan",
+    "employeeEmail": "gouravsv1@gmail.com",
+    "leaveType": "SL",
+    "fromDate": "2026-09-12",
+    "toDate": "2026-09-12",
+    "isHalfDay": false,
+    "reason": "Dear Sir,\n\nI would like to take leave as I have an eye test and check-up scheduled in Delhi. I will be in Delhi for the same and will not be able to attend work.\n\nKindly approve my leave for the mentioned day.\n\nThank you.\n\nRegards,\nGourav Madaan",
+    "status": "pending",
+    "appliedAt": "2026-09-10T04:34:46.582Z"
+  },
+  {
     "id": "mtv14tw1gdpu",
     "employeeId": "SV-EMP-004",
     "employeeName": "Gourav Madaan",

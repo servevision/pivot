@@ -1,5 +1,18 @@
 [
   {
+    "id": "mtwqbd31mrjs",
+    "employeeId": "SV-EMP-009",
+    "employeeName": "Sunita Mahata",
+    "employeeEmail": "sunitamahata.servevision.io",
+    "leaveType": "WFH",
+    "fromDate": "2026-09-10",
+    "toDate": "2026-09-10",
+    "isHalfDay": false,
+    "reason": "Dear Sir,\n\nI am feeling unwell due to a fever and need to take adequate rest for recovery. I kindly request permission to take WFH leave for today.\n\nThank you for your understanding and consideration.",
+    "status": "pending",
+    "appliedAt": "2026-09-11T09:03:35.677Z"
+  },
+  {
     "id": "mtv19t4mtuux",
     "employeeId": "SV-EMP-004",
     "employeeName": "Gourav Madaan",

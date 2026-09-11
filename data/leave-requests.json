@@ -23,8 +23,9 @@
     "toDate": "2026-09-11",
     "isHalfDay": true,
     "reason": "Dear Sir,\n\nI would like to request leave on 11/09/2026 as I need to travel to Delhi for an eye examination and consultation regarding laser vision treatment.\n\nI will complete my pending work and ensure that there is no disruption to my responsibilities during my absence.\n\nKindly approve my leave for the mentioned date.\n\nThank you for your consideration.\n\nRegards,\nGourav Madaan",
-    "status": "pending",
-    "appliedAt": "2026-09-10T04:30:54.289Z"
+    "status": "approved",
+    "appliedAt": "2026-09-10T04:30:54.289Z",
+    "decidedAt": "2026-09-11T07:54:30.042Z"
   },
   {
     "id": "mttv37tqjqo4",

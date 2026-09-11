@@ -35,8 +35,9 @@
     "toDate": "2026-09-09",
     "isHalfDay": true,
     "reason": "Dear Sir,\n\nI had taken a half-day leave as I needed to get my vehicle serviced.\n\nKindly consider my half-day leave for the same.\n\nThank you for your understanding.\n\nRegards,\nGourav",
-    "status": "pending",
-    "appliedAt": "2026-09-09T08:53:55.166Z"
+    "status": "approved",
+    "appliedAt": "2026-09-09T08:53:55.166Z",
+    "decidedAt": "2026-09-11T07:54:16.310Z"
   },
   {
     "id": "mttlpfef2t6j",

@@ -1,5 +1,18 @@
 [
   {
+    "id": "mtxuq4wm5l2v",
+    "employeeId": "SV-EMP-005",
+    "employeeName": "Joydeep Mahata",
+    "employeeEmail": "joydeepservevision@gmail.com",
+    "leaveType": "CL",
+    "fromDate": "2026-09-11",
+    "toDate": "2026-09-11",
+    "isHalfDay": false,
+    "reason": ".",
+    "status": "pending",
+    "appliedAt": "2026-09-12T03:54:49.558Z"
+  },
+  {
     "id": "mtwqbd31mrjs",
     "employeeId": "SV-EMP-009",
     "employeeName": "Sunita Mahata",

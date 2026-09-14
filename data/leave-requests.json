@@ -1,5 +1,18 @@
 [
   {
+    "id": "mu0wa94gmsor",
+    "employeeId": "SV-EMP-002",
+    "employeeName": "Ansh",
+    "employeeEmail": "ansh24.sv@gmail.com",
+    "leaveType": "HalfDay",
+    "fromDate": "2026-09-14",
+    "toDate": "2026-09-14",
+    "isHalfDay": true,
+    "reason": "Dear Sir\n\nI would like to request a half-day leave for today as I am currently out of station and it may take some extra time for me to reach the office. Therefore, I will not be able to report to the office on time.\n\nKindly grant me half-day leave for today.\n\nThank you for your understanding.\n\nRegards,\nAnsh",
+    "status": "pending",
+    "appliedAt": "2026-09-14T07:01:46.288Z"
+  },
+  {
     "id": "mu0t4ngb5yfb",
     "employeeId": "SV-EMP-009",
     "employeeName": "Sunita Mahata",

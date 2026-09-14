@@ -1,5 +1,18 @@
 [
   {
+    "id": "mu0t4ngb5yfb",
+    "employeeId": "SV-EMP-009",
+    "employeeName": "Sunita Mahata",
+    "employeeEmail": "sunitamahata.servevision.io",
+    "leaveType": "SL",
+    "fromDate": "2026-09-14",
+    "toDate": "2026-09-14",
+    "isHalfDay": false,
+    "reason": "Dear Sir,\n\nI am feeling unwell due to typhoid and need to take rest today. Therefore, I would like to request sick leave for today, September 14, 2026.\n\nI will resume work once I feel better.\n\nThank you for your understanding.\n\nRegards,\nSunita",
+    "status": "pending",
+    "appliedAt": "2026-09-14T05:33:26.075Z"
+  },
+  {
     "id": "mtxuq4wm5l2v",
     "employeeId": "SV-EMP-005",
     "employeeName": "Joydeep Mahata",

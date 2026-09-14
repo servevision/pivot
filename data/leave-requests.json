@@ -22,8 +22,9 @@
     "toDate": "2026-09-14",
     "isHalfDay": true,
     "reason": "Dear Sir\n\nI would like to request a half-day leave for today as I am currently out of station and it may take some extra time for me to reach the office. Therefore, I will not be able to report to the office on time.\n\nKindly grant me half-day leave for today.\n\nThank you for your understanding.\n\nRegards,\nAnsh",
-    "status": "pending",
-    "appliedAt": "2026-09-14T07:01:46.288Z"
+    "status": "approved",
+    "appliedAt": "2026-09-14T07:01:46.288Z",
+    "decidedAt": "2026-09-14T08:49:10.649Z"
   },
   {
     "id": "mu0t4ngb5yfb",

@@ -1,5 +1,18 @@
 [
   {
+    "id": "mu26smp01t89",
+    "employeeId": "SV-EMP-004",
+    "employeeName": "Gourav Madaan",
+    "employeeEmail": "gouravsv1@gmail.com",
+    "leaveType": "CL",
+    "fromDate": "2026-09-14",
+    "toDate": "2026-09-14",
+    "isHalfDay": false,
+    "reason": "Dear Sir\n\nI would like to request leave for today due to some urgent personal work that requires my immediate attention. I kindly request you to grant me leave for the day.\n\nI apologize for the short notice and appreciate your understanding.\n\nThank you.\n\nRegards,\nGourav madaan",
+    "status": "pending",
+    "appliedAt": "2026-09-15T04:43:46.020Z"
+  },
+  {
     "id": "mu0ynxi5quxp",
     "employeeId": "SV-EMP-008",
     "employeeName": "Sakshi Grover",

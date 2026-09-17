@@ -1,5 +1,18 @@
 [
   {
+    "id": "mu5428riirbd",
+    "employeeId": "SV-EMP-004",
+    "employeeName": "Gourav Madaan",
+    "employeeEmail": "gouravsv1@gmail.com",
+    "leaveType": "HalfDay",
+    "fromDate": "2026-09-17",
+    "toDate": "2026-09-17",
+    "isHalfDay": true,
+    "reason": "Dear Sir,\n\nI would like to request a half-day leave today due to some urgent personal work that requires my attention.\n\nI kindly request you to approve my half-day leave. I will ensure that any pending work is managed accordingly.\n\nThank you for your understanding.\n\nRegards,\nGourav",
+    "status": "pending",
+    "appliedAt": "2026-09-17T05:50:34.206Z"
+  },
+  {
     "id": "mu26smp01t89",
     "employeeId": "SV-EMP-004",
     "employeeName": "Gourav Madaan",

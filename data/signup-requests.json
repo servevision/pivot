@@ -7,8 +7,9 @@
     "designation": "Karnal",
     "department": "Marketing",
     "phone": "9893471350",
-    "status": "pending",
-    "requestedAt": "2026-09-16T11:07:46.376Z"
+    "status": "approved",
+    "requestedAt": "2026-09-16T11:07:46.376Z",
+    "decidedAt": "2026-09-17T04:51:51.714Z"
   },
   {
     "id": "msokldhbpab8",

@@ -597,6 +597,8 @@ function updateLeaveBalances(leaveList){
   const monthsElapsed = Math.max(0, nowNum - startNum + 1);
   const earned = monthsElapsed * 1.5;
 
+  // CL, SL and WFH are three separate buckets — WFH is working from home and
+  // never reduces the casual leave balance.
   const approvedCL = leaveList.filter(l=>l.status==='approved'&&l.leaveType==='CL').reduce((s,l)=>{
     const days = l.isHalfDay ? 0.5 : dateDiff(l.fromDate,l.toDate)+1;
     return s+days;

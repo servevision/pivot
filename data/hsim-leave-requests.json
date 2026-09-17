@@ -9,8 +9,9 @@
     "toDate": "2026-09-04",
     "isHalfDay": false,
     "reason": "I am unable to attend due to an urgent personal matter that required my immediate attention.",
-    "status": "pending",
-    "appliedAt": "2026-09-05T05:19:16.860Z"
+    "status": "approved",
+    "appliedAt": "2026-09-05T05:19:16.860Z",
+    "decidedAt": "2026-09-17T04:52:26.055Z"
   },
   {
     "id": "mti64m8n2wlu",

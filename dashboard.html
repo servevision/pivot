@@ -1406,7 +1406,8 @@ function recalc(){
 // CL Bank summary for display (carries forward)
 function getCLBankSummary(emp){
   const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const months=[...new Set(ALL.filter(r=>r.name===emp&&r.month).map(r=>r.month))];
+  const aliases=sheetNamesFor(emp);
+  const months=[...new Set(ALL.filter(r=>aliases.includes(r.name)&&r.month).map(r=>r.month))];
   months.sort((a,b)=>{
     const [ma,ya]=a.split('-'),[mb,yb]=b.split('-');
     return(parseInt(ya)*12+MN.indexOf(ma))-(parseInt(yb)*12+MN.indexOf(mb));
@@ -1960,7 +1961,7 @@ function countLeaveDaysByType(emp, month, type){
   if(mi<0||isNaN(y)) return 0;
 
   let days=0;
-  src.filter(l=>l.employeeName===emp && l.status==='approved').forEach(l=>{
+  src.filter(l=>canonEmp(l.employeeName)===emp && l.status==='approved').forEach(l=>{
     const t = l.leaveType;
     const isHalf = !!l.isHalfDay || t==='HalfDay';
     let matches = (t===type);
@@ -2008,18 +2009,15 @@ function getLeaveMonthlyTable(emp){
   months.forEach(month=>{
     const isHsim = currentCompany==='hsim';
     if(!isHsim){
-      const ms = getMonthSal(emp, month);
+      const ms = sheetNamesFor(emp).map(n=>getMonthSal(n, month)).find(Boolean);
       if(!ms) return; // not employed / no salary configured that month
     }
 
-    // Serve Vision's Work Record sheet is the source of truth for CL/SL.
-    // HSIM has no sheet, so its figures come from approved leave requests.
-    const baseCL = isHsim
-      ? countLeaveDaysByType(emp, month, 'CL')
-      : [...new Set(ALL.filter(r=>r.name===emp&&r.month===month&&r.isCasualLeave&&r.date).map(r=>r.date))].length;
-    const baseSL = isHsim
-      ? countLeaveDaysByType(emp, month, 'SL')
-      : [...new Set(ALL.filter(r=>r.name===emp&&r.month===month&&r.isSickLeave&&r.date).map(r=>r.date))].length;
+    // Leave requests are the single source of truth for both companies, so the
+    // admin view and each employee's own portal always show the same numbers.
+    // (Sheet-only leave dates were backfilled into leave requests.)
+    const baseCL = countLeaveDaysByType(emp, month, 'CL');
+    const baseSL = countLeaveDaysByType(emp, month, 'SL');
 
     const o = ov[month] || {};
     const clTaken  = hasOverride(o.cl)  ? Number(o.cl)  : baseCL;
@@ -2056,6 +2054,16 @@ function getLeaveMonthlyTable(emp){
   return rows;
 }
 
+// The Work Record sheet sometimes uses a short name while Employee Records
+// use the full one. Map them so leave, WFH and balances all line up.
+const EMP_ALIASES = {'Sakshi':'Sakshi Grover','Vaishali':'Vaishali Kagda'};
+function canonEmp(n){ return EMP_ALIASES[(n||'').trim()] || (n||'').trim(); }
+function sheetNamesFor(canonName){
+  const out=[canonName];
+  for(const k in EMP_ALIASES) if(EMP_ALIASES[k]===canonName) out.push(k);
+  return out;
+}
+
 function leaveBankEmployees(){
   // HSIM has no Work Record sheets, so its list comes from Employee Records
   // and its leave figures come purely from leave requests.
@@ -2063,7 +2071,7 @@ function leaveBankEmployees(){
     return (typeof EMP_RECORDS!=='undefined' ? EMP_RECORDS : [])
       .map(e=>e.name).filter(Boolean).sort();
   }
-  return [...new Set(ALL.filter(r=>r.name && SAL[r.name]).map(r=>r.name))].sort();
+  return [...new Set(ALL.filter(r=>r.name && SAL[r.name]).map(r=>canonEmp(r.name)))].sort();
 }
 
 // Months from the start of the current financial year (April) up to now.

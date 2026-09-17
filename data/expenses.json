@@ -1,5 +1,21 @@
 [
   {
+    "id": "mu53c7bxuohk",
+    "name": "Instantly Growth Plan",
+    "usd": 42.3,
+    "inr": 4061,
+    "date": "2026-09-01",
+    "partner": "Vivek Attri",
+    "payment": "Sv Hdfc CC-5089",
+    "cat": "Software / SaaS",
+    "subcat": "Subscription",
+    "notes": "Invoice II77Z7OM-0004; 10% discount applied (Partnerships - Lead Gen Jay); covers 1 Sept–1 Oct 2026",
+    "fileName": "Invoice-II77Z7OM-0004 (1).pdf",
+    "createdAt": "2026-09-17T05:30:19.293Z",
+    "updatedAt": "2026-09-17T05:30:19.293Z",
+    "fileRef": "expense-files/mu53c7bxuohk.pdf"
+  },
+  {
     "id": "mu52riumre1y",
     "name": "Domain Renewals x7 (Spaceship)",
     "usd": 63.56,

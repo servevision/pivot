@@ -1,5 +1,21 @@
 [
   {
+    "id": "mu53eq317tfh",
+    "name": "Claude Pro Subscription",
+    "usd": 20,
+    "inr": 1910,
+    "date": "2026-09-04",
+    "partner": "Vivek Attri",
+    "payment": "Sv Hdfc CC-5089",
+    "cat": "Software / SaaS",
+    "subcat": "Subscription",
+    "notes": "Invoice AP5267LD-0005, Claude Pro Sep 3–Oct 3 2026, Serve Vision Pvt Ltd, reverse charge basis",
+    "fileName": "Invoice-AP5267LD-0005.pdf",
+    "createdAt": "2026-09-17T05:32:16.909Z",
+    "updatedAt": "2026-09-17T05:32:16.909Z",
+    "fileRef": "expense-files/mu53eq317tfh.pdf"
+  },
+  {
     "id": "mu53d0vuhzkj",
     "name": "Instantly Growth Plan",
     "usd": 42.3,

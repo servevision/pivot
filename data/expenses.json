@@ -1,5 +1,21 @@
 [
   {
+    "id": "mu52j6sc5d64",
+    "name": "OpenRouter AI Credits",
+    "usd": 21.1,
+    "inr": 2015,
+    "date": "2026-09-14",
+    "partner": "Serve Vision",
+    "payment": "SV Mercury-4877",
+    "cat": "Software / SaaS",
+    "subcat": "Subscription",
+    "notes": "Invoice YY3NIKLL-0009, OpenRouter Invoice #1038-4180",
+    "fileName": "Invoice-YY3NIKLL-0009.pdf",
+    "createdAt": "2026-09-17T05:07:45.564Z",
+    "updatedAt": "2026-09-17T05:07:45.564Z",
+    "fileRef": "expense-files/mu52j6sc5d64.pdf"
+  },
+  {
     "id": "mte028oldvvx",
     "name": "OpenRouter Credits",
     "usd": 21.1,

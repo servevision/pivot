@@ -172,5 +172,22 @@
     "createdAt": "2026-08-11T11:21:53.631Z",
     "dateOfBirth": "",
     "updatedAt": "2026-09-05T06:49:32.291Z"
+  },
+  {
+    "employeeId": "SV-EMP-014",
+    "name": "Prerna",
+    "email": "prernakashyap605@gmail.com",
+    "designation": "Karnal",
+    "department": "Marketing",
+    "phone": "9893471350",
+    "dateOfJoining": "2026-09-17",
+    "exitDate": "",
+    "salary": 0,
+    "bankAccountNo": "",
+    "bankIFSC": "",
+    "bankName": "",
+    "documents": {},
+    "status": "active",
+    "createdAt": "2026-09-17T04:51:48.914Z"
   }
 ]

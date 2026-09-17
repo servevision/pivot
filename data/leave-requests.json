@@ -36,8 +36,9 @@
     "toDate": "2026-09-14",
     "isHalfDay": false,
     "reason": "Hi, I need leave today due to an emergency. I hope you understand. Thank you.",
-    "status": "pending",
-    "appliedAt": "2026-09-14T08:08:23.645Z"
+    "status": "approved",
+    "appliedAt": "2026-09-14T08:08:23.645Z",
+    "decidedAt": "2026-09-17T07:31:03.397Z"
   },
   {
     "id": "mu0wa94gmsor",

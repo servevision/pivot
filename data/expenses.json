@@ -1,5 +1,21 @@
 [
   {
+    "id": "mu52riumre1y",
+    "name": "Domain Renewals x7 (Spaceship)",
+    "usd": 63.56,
+    "inr": 6050,
+    "date": "2026-09-01",
+    "partner": "Serve Vision",
+    "payment": "SV Mercury-4877",
+    "cat": "Domain",
+    "subcat": "Renewal",
+    "notes": "Invoice VW-202609010305756 | 7 domains renewed for 1 year each at $9.08/domain | Saved $5.46",
+    "fileName": "fb5459f7-43c5-4809-b405-5a9d1e13b88d.pdf",
+    "createdAt": "2026-09-17T05:14:14.446Z",
+    "updatedAt": "2026-09-17T05:14:14.446Z",
+    "fileRef": "expense-files/mu52riumre1y.pdf"
+  },
+  {
     "id": "mu52o1rfbwws",
     "name": "Domain Registrations (49 .shop domains)",
     "usd": 44.1,

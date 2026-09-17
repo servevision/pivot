@@ -1964,8 +1964,14 @@ function countLeaveDaysByType(emp, month, type){
   src.filter(l=>canonEmp(l.employeeName)===emp && l.status==='approved').forEach(l=>{
     const t = l.leaveType;
     const isHalf = !!l.isHalfDay || t==='HalfDay';
+
+    // CL, SL and WFH are three separate buckets. WFH is working from home —
+    // it is never leave, so it must never land in the CL or SL counts.
+    if(t==='WFH' && type!=='WFH') return;
+    if(type==='WFH' && t!=='WFH') return;
+
     let matches = (t===type);
-    if(type==='CL' && t==='HalfDay') matches = true;
+    if(type==='CL' && t==='HalfDay') matches = true;   // half day = 0.5 CL
     if(!matches) return;
 
     let d=new Date(l.fromDate);

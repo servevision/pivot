@@ -22,8 +22,9 @@
     "toDate": "2026-08-31",
     "isHalfDay": false,
     "reason": "I am feeling unwell and have a fever so I will not be able to attend the office I kindly request you to grant me leave for the day.",
-    "status": "pending",
-    "appliedAt": "2026-09-01T04:29:42.167Z"
+    "status": "approved",
+    "appliedAt": "2026-09-01T04:29:42.167Z",
+    "decidedAt": "2026-09-17T04:52:22.124Z"
   },
   {
     "id": "mt9w8yi1l894",

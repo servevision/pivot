@@ -1,5 +1,21 @@
 [
   {
+    "id": "mu52kphsda5g",
+    "name": "Domain Registrations (81 .shop domains)",
+    "usd": 72.9,
+    "inr": 6962,
+    "date": "2026-09-14",
+    "partner": "Serve Vision",
+    "payment": "SV Mercury-4877",
+    "cat": "Domain",
+    "subcat": "Registration",
+    "notes": "Invoice VW-202609140811000, Order ID 39314f69-6c84-4320-b629-40426ede8e97, 81 domains at $0.90/year each via Spaceship.com",
+    "fileName": "spaceship-39314f69-6c84-4320-b629-40426ede8e97.pdf",
+    "createdAt": "2026-09-17T05:08:56.464Z",
+    "updatedAt": "2026-09-17T05:08:56.464Z",
+    "fileRef": "expense-files/mu52kphsda5g.pdf"
+  },
+  {
     "id": "mu52j6sc5d64",
     "name": "OpenRouter AI Credits",
     "usd": 21.1,

@@ -1982,7 +1982,7 @@ function countWFHDays(emp, month){ return countLeaveDaysByType(emp, month, 'WFH'
 
 function empMonthsSorted(emp){
   const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  if(currentCompany==='hsim') return fyMonthsToDate();
+  if(currentCompany==='hsim') return fyMonthsToDate(emp);
   const months=[...new Set(ALL.filter(r=>r.name===emp&&r.month).map(r=>r.month))];
   months.sort((a,b)=>{
     const [ma,ya]=a.split('-'),[mb,yb]=b.split('-');
@@ -2067,13 +2067,28 @@ function leaveBankEmployees(){
 }
 
 // Months from the start of the current financial year (April) up to now.
-function fyMonthsToDate(){
+function fyMonthsToDate(emp){
   const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const now=new Date();
   const y=now.getFullYear(), m=now.getMonth();
-  const startYear = m>=3 ? y : y-1;
+
+  // Start from the financial year, but never earlier than the month the
+  // employee joined — otherwise a new joiner is credited leave for months
+  // they weren't even employed.
+  const fyStartYear = m>=3 ? y : y-1;
+  let yy=fyStartYear, mm=3;
+
+  if(emp && typeof EMP_RECORDS!=='undefined'){
+    const rec=(EMP_RECORDS||[]).find(e=>e.name===emp);
+    if(rec && rec.dateOfJoining){
+      const doj=new Date(rec.dateOfJoining);
+      if(!isNaN(doj) && (doj.getFullYear()*12+doj.getMonth()) > (yy*12+mm)){
+        yy=doj.getFullYear(); mm=doj.getMonth();
+      }
+    }
+  }
+
   const out=[];
-  let yy=startYear, mm=3;
   while(yy<y || (yy===y && mm<=m)){
     out.push(MN[mm]+'-'+yy);
     mm++; if(mm>11){ mm=0; yy++; }

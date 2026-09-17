@@ -322,6 +322,7 @@ let _token = sessionStorage.getItem('emp_token');
 let _empName = sessionStorage.getItem('emp_name');
 let _empId = sessionStorage.getItem('emp_id');
 let _empEmail = sessionStorage.getItem('emp_email');
+let _empDOJ = sessionStorage.getItem('emp_doj');
 let ALL_LEAVES = [];
 let MY_ATTENDANCE = [];
 let TODAY_ATTENDANCE = null;
@@ -339,10 +340,12 @@ async function doLogin(){
     const d = await r.json();
     if(d.ok){
       _token=d.token; _empName=d.name; _empId=d.employeeId; _empEmail=d.email;
+      _empDOJ=d.dateOfJoining||'';
       sessionStorage.setItem('emp_token',_token);
       sessionStorage.setItem('emp_name',_empName);
       sessionStorage.setItem('emp_id',_empId);
       sessionStorage.setItem('emp_email',_empEmail);
+      sessionStorage.setItem('emp_doj',_empDOJ);
       showPortal();
     } else {
       err.textContent=d.error||'Invalid credentials'; err.classList.add('show');
@@ -402,7 +405,7 @@ function showPortal(){
 
 function doLogout(){
   sessionStorage.clear();
-  _token=_empName=_empId=_empEmail=null; ALL_LEAVES=[]; MY_ATTENDANCE=[];
+  _token=_empName=_empId=_empEmail=null; _empDOJ=''; ALL_LEAVES=[]; MY_ATTENDANCE=[];
   document.getElementById('portal').classList.remove('active');
   document.getElementById('login-wrap').style.display='flex';
 }
@@ -581,9 +584,17 @@ function updateLeaveBalances(leaveList){
   const now = new Date();
   const curMonth = now.getMonth();
   const curYear = now.getFullYear();
-  const aprStart = curYear * 12 + 3;
   const nowNum = curYear * 12 + curMonth;
-  const monthsElapsed = Math.max(1, nowNum - aprStart + 1);
+
+  // Casual leave accrues from the month the employee actually joined — a
+  // September joiner must not be credited for April onwards.
+  const fyStartYear = curMonth >= 3 ? curYear : curYear - 1;
+  let startNum = fyStartYear * 12 + 3;            // fallback: start of this FY
+  if(_empDOJ){
+    const doj = new Date(_empDOJ);
+    if(!isNaN(doj)) startNum = doj.getFullYear() * 12 + doj.getMonth();
+  }
+  const monthsElapsed = Math.max(0, nowNum - startNum + 1);
   const earned = monthsElapsed * 1.5;
 
   const approvedCL = leaveList.filter(l=>l.status==='approved'&&l.leaveType==='CL').reduce((s,l)=>{

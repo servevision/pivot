@@ -1,5 +1,21 @@
 [
   {
+    "id": "mu52o1rfbwws",
+    "name": "Domain Registrations (49 .shop domains)",
+    "usd": 44.1,
+    "inr": 4200,
+    "date": "2026-09-01",
+    "partner": "Serve Vision",
+    "payment": "SV Mercury-4877",
+    "cat": "Domain",
+    "subcat": "Registration",
+    "notes": "Invoice VW-202609010300620, Order ID e00c5b11-aa77-4a66-b6a4-67eef3eda51b, 49 domains at $0.90/year each via Spaceship.com",
+    "fileName": "1b59f4ee-988d-47ec-a058-1461f7af7a2e.pdf",
+    "createdAt": "2026-09-17T05:11:32.331Z",
+    "updatedAt": "2026-09-17T05:11:32.331Z",
+    "fileRef": "expense-files/mu52o1rfbwws.pdf"
+  },
+  {
     "id": "mu52lre5ay4k",
     "name": "Domain Transfer - festivalsfun.com",
     "usd": 11.58,

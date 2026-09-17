@@ -47,6 +47,15 @@ export async function onRequestPost(context){
     return respond({ok:false,error:'Invalid email or password'},401);
   }
 
+  // Include the joining date so the portal can accrue casual leave from when
+  // the employee actually started, not from the start of the financial year.
+  let dateOfJoining = '';
+  try{
+    const {content:emps} = await ghRead('employees');
+    const rec = (emps||[]).find(e=>e.employeeId===info.employeeId);
+    if(rec && rec.dateOfJoining) dateOfJoining = rec.dateOfJoining;
+  }catch(e){}
+
   const token=btoa(`${email.toLowerCase().trim()}|${info.employeeId}`);
-  return respond({ok:true,token,email,employeeId:info.employeeId,name:info.name});
+  return respond({ok:true,token,email,employeeId:info.employeeId,name:info.name,dateOfJoining});
 }

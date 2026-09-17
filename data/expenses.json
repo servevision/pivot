@@ -1,21 +1,5 @@
 [
   {
-    "id": "mu54wikj8uce",
-    "name": "Domain Registrations (184 .shop domains)",
-    "usd": 165.6,
-    "inr": 15814,
-    "date": "2026-09-17",
-    "partner": "Serve Vision",
-    "payment": "SV Mercury-4877",
-    "cat": "Domain",
-    "subcat": "Registration",
-    "notes": "Invoice VW-202609170609221, Order ID: 8e2aa2ea-5c8b-4953-9f2a-57ac1ea5550b, 184 .shop domains at $0.90/year each, Spaceship.com",
-    "fileName": "spaceship-8e2aa2ea-5c8b-4953-9f2a-57ac1ea5550b.pdf",
-    "createdAt": "2026-09-17T06:14:06.595Z",
-    "updatedAt": "2026-09-17T06:14:06.595Z",
-    "fileRef": "expense-files/mu54wikj8uce.pdf"
-  },
-  {
     "id": "mu53eq317tfh",
     "name": "Claude Pro Subscription",
     "usd": 20,

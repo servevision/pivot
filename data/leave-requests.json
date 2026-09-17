@@ -22,8 +22,9 @@
     "toDate": "2026-09-14",
     "isHalfDay": false,
     "reason": "Dear Sir\n\nI would like to request leave for today due to some urgent personal work that requires my immediate attention. I kindly request you to grant me leave for the day.\n\nI apologize for the short notice and appreciate your understanding.\n\nThank you.\n\nRegards,\nGourav madaan",
-    "status": "pending",
-    "appliedAt": "2026-09-15T04:43:46.020Z"
+    "status": "approved",
+    "appliedAt": "2026-09-15T04:43:46.020Z",
+    "decidedAt": "2026-09-17T07:30:44.000Z"
   },
   {
     "id": "mu0ynxi5quxp",

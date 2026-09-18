@@ -1,5 +1,18 @@
 [
   {
+    "id": "mu6fnq1hptap",
+    "employeeId": "SV-EMP-004",
+    "employeeName": "Gourav Madaan",
+    "employeeEmail": "gouravsv1@gmail.com",
+    "leaveType": "CL",
+    "fromDate": "2026-09-18",
+    "toDate": "2026-09-18",
+    "isHalfDay": false,
+    "reason": "Due to some personal work, I won’t be able to come to the office today. Kindly consider this as my leave for today. Thank you for understanding.",
+    "status": "pending",
+    "appliedAt": "2026-09-18T04:02:58.325Z"
+  },
+  {
     "id": "mu5428riirbd",
     "employeeId": "SV-EMP-004",
     "employeeName": "Gourav Madaan",

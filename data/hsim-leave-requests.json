@@ -1,5 +1,18 @@
 [
   {
+    "id": "mu80qheyk1ew",
+    "employeeId": "HSIM-EMP-004",
+    "employeeName": "richa",
+    "employeeEmail": "richa.hsim@gmail.com",
+    "leaveType": "CL",
+    "fromDate": "2026-09-17",
+    "toDate": "2026-09-17",
+    "isHalfDay": false,
+    "reason": "I need to take leave today due to some urgent personal work. Kindly consider my leave. Thank you.",
+    "status": "pending",
+    "appliedAt": "2026-09-19T06:40:45.226Z"
+  },
+  {
     "id": "mtnxns70nsmo",
     "employeeId": "HSIM-EMP-004",
     "employeeName": "richa",

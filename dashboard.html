@@ -461,6 +461,18 @@ async function pushAllToGitHub() {
         </div>
       </div>
       <div id="hol-cfg-list"></div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="card-t">🗓️ Office Holiday Calendar</div>
+        <div class="card-sub">Days the office is closed for everyone. These are never counted as Casual or Sick Leave for anyone — even if an employee's sheet marks that day as leave.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">
+          <div class="fg" style="min-width:160px"><label>Date</label><input type="date" id="oh-date"></div>
+          <div class="fg" style="flex:1;min-width:180px"><label>Holiday Name</label><input type="text" id="oh-name" placeholder="e.g. Diwali, Holi"></div>
+          <button class="btn btn-p" onclick="addOfficeHoliday()">+ Add Holiday</button>
+        </div>
+        <div id="oh-msg" style="font-size:11.5px;margin-bottom:8px;color:var(--text2)"></div>
+        <div id="oh-list">Loading...</div>
+      </div>
     </div>
 
     <!-- OVERVIEW -->
@@ -1521,8 +1533,11 @@ function parseRows(arr,sheet){
     let month=v(c.month)||r['Month']||'';
     if(!month)month=getMnFromDate(dateRaw);
     const pl=partner.toLowerCase().trim(),prl=project.toLowerCase().trim(),wl=website.toLowerCase().trim();
-    const isHol=pl==='holiday'||prl==='holiday';
-    const isLeave=pl==='leave'||prl==='leave';
+    // Some people mark a closed day as "Leave" with a note like "Bank Holiday".
+    // Treat that as a holiday, not a leave taken.
+    const saysHoliday = /holiday|independence|raksha|rakhi|diwali|holi\b|dussehra|christmas|republic|gandhi jayanti|eid/i.test(website);
+    const isHol=pl==='holiday'||prl==='holiday'||((pl==='leave'||prl==='leave')&&saysHoliday);
+    const isLeave=(pl==='leave'||prl==='leave')&&!saysHoliday;
     const isSun=wl==='sunday'||(isHol&&wl==='sunday')||(pl==='holiday'&&prl==='holiday'&&wl==='sunday');
     const workingVal=v(c.working);
     // Detect leave sub-type from Website column text (e.g. "Sick Leave", "Casual Leave")
@@ -1842,7 +1857,7 @@ function doR(id){
     // Load everything the balance table needs before drawing it, so WFH and
     // leave counts are never rendered from empty data.
     (async ()=>{
-      const jobs = [loadLeaveAdjustments(), loadLeaveRequestsCache()];
+      const jobs = [loadLeaveAdjustments(), loadLeaveRequestsCache(), loadOfficeHolidays()];
       if(currentCompany==='hsim' && (typeof EMP_RECORDS==='undefined' || !EMP_RECORDS.length)){
         jobs.push(loadEmpData());
       }
@@ -1857,7 +1872,7 @@ function doR(id){
   else if(id==='invoices')loadInvoices();
   else if(id==='sheets')rSheets();
   else if(id==='salary-setup'){popSEmpSels();rSalCfg();}
-  else if(id==='holiday-setup'){popSEmpSels();rHolCfg();}
+  else if(id==='holiday-setup'){popSEmpSels();rHolCfg();loadOfficeHolidays().then(renderOfficeHolidays);}
 }
 
 // Overview
@@ -1933,6 +1948,68 @@ function fyLabelOf(month){
 
 // Counts approved WFH days for an employee in a given month (e.g. "Aug-2026").
 // WFH isn't recorded in the Work Record sheet, so it comes from leave requests.
+// ── OFFICE HOLIDAY CALENDAR ───────────────────────────────
+// Company-wide closed days. Never counted as CL/SL for anyone.
+let OFFICE_HOLIDAYS = [];
+async function loadOfficeHolidays(){
+  try{
+    const d = await apiCall('GET', dp('office-holidays'));
+    OFFICE_HOLIDAYS = Array.isArray(d) ? d : [];
+  }catch(e){ OFFICE_HOLIDAYS = []; }
+}
+function isOfficeHoliday(iso){
+  return OFFICE_HOLIDAYS.some(h=>h.date===iso);
+}
+function renderOfficeHolidays(){
+  const el=document.getElementById('oh-list');
+  if(!el) return;
+  const list=[...OFFICE_HOLIDAYS].sort((a,b)=>a.date.localeCompare(b.date));
+  if(!list.length){ el.innerHTML='<div style="font-size:12px;color:var(--text3);padding:8px 0">No office holidays added yet.</div>'; return; }
+  el.innerHTML=list.map(h=>{
+    const d=new Date(h.date+'T00:00:00');
+    const label=isNaN(d)?h.date:d.toLocaleDateString('en-IN',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+    return `<div class="sheet-card" style="padding:9px 13px">
+      <div style="flex:1;min-width:160px">
+        <div style="font-weight:700;font-size:12.5px">${h.name||'Holiday'}</div>
+        <div style="font-size:11px;color:var(--text2)">${label}</div>
+      </div>
+      <button class="btn btn-sm btn-d" onclick="removeOfficeHoliday('${h.date}')">🗑️ Remove</button>
+    </div>`;
+  }).join('');
+}
+async function saveOfficeHolidays(list, okText){
+  const msg=document.getElementById('oh-msg');
+  if(msg){ msg.textContent='Saving...'; msg.style.color='var(--text2)'; }
+  // re-read to avoid clobbering another admin's change
+  let fresh=list;
+  const r=await dbWrite(currentCompany==='hsim'?'hsim-office-holidays':'office-holidays', fresh);
+  if(!r||!r.ok){
+    if(msg){ msg.textContent='⚠️ Could not save — please try again.'; msg.style.color='var(--red-t)'; }
+    return false;
+  }
+  OFFICE_HOLIDAYS=fresh;
+  if(msg){ msg.textContent=okText; msg.style.color='var(--green-t)'; }
+  renderOfficeHolidays();
+  return true;
+}
+async function addOfficeHoliday(){
+  const date=document.getElementById('oh-date').value;
+  const name=document.getElementById('oh-name').value.trim();
+  const msg=document.getElementById('oh-msg');
+  if(!date){ msg.textContent='Pick a date first'; msg.style.color='var(--red-t)'; return; }
+  await loadOfficeHolidays();
+  if(OFFICE_HOLIDAYS.some(h=>h.date===date)){ msg.textContent='That date is already a holiday'; msg.style.color='var(--red-t)'; return; }
+  const list=[...OFFICE_HOLIDAYS,{date,name:name||'Holiday'}];
+  if(await saveOfficeHolidays(list,'✓ Holiday added')){
+    document.getElementById('oh-date').value=''; document.getElementById('oh-name').value='';
+  }
+}
+async function removeOfficeHoliday(date){
+  if(!confirm('Remove this office holiday? Leave on that date will count again.')) return;
+  await loadOfficeHolidays();
+  await saveOfficeHolidays(OFFICE_HOLIDAYS.filter(h=>h.date!==date),'✓ Holiday removed');
+}
+
 // Leave requests are fetched into their own cache so the balance table never
 // depends on whether the approvals list happened to load first.
 let LEAVE_REQ_CACHE = [];
@@ -1978,7 +2055,10 @@ function countLeaveDaysByType(emp, month, type){
     const end=new Date(l.toDate||l.fromDate);
     if(isNaN(d)||isNaN(end)) return;
     while(d<=end){
-      if(d.getMonth()===mi && d.getFullYear()===y) days += isHalf ? 0.5 : 1;
+      const iso = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      // An office holiday is a closed day for everyone — it is never leave.
+      const skip = (type!=='WFH') && isOfficeHoliday(iso);
+      if(!skip && d.getMonth()===mi && d.getFullYear()===y) days += isHalf ? 0.5 : 1;
       d.setDate(d.getDate()+1);
     }
   });

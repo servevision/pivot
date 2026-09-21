@@ -1,5 +1,18 @@
 [
   {
+    "id": "muayar7tajlk",
+    "employeeId": "SV-EMP-013",
+    "employeeName": "Vaishali Kagda",
+    "employeeEmail": "vaishalisv33@gmail.com",
+    "leaveType": "HalfDay",
+    "fromDate": "2026-09-18",
+    "toDate": "2026-09-18",
+    "isHalfDay": true,
+    "reason": "I was late, so I marked a half day.",
+    "status": "pending",
+    "appliedAt": "2026-09-21T07:55:50.729Z"
+  },
+  {
     "id": "muay8bqpw6nk",
     "employeeId": "SV-EMP-013",
     "employeeName": "Vaishali Kagda",

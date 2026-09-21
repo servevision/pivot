@@ -1,5 +1,18 @@
 [
   {
+    "id": "muay8bqpw6nk",
+    "employeeId": "SV-EMP-013",
+    "employeeName": "Vaishali Kagda",
+    "employeeEmail": "vaishalisv33@gmail.com",
+    "leaveType": "HalfDay",
+    "fromDate": "2026-09-04",
+    "toDate": "2026-09-04",
+    "isHalfDay": true,
+    "reason": "medical condition",
+    "status": "pending",
+    "appliedAt": "2026-09-21T07:53:57.361Z"
+  },
+  {
     "id": "mu9soxwpiboj",
     "employeeId": "SV-EMP-011",
     "employeeName": "Yogesh Miglani",

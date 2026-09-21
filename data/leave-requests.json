@@ -1184,30 +1184,32 @@
     "employeeId": "SV-EMP-004",
     "employeeName": "Gourav Madaan",
     "employeeEmail": "gouravsv1@gmail.com",
-    "leaveType": "CL",
+    "leaveType": "Holiday",
     "fromDate": "2026-08-15",
     "toDate": "2026-08-15",
     "isHalfDay": false,
-    "reason": "Recorded from Work Record sheet",
+    "reason": "Office holiday — Independence Day (office closed, not counted as leave)",
     "status": "approved",
     "appliedAt": "2026-08-15T09:00:00.000Z",
     "decidedAt": "2026-08-15T09:05:00.000Z",
-    "source": "worksheet-backfill"
+    "source": "worksheet-backfill",
+    "reclassifiedFrom": "CL"
   },
   {
     "id": "sheetfill_SVEMP004_20260828",
     "employeeId": "SV-EMP-004",
     "employeeName": "Gourav Madaan",
     "employeeEmail": "gouravsv1@gmail.com",
-    "leaveType": "CL",
+    "leaveType": "Holiday",
     "fromDate": "2026-08-28",
     "toDate": "2026-08-28",
     "isHalfDay": false,
-    "reason": "Recorded from Work Record sheet",
+    "reason": "Office holiday — Raksha Bandhan (office closed, not counted as leave)",
     "status": "approved",
     "appliedAt": "2026-08-28T09:00:00.000Z",
     "decidedAt": "2026-08-28T09:05:00.000Z",
-    "source": "worksheet-backfill"
+    "source": "worksheet-backfill",
+    "reclassifiedFrom": "CL"
   },
   {
     "id": "sheetfill_SVEMP012_20260613",

@@ -9,8 +9,9 @@
     "toDate": "2026-09-21",
     "isHalfDay": false,
     "reason": "family function",
-    "status": "pending",
-    "appliedAt": "2026-09-20T12:31:08.713Z"
+    "status": "approved",
+    "appliedAt": "2026-09-20T12:31:08.713Z",
+    "decidedAt": "2026-09-21T05:12:09.538Z"
   },
   {
     "id": "mu6ghiy78d0q",

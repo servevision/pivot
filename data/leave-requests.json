@@ -1,5 +1,18 @@
 [
   {
+    "id": "muaydi2hfkho",
+    "employeeId": "SV-EMP-013",
+    "employeeName": "Vaishali Kagda",
+    "employeeEmail": "vaishalisv33@gmail.com",
+    "leaveType": "SL",
+    "fromDate": "2026-09-01",
+    "toDate": "2026-09-01",
+    "isHalfDay": false,
+    "reason": "MEDICAL REASON",
+    "status": "pending",
+    "appliedAt": "2026-09-21T07:57:58.841Z"
+  },
+  {
     "id": "muayar7tajlk",
     "employeeId": "SV-EMP-013",
     "employeeName": "Vaishali Kagda",

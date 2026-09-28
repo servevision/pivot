@@ -142,6 +142,63 @@ textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3.5px rgba(13,143,111,.
 .d-future{background:var(--bg2);color:var(--text3)}
 .att-history-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
 .att-history-row:last-child{border-bottom:none}
+
+/* ══════════════════════════════════════════════════════════
+   MOBILE  —  phone-friendly layout for the employee portal
+   ══════════════════════════════════════════════════════════ */
+@media (max-width:680px){
+  .login-box{padding:30px 22px;border-radius:14px}
+
+  /* Header: name block on the left, status + logout wrap below if needed */
+  .topbar{padding:11px 14px;gap:8px;flex-wrap:wrap}
+  .topbar-left{gap:9px;min-width:0}
+  .emp-name{font-size:13px}
+  .topbar-right{gap:8px;flex-wrap:wrap}
+  .logout-btn{padding:8px 13px}
+
+  .portal-content{padding:14px 13px 40px}
+
+  /* Tabs scroll sideways instead of squeezing */
+  .tabs{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap;margin-bottom:16px;border-radius:11px}
+  .tabs::-webkit-scrollbar{height:0}
+  .tab{padding:9px 14px;font-size:12.5px;white-space:nowrap;flex:0 0 auto}
+
+  /* Cards: one per row so numbers stay readable */
+  .cards-grid{grid-template-columns:1fr;gap:11px;margin-bottom:16px}
+  .card{padding:15px 16px}
+  .card-value{font-size:23px}
+  .card-bar{margin-left:-16px;margin-right:-16px;margin-top:-15px;width:calc(100% + 32px)}
+
+  /* Check-in card stacks: status on top, big button full width below */
+  .att-card{padding:19px 17px;border-radius:15px}
+  .att-row{flex-direction:column;align-items:stretch;gap:14px}
+  .att-checkin-btn{width:100%;padding:15px 20px;font-size:15px}
+  .att-done-badge{justify-content:center}
+
+  /* Leave form full width with bigger inputs */
+  .leave-form{max-width:100%;padding:16px 15px}
+  input,select,textarea{font-size:14px;padding:11px 12px}
+  .submit-btn{width:100%;padding:13px 20px;font-size:14px}
+
+  /* Leave history */
+  .lh-item{padding:12px 13px}
+  .lh-status{margin-left:0}
+  .lh-actions .lh-edit-btn,.lh-actions .lh-save-btn,.lh-actions .lh-cancel-btn{padding:8px 14px;font-size:12px}
+
+  /* Attendance calendar — tighter cells so all 7 columns fit */
+  .cal-grid{gap:3px}
+  .cal-day{min-height:40px;padding:4px 2px;font-size:10px;border-radius:7px}
+  .cal-day .day-num{font-size:11.5px}
+  .cal-header{font-size:9px;padding:3px 0}
+
+  .att-history-row{flex-wrap:wrap;gap:4px}
+}
+
+@media (max-width:400px){
+  .portal-content{padding:12px 10px 40px}
+  .cal-day{min-height:36px}
+  .emp-avatar{width:32px;height:32px;font-size:11px}
+}
 </style>
 </head>
 <body>

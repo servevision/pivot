@@ -45,6 +45,14 @@ input:focus,select:focus{border-color:#0d8f6f;box-shadow:0 0 0 3px rgba(20,184,1
 .spin{display:inline-block;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .req{color:#e53e3e}
+
+/* Mobile: comfortable padding + inputs that don't trigger iOS zoom */
+@media (max-width:520px){
+  body{padding:14px}
+  .box,.login-box,.signup-box,.card{padding:28px 20px!important;border-radius:14px}
+  input,select,textarea{font-size:16px!important}
+  .btn,.btn-p,.submit-btn{padding:14px!important;font-size:15px!important}
+}
 </style>
 </head>
 <body>

@@ -39,6 +39,14 @@ input:focus{border-color:#1758a8;box-shadow:0 0 0 3px rgba(23,88,168,.12)}
 .foot{text-align:center;margin-top:22px;font-size:11px;color:#c0c0c6}
 .spin{display:inline-block;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* Mobile: comfortable padding + inputs that don't trigger iOS zoom */
+@media (max-width:520px){
+  body{padding:14px}
+  .box,.login-box,.signup-box,.card{padding:28px 20px!important;border-radius:14px}
+  input,select,textarea{font-size:16px!important}
+  .btn,.btn-p,.submit-btn{padding:14px!important;font-size:15px!important}
+}
 </style>
 </head>
 <body>
@@ -98,6 +106,8 @@ async function doLogin() {
       sessionStorage.clear();
       sessionStorage.setItem('sv_token', data.token);
       sessionStorage.setItem('sv_email', data.email);
+      sessionStorage.setItem('sv_name',  data.name || data.email);
+      sessionStorage.setItem('sv_role',  data.role || 'admin');
       window.location.href = '/dashboard.html';
     } else {
       showErr(data.error || 'Invalid email or password.');

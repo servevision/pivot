@@ -35,8 +35,11 @@
     "toDate": "2026-09-04",
     "isHalfDay": true,
     "reason": "medical condition",
-    "status": "pending",
-    "appliedAt": "2026-09-21T07:53:57.361Z"
+    "status": "approved",
+    "appliedAt": "2026-09-21T07:53:57.361Z",
+    "decidedAt": "2026-09-28T15:00:19.867Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "mu9soxwpiboj",

@@ -82,7 +82,11 @@ export async function onRequestPost(context){
 
     const {content:logins}=await ghRead('hsim-employee-logins');
     const loginMap=logins||{};
-    if(!loginMap[email]) return respond({ok:false,error:'No account found with this email'},404);
+    if(!logins) return respond({ok:false,error:'Could not reach the employee records right now. Please try again in a minute.'},503);
+    // Stored keys should already be lowercase, but match case-insensitively
+    // so a login saved with capitals still resolves.
+    const loginKey = Object.keys(loginMap).find(k=>k.toLowerCase().trim()===email);
+    if(!loginKey) return respond({ok:false,error:'No account found with this email. Check the spelling, or ask your admin which email is on your account.'},404);
 
     const {content:resets,sha}=await ghRead('hsim-password-resets');
     const list=resets||[];
@@ -91,7 +95,7 @@ export async function onRequestPost(context){
 
     const reqItem={
       id:Date.now().toString(36)+Math.random().toString(36).substr(2,4),
-      email, name:loginMap[email].name, employeeId:loginMap[email].employeeId,
+      email:loginKey, name:loginMap[loginKey].name, employeeId:loginMap[loginKey].employeeId,
       status:'pending', requestedAt:new Date().toISOString()
     };
     list.unshift(reqItem);

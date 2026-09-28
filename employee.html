@@ -435,8 +435,15 @@ async function submitForgotPassword(){
       body:JSON.stringify({action:'request',email})
     });
     const d = await r.json();
-    ok.textContent = d.message || 'Request sent. Admin will reset your password shortly.';
-    ok.classList.add('show');
+    if(d && d.ok===false){
+      // The request did NOT go through — show the real reason instead of a
+      // success message the admin will never see a request for.
+      err.textContent = d.error || 'Could not send the request. Please tell your admin directly.';
+      err.classList.add('show');
+    } else {
+      ok.textContent = d.message || 'Request sent. Admin will reset your password shortly.';
+      ok.classList.add('show');
+    }
   }catch(e){
     err.textContent='Connection error — please try again';
     err.classList.add('show');

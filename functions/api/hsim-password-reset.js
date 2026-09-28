@@ -95,7 +95,10 @@ export async function onRequestPost(context){
       status:'pending', requestedAt:new Date().toISOString()
     };
     list.unshift(reqItem);
-    await ghWrite('hsim-password-resets',list,sha);
+    // If the save fails, say so — otherwise the employee is told the request
+    // went through while the admin never sees it.
+    const saved = await ghWrite('hsim-password-resets',list,sha);
+    if(!saved) return respond({ok:false,error:'Could not save your request right now. Please tell your admin directly.'},500);
 
     await sendEmail(env.RESEND_API_KEY, ADMIN_EMAIL,
       `Password reset request - ${reqItem.name}`,
@@ -126,7 +129,8 @@ export async function onRequestPost(context){
     const loginMap=logins||{};
     if(!loginMap[list[idx].email]) return respond({ok:false,error:'Employee login no longer exists'},404);
     loginMap[list[idx].email].password=newPassword;
-    await ghWrite('hsim-employee-logins',loginMap,loginSha);
+    const pwSaved = await ghWrite('hsim-employee-logins',loginMap,loginSha);
+    if(!pwSaved) return respond({ok:false,error:'Could not save the new password. Nothing was changed — please try again.'},500);
 
     list[idx].status='resolved';
     list[idx].fulfilledAt=new Date().toISOString();
@@ -158,7 +162,8 @@ export async function onRequestPost(context){
     if(idx<0) return respond({ok:false,error:'Request not found'},404);
     list[idx].status='dismissed';
     list[idx].fulfilledAt=new Date().toISOString();
-    await ghWrite('hsim-password-resets',list,sha);
+    const ok = await ghWrite('hsim-password-resets',list,sha);
+    if(!ok) return respond({ok:false,error:'Could not save — please try again.'},500);
     return respond({ok:true});
   }
 

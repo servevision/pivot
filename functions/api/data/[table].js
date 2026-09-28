@@ -2,7 +2,14 @@ const API_KEY   = 'sv_api_2026_karnal_pivot';
 const HSIM_API_KEY = 'hsim_api_2026_key_x9f2';
 const _t1 = 'github_pat_11BKQ3ODY0q74UW1OzqPmP_';
 const _t2 = 'Xf6U9IjMYaNuKR2gzdZ1xWm7PrDsrvbb1B8BYu9LmpSN4JFAPH3YyPgCgnT';
-const GH_TOKEN  = _t1 + _t2;
+let GH_TOKEN  = _t1 + _t2;
+// ── GitHub token ────────────────────────────────────────────
+// Prefer the token stored in Cloudflare (Pages project -> Settings ->
+// Variables and Secrets -> GITHUB_TOKEN). The literal above is only a
+// fallback: this repo is public, so any token committed here gets revoked
+// by GitHub's secret scanning. useEnv() runs at the top of every handler.
+function useEnv(env){ if(env && env.GITHUB_TOKEN) GH_TOKEN = env.GITHUB_TOKEN; }
+
 const GH_OWNER  = 'servevision';
 const GH_REPO   = 'pivot';
 const GH_BRANCH = 'main';
@@ -45,6 +52,7 @@ export async function onRequestOptions(){
 }
 
 export async function onRequestGet(context){
+  useEnv(context.env);
   const {request,params}=context;
   const auth=(request.headers.get('Authorization')||'').replace('Bearer ','').trim();
   if(auth!==API_KEY && auth!==HSIM_API_KEY) return respond({error:'Unauthorized'},401);
@@ -55,6 +63,7 @@ export async function onRequestGet(context){
 }
 
 export async function onRequestPost(context){
+  useEnv(context.env);
   const {request,params}=context;
   const auth=(request.headers.get('Authorization')||'').replace('Bearer ','').trim();
   if(auth!==API_KEY && auth!==HSIM_API_KEY) return respond({error:'Unauthorized'},401);

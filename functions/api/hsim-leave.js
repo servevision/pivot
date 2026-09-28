@@ -187,6 +187,9 @@ export async function onRequestPost(context){
 
     list[idx].status = decision==='approve' ? 'approved' : 'rejected';
     list[idx].decidedAt = new Date().toISOString();
+    // Who took the decision — sent by the dashboard from the signed-in admin
+    if(body.decidedByName)  list[idx].decidedBy      = String(body.decidedByName).slice(0,60);
+    if(body.decidedByEmail) list[idx].decidedByEmail = String(body.decidedByEmail).slice(0,120);
     const ok = await ghWrite('hsim-leave-requests',list,sha);
 
     const item = list[idx];

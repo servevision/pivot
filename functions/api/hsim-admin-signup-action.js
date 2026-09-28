@@ -61,7 +61,8 @@ export async function onRequestPost(context){
   const auth=(request.headers.get('Authorization')||'').replace('Bearer ','').trim();
   if(auth!==API_KEY) return respond({error:'Unauthorized'},401);
 
-  const {requestId,decision}=await request.json();
+  const body=await request.json().catch(()=>({}));
+  const {requestId,decision}=body;
   const {content:requests,sha:reqSha}=await ghRead('hsim-signup-requests');
   const reqList=requests||[];
   const idx=reqList.findIndex(r=>r.id===requestId);
@@ -97,6 +98,8 @@ export async function onRequestPost(context){
 
     reqList[idx].status='approved';
     reqList[idx].decidedAt=new Date().toISOString();
+    if(body.decidedByName)  reqList[idx].decidedBy      = String(body.decidedByName).slice(0,60);
+    if(body.decidedByEmail) reqList[idx].decidedByEmail = String(body.decidedByEmail).slice(0,120);
     await ghWrite('hsim-signup-requests',reqList,reqSha);
 
     await sendEmail(env.RESEND_API_KEY,reqItem.email,
@@ -116,6 +119,8 @@ export async function onRequestPost(context){
   if(decision==='reject'){
     reqList[idx].status='rejected';
     reqList[idx].decidedAt=new Date().toISOString();
+    if(body.decidedByName)  reqList[idx].decidedBy      = String(body.decidedByName).slice(0,60);
+    if(body.decidedByEmail) reqList[idx].decidedByEmail = String(body.decidedByEmail).slice(0,120);
     await ghWrite('hsim-signup-requests',reqList,reqSha);
     await sendEmail(env.RESEND_API_KEY,reqItem.email,
       'HSIM India account request update',

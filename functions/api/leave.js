@@ -8,6 +8,8 @@ const GH_REPO  = 'pivot';
 const GH_BRANCH = 'main';
 const API_KEY = 'sv_api_2026_karnal_pivot';
 const ADMIN_EMAIL = 'Payments@servevision.io';
+// Every admin who should receive leave / WFH requests
+const ADMIN_NOTIFY = ['Payments@servevision.io','Mohit@servevision.io'];
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -54,6 +56,13 @@ async function sendEmail(env, to, subject, html){
     });
     return r.ok;
   }catch(e){ console.error(e.message); return false; }
+}
+
+async function notifyAdmins(env, subject, html){
+  for(const to of ADMIN_NOTIFY){
+    try{ await sendEmail(env, to, subject, html); }catch(e){}
+  }
+  return true;
 }
 
 async function verifyEmployeeToken(token){
@@ -139,7 +148,7 @@ export async function onRequestPost(context){
     list.unshift(newRequest);
     const ok = await ghWrite('leave-requests',list,sha);
 
-    await sendEmail(env, ADMIN_EMAIL,
+    await notifyAdmins(env,
       `Leave request from ${emp.name} - ${leaveType}`,
       `<div style="font-family:sans-serif;max-width:480px">
         <h2 style="color:#0a3570">New leave request</h2>
@@ -187,6 +196,9 @@ export async function onRequestPost(context){
 
     list[idx].status = decision==='approve' ? 'approved' : 'rejected';
     list[idx].decidedAt = new Date().toISOString();
+    // Who took the decision — sent by the dashboard from the signed-in admin
+    if(body.decidedByName)  list[idx].decidedBy      = String(body.decidedByName).slice(0,60);
+    if(body.decidedByEmail) list[idx].decidedByEmail = String(body.decidedByEmail).slice(0,120);
     const ok = await ghWrite('leave-requests',list,sha);
 
     const item = list[idx];

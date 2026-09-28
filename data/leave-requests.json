@@ -62,8 +62,11 @@
     "toDate": "2026-09-24",
     "isHalfDay": false,
     "reason": "Marriage function",
-    "status": "pending",
-    "appliedAt": "2026-09-18T04:26:08.815Z"
+    "status": "approved",
+    "appliedAt": "2026-09-18T04:26:08.815Z",
+    "decidedAt": "2026-09-28T15:00:01.039Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "mu6fnq1hptap",

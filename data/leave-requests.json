@@ -9,8 +9,11 @@
     "toDate": "2026-09-01",
     "isHalfDay": false,
     "reason": "MEDICAL REASON",
-    "status": "pending",
-    "appliedAt": "2026-09-21T07:57:58.841Z"
+    "status": "approved",
+    "appliedAt": "2026-09-21T07:57:58.841Z",
+    "decidedAt": "2026-09-28T15:00:41.773Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "muayar7tajlk",

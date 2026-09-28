@@ -75,8 +75,11 @@
     "toDate": "2026-09-18",
     "isHalfDay": false,
     "reason": "Due to some personal work, I won’t be able to come to the office today. Kindly consider this as my leave for today. Thank you for understanding.",
-    "status": "pending",
-    "appliedAt": "2026-09-18T04:02:58.325Z"
+    "status": "approved",
+    "appliedAt": "2026-09-18T04:02:58.325Z",
+    "decidedAt": "2026-09-28T14:59:58.779Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "mu5428riirbd",

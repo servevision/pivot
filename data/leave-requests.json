@@ -1,5 +1,18 @@
 [
   {
+    "id": "munrxs55jdbf",
+    "employeeId": "SV-EMP-014",
+    "employeeName": "Prerna",
+    "employeeEmail": "prernakashyap605@gmail.com",
+    "leaveType": "CL",
+    "fromDate": "2026-10-01",
+    "toDate": "2026-10-03",
+    "isHalfDay": false,
+    "reason": "Personal Travel",
+    "status": "pending",
+    "appliedAt": "2026-09-30T07:18:47.993Z"
+  },
+  {
     "id": "muaydi2hfkho",
     "employeeId": "SV-EMP-013",
     "employeeName": "Vaishali Kagda",

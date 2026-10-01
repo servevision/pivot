@@ -9,8 +9,11 @@
     "toDate": "2026-10-03",
     "isHalfDay": false,
     "reason": "Personal Travel",
-    "status": "pending",
-    "appliedAt": "2026-09-30T07:18:47.993Z"
+    "status": "approved",
+    "appliedAt": "2026-09-30T07:18:47.993Z",
+    "decidedAt": "2026-10-01T05:21:22.129Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "muaydi2hfkho",

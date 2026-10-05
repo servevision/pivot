@@ -78,6 +78,14 @@
   "Yogesh Miglani": {
     "ov": {},
     "monthly": 20000,
-    "wdays": 26
+    "wdays": 26,
+    "inc": [
+      {
+        "month": "Aug-2026",
+        "amount": 25000,
+        "note": "",
+        "addedAt": "2026-10-05T07:35:27.057Z"
+      }
+    ]
   }
 }

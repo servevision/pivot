@@ -22,7 +22,15 @@
     "wdays": 30,
     "ov": {
       "May-2026": 25000
-    }
+    },
+    "inc": [
+      {
+        "month": "Jul-2026",
+        "amount": 25000,
+        "note": "",
+        "addedAt": "2026-10-05T07:34:59.241Z"
+      }
+    ]
   },
   "Gourav Madaan": {
     "monthly": 18585,

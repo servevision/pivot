@@ -37,7 +37,15 @@
   "Monika Bhardwaj": {
     "monthly": 20650,
     "wdays": 30,
-    "ov": {}
+    "ov": {},
+    "inc": [
+      {
+        "month": "Jul-2026",
+        "amount": 24000,
+        "note": "",
+        "addedAt": "2026-10-05T07:34:49.305Z"
+      }
+    ]
   },
   "Payal": {
     "monthly": 12476,

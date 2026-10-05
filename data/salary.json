@@ -7,7 +7,15 @@
   "Ansh": {
     "monthly": 12476,
     "wdays": 30,
-    "ov": {}
+    "ov": {},
+    "inc": [
+      {
+        "month": "Jul-2026",
+        "amount": 15250,
+        "note": "",
+        "addedAt": "2026-10-05T07:34:14.218Z"
+      }
+    ]
   },
   "Bhuvan Gaur": {
     "monthly": 17000,

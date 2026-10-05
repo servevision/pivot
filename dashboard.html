@@ -502,7 +502,7 @@ async function pushAllToGitHub() {
 
     <!-- SALARY SETUP -->
     <div class="page" id="page-salary-setup">
-      <div class="notice n-amber"><b>Salary Calculation Logic:</b> Set monthly salary for each employee. Daily rate = Monthly Salary ÷ Working Days. If an employee works for multiple partners on the same date, that day's salary is split proportionally. Paid holidays and paid leaves are included in the salary calculation. Use Month Override for any month with a different salary.</div>
+      <div class="notice n-amber"><b>Salary Calculation Logic:</b> Set monthly salary for each employee. Daily rate = Monthly Salary ÷ Working Days. If an employee works for multiple partners on the same date, that day's salary is split proportionally. Paid holidays and paid leaves are included in the salary calculation.<br><b>Increment</b> = salary goes up from that month and stays up. <b>Month Override</b> = one single month only.</div>
       <div class="card">
         <div class="card-t">Set Employee Monthly Salary</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end;margin-bottom:0">
@@ -512,7 +512,17 @@ async function pushAllToGitHub() {
           <button class="btn btn-p" onclick="saveSal()" style="height:35px;align-self:end">Save</button>
         </div>
         <hr class="div">
-        <div style="font-size:11px;font-weight:700;margin-bottom:8px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px">Month Override — Different Salary for a Specific Month</div>
+        <div style="font-size:11px;font-weight:700;margin-bottom:8px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px">Salary Increment — New Salary From This Month Onwards</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1.2fr auto;gap:10px;align-items:end">
+          <div class="fg"><label>Employee</label><select id="inc-emp" style="width:100%"><option value="">-- Select --</option></select></div>
+          <div class="fg"><label>Effective From</label><input type="text" id="inc-month" placeholder="Jul-2026"></div>
+          <div class="fg"><label>New Salary (₹)</label><input type="number" id="inc-sal" placeholder="25000"></div>
+          <div class="fg"><label>Note (optional)</label><input type="text" id="inc-note" placeholder="e.g. Annual increment"></div>
+          <button class="btn btn-p" onclick="saveIncrement()" style="height:35px;align-self:end">↑ Add Increment</button>
+        </div>
+        <div style="font-size:11px;color:var(--text2);margin-top:7px;line-height:1.6">Use this when a salary goes up permanently — it applies to that month and <b>every month after it</b>, so you don't have to add each month one by one. Use <b>Month Override</b> below only for a single odd month.</div>
+        <hr class="div">
+        <div style="font-size:11px;font-weight:700;margin-bottom:8px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px">Month Override — Different Salary for One Specific Month</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end">
           <div class="fg"><label>Employee</label><select id="ov-emp" style="width:100%"><option value="">-- Select --</option></select></div>
           <div class="fg"><label>Month (e.g. Apr-2026)</label><input type="text" id="ov-month" placeholder="Apr-2026"></div>
@@ -1281,9 +1291,57 @@ function sortMonths(arr){
   });
 }
 
+// Month labels get typed by hand ("July-2026") while the sheets use short
+// names ("Jul-2026"). Normalise both sides so they always match.
+function normMonth(s){
+  if(!s) return '';
+  const t=String(s).trim().replace(/[\s/_,]+/g,'-').replace(/-+/g,'-');
+  const p=t.split('-');
+  if(p.length!==2) return t;
+  const i=MONTH_ORDER.findIndex(m=>m.toLowerCase()===p[0].toLowerCase().slice(0,3));
+  if(i<0) return t;
+  return MONTH_ORDER[i]+'-'+p[1];
+}
+// Comparable number for a month, so "effective from" can mean "and onwards".
+function monthNum(m){
+  const p=normMonth(m).split('-');
+  const i=MONTH_ORDER.indexOf(p[0]), y=parseInt(p[1]);
+  if(i<0||isNaN(y)) return -1;
+  return y*12+i;
+}
+function curMonthKey(){
+  const d=new Date();
+  return MONTH_ORDER[d.getMonth()]+'-'+d.getFullYear();
+}
+
+// Which increment (if any) is in force for a given month.
+function activeIncrement(emp,month){
+  const c=SAL[emp];
+  if(!c||!Array.isArray(c.inc)||!c.inc.length) return null;
+  const wn=monthNum(month);
+  if(wn<0) return null;
+  let best=null,bestNum=-1;
+  for(const it of c.inc){
+    const n=monthNum(it.month);
+    if(n>=0 && n<=wn && n>bestNum){ bestNum=n; best=it; }
+  }
+  return best;
+}
+
+// Salary for one month. Priority:
+//   1. one-month override  (a single odd month)
+//   2. increment in force  (applies from its month onwards)
+//   3. base monthly salary
 function getMonthSal(emp,month){
   const c=SAL[emp];if(!c)return 0;
-  if(c.ov&&c.ov[month])return Number(c.ov[month]);
+  const want=normMonth(month);
+  if(c.ov){
+    for(const k in c.ov){
+      if(normMonth(k)===want) return Number(c.ov[k]);
+    }
+  }
+  const inc=activeIncrement(emp,want);
+  if(inc) return Number(inc.amount)||0;
   return Number(c.monthly)||0;
 }
 
@@ -1785,7 +1843,7 @@ function rSheets(){
 // Salary setup
 function popSEmpSels(){
   const emps=[...new Set(ALL.map(r=>r.name).filter(Boolean))].sort();
-  ['se-emp','ov-emp','hol-emp','lv-emp'].forEach(id=>{
+  ['se-emp','ov-emp','inc-emp','hol-emp','lv-emp'].forEach(id=>{
     const sel=document.getElementById(id);if(!sel)return;
     const cv=sel.value,isHol=id==='hol-emp';
     sel.innerHTML=(isHol?'<option value="">-- All Employees --</option>':'<option value="">-- Select --</option>')+emps.map(e=>`<option value="${e}">${e}</option>`).join('');
@@ -1813,18 +1871,55 @@ function saveOverride(){
   svS();if(typeof dbWrite!=='undefined')dbWrite('salary',SAL);recalc();rSalCfg();rCurrent();
   setMsg('se-msg',`✓ ${emp} — ${month}: ₹${sal.toLocaleString('en-IN')} override saved!`,'green');
 }
+function saveIncrement(){
+  const emp=document.getElementById('inc-emp').value;
+  const raw=document.getElementById('inc-month').value.trim();
+  const month=normMonth(raw);
+  const sal=parseFloat(document.getElementById('inc-sal').value)||0;
+  const note=document.getElementById('inc-note').value.trim();
+  if(!emp||!raw||!sal){setMsg('se-msg','Select employee, month and new salary!','red');return;}
+  if(monthNum(month)<0){setMsg('se-msg','Month should look like Jul-2026','red');return;}
+  if(!SAL[emp])SAL[emp]={monthly:0,wdays:26,ov:{}};
+  if(!Array.isArray(SAL[emp].inc))SAL[emp].inc=[];
+  // One increment per month — re-adding the same month updates it.
+  const i=SAL[emp].inc.findIndex(x=>normMonth(x.month)===month);
+  const rec={month,amount:sal,note,addedAt:new Date().toISOString()};
+  if(i>=0) SAL[emp].inc[i]=rec; else SAL[emp].inc.push(rec);
+  SAL[emp].inc.sort((a,b)=>monthNum(a.month)-monthNum(b.month));
+  svS();if(typeof dbWrite!=='undefined')dbWrite('salary',SAL);recalc();rSalCfg();rCurrent();
+  setMsg('se-msg',`✓ ${emp}: ₹${sal.toLocaleString('en-IN')} from ${month} onwards${note?' — '+note:''}`,'green');
+  document.getElementById('inc-sal').value='';document.getElementById('inc-note').value='';
+}
+function delInc(emp,month){
+  if(!SAL[emp]||!Array.isArray(SAL[emp].inc))return;
+  if(!confirm(`Remove the increment starting ${month} for ${emp}?\n\nSalary for ${month} onwards will fall back to the previous increment (or the base salary).`))return;
+  SAL[emp].inc=SAL[emp].inc.filter(x=>normMonth(x.month)!==normMonth(month));
+  svS();if(typeof dbWrite!=='undefined')dbWrite('salary',SAL);recalc();rSalCfg();rCurrent();
+}
 function delSalEmp(emp){if(!confirm(`Delete salary config for ${emp}?`))return;delete SAL[emp];svS();recalc();rSalCfg();}
 function delOv(emp,month){if(SAL[emp]&&SAL[emp].ov)delete SAL[emp].ov[month];svS();recalc();rSalCfg();}
 function rSalCfg(){
   const w=document.getElementById('sal-cfg-list');
   if(!Object.keys(SAL).length){w.innerHTML='<div class="notice n-blue">No salary configurations set. Add above.</div>';return;}
   w.innerHTML=`<div class="tw"><table>
-    <thead><tr><th>Employee</th><th style="text-align:right">Monthly Salary</th><th style="text-align:center">Working Days</th><th style="text-align:right">Daily Rate</th><th>Month Overrides</th><th></th></tr></thead>
+    <thead><tr><th>Employee</th><th style="text-align:right">Base Salary</th><th style="text-align:right">Current (<span id="sal-cur-m"></span>)</th><th style="text-align:center">Working Days</th><th style="text-align:right">Daily Rate</th><th>Increments</th><th>Month Overrides</th><th></th></tr></thead>
     <tbody>${Object.entries(SAL).map(([emp,c])=>{
-      const daily=c.monthly&&c.wdays?Math.round(c.monthly/c.wdays):0;
-      const ovs=c.ov&&Object.keys(c.ov).length?Object.entries(c.ov).map(([m,s])=>`<span class="badge b-amber" style="margin:1px;cursor:pointer" onclick="delOv('${emp}','${m}')" title="Click to remove">${m}: ${fmt(s)} ×</span>`).join(''):'-';
-      return`<tr><td style="font-weight:700">${emp}</td><td style="text-align:right;font-weight:700;color:var(--blue)">${fmt(c.monthly||0)}</td><td style="text-align:center">${c.wdays||26}</td><td style="text-align:right;color:var(--text2)">${fmt(daily)}/day</td><td>${ovs}</td><td><button class="btn btn-sm btn-d" onclick="delSalEmp('${emp}')">Delete</button></td></tr>`;
+      const cm=curMonthKey();
+      const cur=getMonthSal(emp,cm);
+      const daily=cur&&c.wdays?Math.round(cur/c.wdays):0;
+      const ovs=c.ov&&Object.keys(c.ov).length?Object.entries(c.ov).map(([m,s])=>`<span class="badge b-amber" style="margin:1px;cursor:pointer" onclick="delOv('${emp}','${m}')" title="Click to remove">${normMonth(m)}: ${fmt(s)} ×</span>`).join(''):'-';
+      const act=activeIncrement(emp,cm);
+      const incs=Array.isArray(c.inc)&&c.inc.length
+        ? c.inc.map(it=>{
+            const live=act&&normMonth(act.month)===normMonth(it.month);
+            return `<span class="badge ${live?'b-green':'b-gray'}" style="margin:1px;cursor:pointer" onclick="delInc('${emp}','${it.month}')" title="${(it.note||'Increment').replace(/"/g,'')} — click to remove">↑ ${normMonth(it.month)}: ${fmt(it.amount)}${live?' ●':''} ×</span>`;
+          }).join('')
+        : '<span style="color:var(--text3)">No increment yet</span>';
+      const raised=cur>(Number(c.monthly)||0);
+      return`<tr><td style="font-weight:700">${emp}</td><td style="text-align:right;color:var(--text2)">${fmt(c.monthly||0)}</td><td style="text-align:right;font-weight:700;color:${raised?'var(--green-t)':'var(--blue)'}">${fmt(cur)}${raised?' ↑':''}</td><td style="text-align:center">${c.wdays||26}</td><td style="text-align:right;color:var(--text2)">${fmt(daily)}/day</td><td>${incs}</td><td>${ovs}</td><td><button class="btn btn-sm btn-d" onclick="delSalEmp('${emp}')">Delete</button></td></tr>`;
     }).join('')}</tbody></table></div>`;
+  const mEl=document.getElementById('sal-cur-m');
+  if(mEl) mEl.textContent=curMonthKey();
 }
 
 // Holiday & Leave setup

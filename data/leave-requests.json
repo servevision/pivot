@@ -9,8 +9,11 @@
     "toDate": "2026-10-05",
     "isHalfDay": false,
     "reason": "Tour",
-    "status": "pending",
-    "appliedAt": "2026-10-05T02:12:12.218Z"
+    "status": "approved",
+    "appliedAt": "2026-10-05T02:12:12.218Z",
+    "decidedAt": "2026-10-05T06:29:17.963Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "muum63n6kpsy",

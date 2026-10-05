@@ -22,8 +22,11 @@
     "toDate": "2026-10-03",
     "isHalfDay": false,
     "reason": "Tour",
-    "status": "pending",
-    "appliedAt": "2026-10-05T02:11:41.682Z"
+    "status": "approved",
+    "appliedAt": "2026-10-05T02:11:41.682Z",
+    "decidedAt": "2026-10-05T06:29:10.162Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "munrxs55jdbf",

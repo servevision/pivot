@@ -454,7 +454,7 @@ async function pushAllToGitHub() {
 
     <!-- SHEET REGISTRY -->
     <div class="page active" id="page-sheets">
-      <div class="notice n-blue"><b>One-time setup, no repeat needed!</b> Add each employee's Apps Script URL once. Click "Sync All Sheets" to refresh all data automatically. Auto-refreshes every 5 minutes when the file is open.</div>
+      <div class="notice n-blue"><b>One-time setup, no repeat needed!</b> Add each employee's Apps Script URL once. Click <b>"Sync All Sheets"</b> whenever you want to pull the latest Work Record data. Sheets are synced only when you press that button — nothing runs automatically.</div>
       <div class="card">
         <div class="card-t">+ Add New Employee Sheet</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
@@ -5360,17 +5360,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Auto-sync every 3 minutes
     if (typeof loadFromDB === 'function') setInterval(loadFromDB, 3 * 60 * 1000);
 
-    // Auto-sync the Work Record sheets every 5 minutes, quietly in the
-    // background. Existing data stays on screen throughout — nothing is
-    // cleared while the sync runs.
-    if (typeof syncAll === 'function') {
-      setInterval(function(){
-        if (document.hidden) return;              // skip while tab is in the background
-        if (typeof SHEETS === 'undefined') return;
-        if (!SHEETS.some(s => s.url && s.url.trim())) return;
-        syncAll(true);
-      }, 5 * 60 * 1000);
-    }
+    // Work Record sheets are NOT auto-synced — the admin pulls them with the
+    // "Sync All Sheets" button when they want fresh data. (The 3-minute
+    // loadFromDB above only re-reads what is already saved in GitHub; it
+    // never touches the Google Sheets.)
 
     // Show pending-request counts on sidebar badges right away
     if (typeof loadEmpData === 'function') loadEmpData();

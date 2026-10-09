@@ -1,5 +1,18 @@
 [
   {
+    "id": "mv0n2syrftg1",
+    "employeeId": "HSIM-EMP-001",
+    "employeeName": "Vivek Attri",
+    "employeeEmail": "vivek.hsim@gmail.com",
+    "leaveType": "CL",
+    "fromDate": "2026-10-10",
+    "toDate": "2026-10-10",
+    "isHalfDay": false,
+    "reason": "Urgent work",
+    "status": "pending",
+    "appliedAt": "2026-10-09T07:23:44.547Z"
+  },
+  {
     "id": "mu80qheyk1ew",
     "employeeId": "HSIM-EMP-004",
     "employeeName": "richa",

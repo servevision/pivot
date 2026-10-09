@@ -1,5 +1,21 @@
 [
   {
+    "id": "mv0lurr56am1",
+    "name": "Anthropic Claude Max Plan",
+    "usd": 200,
+    "inr": 19300,
+    "date": "2026-08-03",
+    "partner": "Serve Vision",
+    "payment": "SV Mercury-4877",
+    "cat": "Software / SaaS",
+    "subcat": "Subscription",
+    "notes": "Invoice GEWNMMF9-0004, Max plan 20x, Aug 3–Sep 3 2026",
+    "fileName": "Invoice-GEWNMMF9-0004.pdf",
+    "createdAt": "2026-10-09T06:49:30.113Z",
+    "updatedAt": "2026-10-09T06:49:30.113Z",
+    "fileRef": "expense-files/mv0lurr56am1.pdf"
+  },
+  {
     "id": "muwbky5epvhd",
     "name": "Airtel Postpaid Wi-Fi 300Mbps Plan",
     "usd": 21.04,

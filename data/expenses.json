@@ -1,5 +1,21 @@
 [
   {
+    "id": "mv0lyvcomyti",
+    "name": "Anthropic Claude Max Plan",
+    "usd": 200,
+    "inr": 19600,
+    "date": "2026-10-03",
+    "partner": "Serve Vision",
+    "payment": "SV Mercury-4877",
+    "cat": "Software / SaaS",
+    "subcat": "Subscription",
+    "notes": "Invoice GEWNMMF9-0006, Max plan - 20x, Oct 3–Nov 3 2026",
+    "fileName": "Invoice-GEWNMMF9-0006.pdf",
+    "createdAt": "2026-10-09T06:52:41.400Z",
+    "updatedAt": "2026-10-09T06:52:41.400Z",
+    "fileRef": "expense-files/mv0lyvcomyti.pdf"
+  },
+  {
     "id": "mv0lxb55w2tt",
     "name": "Anthropic Claude Max Plan",
     "usd": 200,

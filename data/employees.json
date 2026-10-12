@@ -95,7 +95,7 @@
   {
     "employeeId": "SV-EMP-009",
     "name": "Sunita Mahata",
-    "email": "sunitamahata@servevision.io",
+    "email": "sunita@servevision.io",
     "designation": "Content Editor and Outreach Expert",
     "department": "Content",
     "phone": "7027706868",
@@ -108,7 +108,8 @@
     "documents": {},
     "status": "active",
     "createdAt": "2026-07-03T00:00:00.000Z",
-    "updatedAt": "2026-07-07T11:47:52.786Z"
+    "updatedAt": "2026-10-12T06:40:20.977Z",
+    "dateOfBirth": ""
   },
   {
     "employeeId": "SV-EMP-010",

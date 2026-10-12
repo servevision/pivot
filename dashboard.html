@@ -3016,7 +3016,12 @@ async function saveEmpRecord(){
   }
 
   if(result&&result.ok){
-    setMsg('emp-form-msg',editId?'Updated!':'Employee added! ID: '+(result.employeeId||''),'green');
+    let note = editId?'Updated!':'Employee added! ID: '+(result.employeeId||'');
+    // Changing the email also moves their sign-in email — say so, because the
+    // employee has to use the new one from now on.
+    if(result.loginEmailChanged) note += ' Their sign-in email was updated too.';
+    setMsg('emp-form-msg',note,'green');
+    if(result.loginWarning) alert('Saved, but the sign-in email could not be updated: '+result.loginWarning+'\n\nThey will still have to log in with their old email.');
     closeEmpForm();
     loadEmpData();
   } else {

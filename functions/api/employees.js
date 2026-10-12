@@ -59,6 +59,27 @@ function genEmployeeId(existingEmployees){
   return 'SV-EMP-' + String(next).padStart(3,'0');
 }
 
+
+// When an employee's email is corrected in Employee Records, their sign-in
+// email must move with it — otherwise the record says one address while the
+// login is still filed under the old one, and they get "account not found".
+async function syncLoginEmail(loginTable, oldEmail, newEmail){
+  const a=(oldEmail||'').toLowerCase().trim(), b=(newEmail||'').toLowerCase().trim();
+  if(!a || !b || a===b) return {changed:false};
+  const {content:logins, sha}=await ghRead(loginTable);
+  if(!logins) return {changed:false, error:'could not read logins'};
+  const key=Object.keys(logins).find(k=>k.toLowerCase().trim()===a);
+  if(!key) return {changed:false};            // no login for the old address
+  if(Object.keys(logins).some(k=>k.toLowerCase().trim()===b && k!==key)){
+    return {changed:false, error:'another account already uses '+b};
+  }
+  // Rebuild in order so the password, employeeId and name carry over intact.
+  const out={};
+  for(const k in logins) out[k===key ? b : k] = logins[k];
+  const ok=await ghWrite(loginTable, out, sha);
+  return {changed:ok, error: ok?null:'could not save the new login email'};
+}
+
 export async function onRequestOptions(){
   return new Response(null,{status:204,headers:CORS});
 }
@@ -96,9 +117,12 @@ export async function onRequestPost(context){
   if(action==='update'){
     const idx = list.findIndex(e=>e.employeeId===body.employeeId);
     if(idx>=0){
+      const prevEmail = list[idx].email;
       list[idx] = {...list[idx], ...body.employee, updatedAt:new Date().toISOString()};
       const ok = await ghWrite('employees',list,sha);
-      return respond({ok});
+      // Keep the sign-in email in step with the record.
+      const sync = await syncLoginEmail('employee-logins', prevEmail, list[idx].email);
+      return respond({ok, loginEmailChanged:sync.changed, loginWarning:sync.error||null});
     }
     return respond({error:'Employee not found'},404);
   }

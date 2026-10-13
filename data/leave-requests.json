@@ -1,5 +1,18 @@
 [
   {
+    "id": "mv66ocmpkn02",
+    "employeeId": "SV-EMP-005",
+    "employeeName": "Joydeep Mahata",
+    "employeeEmail": "joydeepservevision@gmail.com",
+    "leaveType": "WFH",
+    "fromDate": "2026-10-12",
+    "toDate": "2026-10-12",
+    "isHalfDay": false,
+    "reason": ".",
+    "status": "pending",
+    "appliedAt": "2026-10-13T04:31:13.393Z"
+  },
+  {
     "id": "muum6r7evzqg",
     "employeeId": "SV-EMP-010",
     "employeeName": "Aman Khokhar",

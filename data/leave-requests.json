@@ -1,5 +1,18 @@
 [
   {
+    "id": "mv9rf9qo1ld0",
+    "employeeId": "SV-EMP-013",
+    "employeeName": "Vaishali Kagda",
+    "employeeEmail": "vaishalisv33@gmail.com",
+    "leaveType": "CL",
+    "fromDate": "2026-10-15",
+    "toDate": "2026-10-15",
+    "isHalfDay": false,
+    "reason": "personal reason",
+    "status": "pending",
+    "appliedAt": "2026-10-15T16:35:20.208Z"
+  },
+  {
     "id": "mv94rkd3rchc",
     "employeeId": "SV-EMP-009",
     "employeeName": "Sunita Mahata",

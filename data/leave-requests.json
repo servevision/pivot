@@ -1,5 +1,18 @@
 [
   {
+    "id": "mv93f1e94si7",
+    "employeeId": "SV-EMP-002",
+    "employeeName": "Ansh",
+    "employeeEmail": "ansh24.sv@gmail.com",
+    "leaveType": "WFH",
+    "fromDate": "2026-10-15",
+    "toDate": "2026-10-15",
+    "isHalfDay": false,
+    "reason": "Dear sir, \nDue to heavy rain, I would like to request work from home today. Thank you for understanding.",
+    "status": "pending",
+    "appliedAt": "2026-10-15T05:23:18.609Z"
+  },
+  {
     "id": "mv91fas1lk4b",
     "employeeId": "SV-EMP-010",
     "employeeName": "Aman Khokhar",

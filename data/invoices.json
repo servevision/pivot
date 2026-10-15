@@ -1,5 +1,55 @@
 [
   {
+    "invoiceNumber": "SVPL001",
+    "type": "Tax Invoice",
+    "date": "2026-10-15",
+    "clientId": "mrkln6u5l6hw",
+    "clientSnapshot": {
+      "name": "Postysheva Anna",
+      "company": "Postysheva Anna",
+      "email": "anna2.shum2@gmail.com",
+      "phone": "",
+      "gst": "",
+      "state": "Other / Outside India",
+      "address": "Kozhamkulov St,Kazakhstan",
+      "description": "",
+      "id": "mrkln6u5l6hw",
+      "createdAt": "2026-07-14T12:00:10.589Z"
+    },
+    "companySnapshot": {
+      "name": "SERVE VISION PRIVATE LIMITED",
+      "gstin": "06ABGCS4675K1ZU",
+      "pan": "ABGCS4675K",
+      "address": "SCO-112, 2nd Floor, old Tehsil Complex, Karnal, Haryana, 132001",
+      "phone": "+91 9802387131",
+      "email": "payments@servevision.io"
+    },
+    "bankSnapshot": {
+      "name": "HDFC Bank",
+      "holder": "SERVE VISION PRIVATE LIMITED",
+      "account": "50200071839230",
+      "ifsc": "HDFC0000195",
+      "id": "mrklb6m3as9d",
+      "createdAt": "2026-07-14T11:50:50.427Z"
+    },
+    "items": [
+      {
+        "description": "TEST",
+        "sac": "998361",
+        "amount": 100
+      }
+    ],
+    "usdRate": null,
+    "taxable": 100,
+    "igst": 0,
+    "cgst": 9,
+    "sgst": 9,
+    "taxTotal": 18,
+    "grandTotal": 118,
+    "id": "mv93vykqghw40",
+    "createdAt": "2026-10-15T05:36:28.106Z"
+  },
+  {
     "invoiceNumber": "SVPL/25-26/094",
     "type": "Export Invoice",
     "date": "2026-04-07",

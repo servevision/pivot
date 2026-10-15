@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "date": "2026-10-15",
+    "clientId": "mrkln6u5l6hw",
+    "amount": 118,
+    "description": "Invoice SVPL001 — TEST",
+    "invoiceId": "mv93vykqghw40",
+    "invoiceNumber": "SVPL001",
+    "id": "mv93vzrcifxg0",
+    "createdAt": "2026-10-15T05:36:29.640Z"
+  }
+]

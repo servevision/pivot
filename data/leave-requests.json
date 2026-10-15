@@ -1,5 +1,18 @@
 [
   {
+    "id": "mv93hcxmsvj8",
+    "employeeId": "SV-EMP-008",
+    "employeeName": "Sakshi Grover",
+    "employeeEmail": "sakshigrover.servevision@gmail.com",
+    "leaveType": "WFH",
+    "fromDate": "2026-10-15",
+    "toDate": "2026-10-15",
+    "isHalfDay": false,
+    "reason": "Hi, due to  some personal Work, I would like to request permission to work from home today. Thank you for understanding.",
+    "status": "pending",
+    "appliedAt": "2026-10-15T05:25:06.874Z"
+  },
+  {
     "id": "mv93f1e94si7",
     "employeeId": "SV-EMP-002",
     "employeeName": "Ansh",

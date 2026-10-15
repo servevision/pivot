@@ -1,5 +1,18 @@
 [
   {
+    "id": "mv91fas1lk4b",
+    "employeeId": "SV-EMP-010",
+    "employeeName": "Aman Khokhar",
+    "employeeEmail": "aman@servevision.io",
+    "leaveType": "CL",
+    "fromDate": "2026-10-14",
+    "toDate": "2026-10-14",
+    "isHalfDay": false,
+    "reason": "Death",
+    "status": "pending",
+    "appliedAt": "2026-10-15T04:27:31.537Z"
+  },
+  {
     "id": "mv90favxdlqc",
     "employeeId": "SV-EMP-006",
     "employeeName": "Monika Bhardwaj",

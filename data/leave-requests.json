@@ -1,5 +1,18 @@
 [
   {
+    "id": "mv94rkd3rchc",
+    "employeeId": "SV-EMP-009",
+    "employeeName": "Sunita Mahata",
+    "employeeEmail": "sunitamahata@servevision.io",
+    "leaveType": "WFH",
+    "fromDate": "2026-10-15",
+    "toDate": "2026-10-15",
+    "isHalfDay": false,
+    "reason": "Dear Sir,\n\nDue to heavy rainfall and the road conditions being very poor, it is difficult and unsafe for me to travel to the office today. I kindly request permission to work from home for today.\n\nI will be available and continue my work as usual from home.\n\nThank you for understanding.",
+    "status": "pending",
+    "appliedAt": "2026-10-15T06:01:02.679Z"
+  },
+  {
     "id": "mv93hcxmsvj8",
     "employeeId": "SV-EMP-008",
     "employeeName": "Sakshi Grover",

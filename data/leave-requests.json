@@ -9,8 +9,11 @@
     "toDate": "2026-10-16",
     "isHalfDay": false,
     "reason": ".",
-    "status": "pending",
-    "appliedAt": "2026-10-16T04:02:49.735Z"
+    "status": "rejected",
+    "appliedAt": "2026-10-16T04:02:49.735Z",
+    "decidedAt": "2026-10-16T04:04:30.339Z",
+    "decidedBy": "Payments Admin",
+    "decidedByEmail": "payments@servevision.io"
   },
   {
     "id": "mv9rfvj14l6d",

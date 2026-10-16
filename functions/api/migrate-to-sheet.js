@@ -1,20 +1,21 @@
 // functions/api/migrate-to-sheet.js
 // ---------------------------------------------------------------------------
-// Ek baar chalane wala migration: GitHub ke data/*.json ko Google Sheet ke
-// tabs me copy karta hai. GitHub ko haath nahi lagata — sirf padhta hai — to
-// ye chalane se kuch toot nahi sakta aur jitni baar chaho chala sakte ho.
+// GitHub ke data/*.json ko Google Sheet ke tabs me copy karta hai.
+// GitHub ko sirf PADHTA hai — kuch likhta nahi — to jitni baar chaho chala
+// sakte ho, aapka asli data bilkul safe rehta hai.
 //
-// Chalane ka tareeka (browser me):
-//   https://pivot-eb5.pages.dev/api/migrate-to-sheet?key=<ADMIN API KEY>
+// Cloudflare ek request me sirf 50 bahar ki calls karne deta hai, isliye ye
+// thode-thode tables karta hai aur batata hai aage kahan se chalana hai.
 //
-// Sirf ek table ke liye:
+// Chalana (browser me):
+//   https://pivot-eb5.pages.dev/api/migrate-to-sheet?key=<ADMIN KEY>
+// Jawab me "next" link aayega — use kholte jao jab tak "done" na aa jaye.
+//
+// Sirf ek table:
 //   ...?key=<KEY>&table=employees
-//
-// Jawab me har table ke saamne GitHub ke rows aur Sheet me likhe rows dikhenge
-// — dono ka number same hona chahiye.
 // ---------------------------------------------------------------------------
 
-import { sheetWrite } from './_store.js';
+import { sheetWrite, sheetConfigured } from './_store.js';
 
 const GH_T1 = 'github_pat_11BKQ3ODY0q74UW1OzqPmP_';
 const GH_T2 = 'Xf6U9IjMYaNuKR2gzdZ1xWm7PrDsrvbb1B8BYu9LmpSN4JFAPH3YyPgCgnT';
@@ -26,17 +27,22 @@ const GH_REPO = 'pivot';
 const GH_BRANCH = 'main';
 const API_KEY = 'sv_api_2026_karnal_pivot';
 
-// Jo tables Sheet me jayenge. Bills aur employee documents files hain, data
-// nahi — wo apni jagah par hi rehte hain.
+// Ek request me itne tables. Har table = 1 GitHub read + 1 Sheet write, aur
+// Cloudflare ki limit 50 calls per request hai — 6 rakha hai, aaram se fit.
+const BATCH = 6;
+
+// Bills aur employee documents files hain, data nahi — wo apni jagah rehte hain.
 const TABLES = [
-  'sheets', 'salary', 'holiday', 'expenses', 'employees', 'employee-logins',
-  'signup-requests', 'leave-requests', 'attendance', 'workrecord-cache',
-  'password-resets', 'office-holidays', 'leave-adjustments',
-  'sales', 'clients', 'invoices', 'banks',
+  'employees', 'employee-logins', 'salary', 'sheets',
+  'leave-requests', 'attendance', 'expenses', 'signup-requests',
+  'clients', 'invoices', 'sales', 'banks',
+  'password-resets', 'office-holidays', 'leave-adjustments', 'holiday',
   'company-settings', 'exp-settings', 'settings',
   'hsim-employees', 'hsim-employee-logins', 'hsim-signup-requests',
   'hsim-leave-requests', 'hsim-attendance', 'hsim-password-resets',
-  'hsim-office-holidays', 'hsim-settings'
+  'hsim-office-holidays', 'hsim-settings',
+  // Sabse bada table sabse aakhir me — 3,451 rows, akela hi poora batch lega
+  'workrecord-cache'
 ];
 
 const CORS = {
@@ -66,7 +72,6 @@ async function ghRead(file) {
   if (d.content) {
     return JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\n/g, '')))));
   }
-  // 1 MB se badi file ka content inline nahi aata — raw se lete hain
   const rawRes = await fetch(
     `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/data/${file}.json`,
     { headers: { Authorization: `token ${GH_TOKEN}` } }
@@ -85,43 +90,77 @@ export async function onRequestOptions() {
 }
 
 export async function onRequestGet(context) {
-  useEnv(context.env);
-  const url = new URL(context.request.url);
+  // Poore handler ko lapeta hua hai, taki koi bhi gadbad Cloudflare ka
+  // "Error 1101" page na dikhaye — hamesha saaf JSON error aaye.
+  try {
+    useEnv(context.env);
+    const url = new URL(context.request.url);
+    const origin = url.origin;
 
-  const key = url.searchParams.get('key')
-    || (context.request.headers.get('Authorization') || '').replace('Bearer ', '').trim();
-  if (key !== API_KEY) return respond({ ok: false, error: 'Unauthorized' }, 401);
+    const key = url.searchParams.get('key')
+      || (context.request.headers.get('Authorization') || '').replace('Bearer ', '').trim();
+    if (key !== API_KEY) return respond({ ok: false, error: 'Unauthorized — key galat hai' }, 401);
 
-  const only = url.searchParams.get('table');
-  const list = only ? [only] : TABLES;
-
-  const results = [];
-  let copied = 0, failed = 0, missing = 0;
-
-  for (const t of list) {
-    const data = await ghRead(t);
-    if (data === null) {
-      results.push({ table: t, status: 'not in GitHub — skipped' });
-      missing++;
-      continue;
+    if (!sheetConfigured(context.env)) {
+      return respond({
+        ok: false,
+        error: 'SHEET_API_URL aur SHEET_API_SECRET Cloudflare me nahi mile',
+        fix: 'Cloudflare → Workers & Pages → pivot → Settings → Variables and Secrets me dono add karo, phir Deployments → Retry deployment'
+      }, 500);
     }
-    const n = count(data);
-    const ok = await sheetWrite(context.env, t, data);
-    if (ok) {
-      copied++;
-      results.push({ table: t, rows: n, status: 'copied' });
-    } else {
-      failed++;
-      results.push({ table: t, rows: n, status: 'FAILED to write to Sheet' });
+
+    const only = url.searchParams.get('table');
+    const from = Math.max(0, parseInt(url.searchParams.get('from') || '0', 10) || 0);
+    const list = only ? [only] : TABLES.slice(from, from + BATCH);
+
+    const results = [];
+    let copied = 0, failed = 0, missing = 0;
+
+    for (const t of list) {
+      let data = null;
+      try {
+        data = await ghRead(t);
+      } catch (e) {
+        results.push({ table: t, status: 'GitHub read failed: ' + String(e && e.message || e) });
+        failed++;
+        continue;
+      }
+      if (data === null) {
+        results.push({ table: t, status: 'GitHub me nahi mila — skip' });
+        missing++;
+        continue;
+      }
+      const n = count(data);
+      const w = await sheetWrite(context.env, t, data);
+      if (w.ok) {
+        copied++;
+        results.push({ table: t, github_rows: n, sheet_rows: w.rows, status: 'copied ✓' });
+      } else {
+        failed++;
+        results.push({ table: t, github_rows: n, status: 'FAILED', error: w.error });
+      }
     }
+
+    const done = !!only || (from + BATCH) >= TABLES.length;
+    const nextFrom = from + BATCH;
+
+    return respond({
+      ok: failed === 0,
+      batch: only ? only : `${from + 1} se ${Math.min(from + BATCH, TABLES.length)} tak (kul ${TABLES.length})`,
+      summary: `${copied} copied, ${failed} failed, ${missing} not found`,
+      done,
+      next: done ? null : `${origin}/api/migrate-to-sheet?key=${API_KEY}&from=${nextFrom}`,
+      instruction: done
+        ? 'Sab ho gaya. Har table ke github_rows aur sheet_rows same hone chahiye.'
+        : 'Upar "next" wala link kholo — agla batch chalega.',
+      results
+    }, failed === 0 ? 200 : 500);
+
+  } catch (err) {
+    return respond({
+      ok: false,
+      error: 'Migration crashed: ' + String((err && err.message) || err),
+      stack: String((err && err.stack) || '').split('\n').slice(0, 4)
+    }, 500);
   }
-
-  return respond({
-    ok: failed === 0,
-    summary: `${copied} tables copied, ${failed} failed, ${missing} not found`,
-    note: failed === 0
-      ? 'Har table ke rows check kar lo — Sheet ke tab me utni hi rows honi chahiye.'
-      : 'Kuch tables fail hue. SHEET_API_URL aur SHEET_API_SECRET Cloudflare me sahi hain ya nahi, ye dekho.',
-    results
-  }, failed === 0 ? 200 : 500);
 }

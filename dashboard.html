@@ -414,6 +414,7 @@ async function pushAllToGitHub() {
     <button class="ni" onclick="gp('signup-requests',this)" id="ni-signup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>Signup Requests <span id="signup-badge" style="background:#ef4444;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px;display:none">0</span></button>
     <button class="ni" onclick="gp('leave-approvals',this)" id="ni-leave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Leave Approvals <span id="leave-badge" style="background:#ef4444;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px;display:none">0</span></button>
     <button class="ni" onclick="gp('attendance',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Attendance</button>
+    <button class="ni" onclick="gp('sheet-sync',this)" id="ni-sheetsync"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>Google Sheet</button>
     <button class="ni" onclick="gp('password-resets',this)" id="ni-pwreset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Password Resets <span id="pwreset-badge" style="background:#ef4444;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px;display:none">0</span></button>
   </nav>
   <div class="sb-foot" id="sb-foot">
@@ -1055,6 +1056,32 @@ async function pushAllToGitHub() {
       <div id="pwreset-list">Loading...</div>
     </div>
 
+    <!-- GOOGLE SHEET SYNC -->
+    <div class="page" id="page-sheet-sync">
+      <div style="margin-bottom:14px">
+        <div style="font-size:14px;font-weight:800">Google Sheet</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px">Portal ka data Sheet me bhejo, ya Sheet me kiye gaye changes portal me laao</div>
+      </div>
+      <div class="notice n-blue">
+        <b>Kaam kaise karta hai:</b> Portal ka asli data yahin rehta hai — Sheet uski copy hai.
+        <b>Send</b> se portal ka data Sheet me jaata hai. <b>Check</b> se pata chalta hai Sheet me kya badla,
+        aur <b>Apply</b> dabane par hi wo portal me aata hai. Apply se pehle hamesha backup banta hai.
+      </div>
+      <div class="card">
+        <div class="card-t">Table chuno</div>
+        <div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap">
+          <div class="fg" style="min-width:230px"><label>Table</label>
+            <select id="ss-table" style="width:100%"></select>
+          </div>
+          <button class="btn" onclick="ssRun('push')">↑ Send to Sheet</button>
+          <button class="btn btn-p" onclick="ssRun('preview')">🔍 Check Sheet changes</button>
+          <button class="btn" onclick="ssRun('restore')" style="margin-left:auto">↩ Undo last Apply</button>
+        </div>
+        <div id="ss-msg" style="margin-top:10px;font-size:12px;font-weight:600"></div>
+      </div>
+      <div id="ss-result"></div>
+    </div>
+
     <!-- SALES -->
     <div class="page" id="page-sales">
       <div style="margin-bottom:14px"><div style="font-size:14px;font-weight:800">Sales</div>
@@ -1248,7 +1275,7 @@ async function pushAllToGitHub() {
 const ST='sv_v6',SC='sv_sal_v4',SH='sv_hol_v2';
 const AV=[['#dbeafe','#1e3a8a'],['#d1fae5','#064e3b'],['#ede9fe','#2e1065'],['#fef3c7','#451a03'],['#fce7f3','#500724'],['#ecfdf5','#022c22'],['#fef2f2','#450a0a'],['#fff7ed','#431407']];
 let SHEETS=[],ALL=[],SAL={},HOL={},EXP=[],C1=null,C2=null;
-const PT={'sheets':'Sheet Registry','salary-setup':'Salary Setup','holiday-setup':'Paid Holidays & Leave','overview':'Overview','salaries':'Salaries','partner-pivot':'Partner Pivot','emp-pivot':'Employee Pivot','workrecord':'Work Record','expenses':'Expenses','emp-records':'Employee Records','signup-requests':'Signup Requests','leave-approvals':'Leave Approvals','attendance':'Attendance','password-resets':'Password Resets','sales':'Sales','clients':'Client Data','invoices':'Invoices'};
+const PT={'sheets':'Sheet Registry','salary-setup':'Salary Setup','holiday-setup':'Paid Holidays & Leave','overview':'Overview','salaries':'Salaries','partner-pivot':'Partner Pivot','emp-pivot':'Employee Pivot','workrecord':'Work Record','expenses':'Expenses','emp-records':'Employee Records','signup-requests':'Signup Requests','leave-approvals':'Leave Approvals','attendance':'Attendance','password-resets':'Password Resets','sheet-sync':'Google Sheet','sales':'Sales','clients':'Client Data','invoices':'Invoices'};
 const MONTH_ORDER=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 // DATA START DATE — Sirf is month se aage ka data dikhega
@@ -2069,6 +2096,7 @@ function doR(id){
   }
   else if(id==='attendance')loadAttendance();
   else if(id==='password-resets')loadPasswordResets();
+  else if(id==='sheet-sync')rSheetSync();
   else if(id==='sales')loadSales();
   else if(id==='clients')loadClients();
   else if(id==='invoices')loadInvoices();
@@ -3287,6 +3315,118 @@ async function decideLeave(id, decision){
   } else {
     alert('Error: '+(r&&r.error||'Unknown error'));
   }
+}
+
+// ── GOOGLE SHEET SYNC ────────────────────────────────────
+// Portal ka data GitHub me rehta hai; Sheet uska mirror hai. Yahan se use
+// bheja ja sakta hai, aur Sheet ke changes dekhe aur laaye ja sakte hain.
+const SS_TABLES = [
+  ['employees','Employee Records'], ['salary','Salary Setup'], ['sheets','Sheet Registry'],
+  ['leave-requests','Leave Requests'], ['attendance','Attendance'], ['expenses','Expenses'],
+  ['clients','Client Data'], ['invoices','Invoices'], ['sales','Sales'], ['banks','Bank Accounts'],
+  ['signup-requests','Signup Requests'], ['password-resets','Password Resets'],
+  ['office-holidays','Office Holidays'], ['company-settings','Company Settings'],
+  ['exp-settings','Expense Settings'],
+  ['hsim-employees','HSIM — Employees'], ['hsim-leave-requests','HSIM — Leave Requests'],
+  ['hsim-attendance','HSIM — Attendance'], ['hsim-signup-requests','HSIM — Signup Requests'],
+  ['workrecord-cache','Work Record (Send only)']
+];
+
+function rSheetSync(){
+  const sel=document.getElementById('ss-table');
+  if(sel && !sel.options.length){
+    sel.innerHTML = SS_TABLES.map(t=>'<option value="'+t[0]+'">'+t[1]+'</option>').join('');
+  }
+}
+
+function ssMsg(txt,color){ setMsg('ss-msg',txt,color||'info'); }
+
+function ssUrl(action,table,extra){
+  return '/sheet-sync?key='+encodeURIComponent(_svToken)
+       + '&action='+action+'&table='+encodeURIComponent(table)+(extra||'');
+}
+
+async function ssCall(action,table,extra){
+  const r = await fetch(API_BASE + ssUrl(action,table,extra));
+  try { return await r.json(); } catch(e){ return {ok:false,error:'Server ne jawab nahi diya'}; }
+}
+
+async function ssRun(action, extra){
+  const table = document.getElementById('ss-table').value;
+  const box = document.getElementById('ss-result');
+  if(!table) return;
+
+  if(action==='restore' && !confirm('Aakhri Apply ko undo karke purana data wapas laayein?\n\nTable: '+table)) return;
+
+  ssMsg('<span class="spin">↻</span> Chal raha hai... Google thoda time leta hai, ruko.','info');
+  box.innerHTML='';
+  const d = await ssCall(action, table, extra);
+
+  if(action==='push'){
+    if(d.ok){ ssMsg('✓ '+table+' Sheet me bhej diya — '+d.sheet_rows+' rows','green'); }
+    else { ssMsg('✕ Nahi bheja ja saka: '+(d.error||'unknown'),'red'); }
+    return;
+  }
+  if(action==='restore'){
+    if(d.ok){ ssMsg('✓ Purana data wapas aa gaya — '+d.rows+' rows','green'); }
+    else { ssMsg('✕ '+(d.error||'Backup nahi mila'),'red'); }
+    return;
+  }
+  if(action==='import'){
+    if(d.ok){
+      ssMsg('✓ Sheet ke changes portal me aa gaye','green');
+      box.innerHTML = '<div class="notice n-green"><b>Ho gaya.</b> '+d.will_change+' badle, '
+        + d.will_add+' naye, '+d.will_remove+' hataye. Purana data backup me safe hai — '
+        + 'galti lage to upar <b>Undo last Apply</b> daba dena.</div>';
+    } else {
+      ssMsg('✕ Apply nahi hua','red');
+      box.innerHTML = '<div class="notice n-amber"><b>Ruk gaya:</b> '+(d.error||'')
+        + (d.warnings&&d.warnings.length ? '<br>'+d.warnings.join('<br>') : '')+'</div>';
+    }
+    return;
+  }
+
+  // ── preview ──
+  if(!d.ok){
+    ssMsg('✕ Check nahi ho paya','red');
+    box.innerHTML='<div class="notice n-amber">'+(d.error||'unknown')+'</div>';
+    return;
+  }
+  ssMsg('','info');
+  if(d.nothing_to_do){
+    box.innerHTML='<div class="notice n-green"><b>Koi farak nahi.</b> Sheet aur portal ka data bilkul same hai ('+d.sheet_rows+' rows).</div>';
+    return;
+  }
+  const warn = (d.warnings&&d.warnings.length)
+    ? '<div class="notice n-amber"><b>Dhyan do:</b><br>'+d.warnings.join('<br>')+'</div>' : '';
+  box.innerHTML = warn
+    + '<div class="card"><div class="card-t">Sheet me kya badla hai</div>'
+    + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px">'
+    +   ssStat('Nayi rows judengi', d.will_add, 'var(--green-t)','var(--green-bg)')
+    +   ssStat('Rows badlengi', d.will_change, 'var(--blue-t)','var(--blue-bg)')
+    +   ssStat('Rows hat jayengi', d.will_remove, 'var(--red-t)','var(--red-bg)')
+    + '</div>'
+    + '<div style="font-size:12px;color:var(--text2);margin-bottom:10px">'
+    +   'Portal me abhi <b>'+d.github_rows+'</b> rows hain, Sheet me <b>'+d.sheet_rows+'</b>.'
+    + '</div>'
+    + (d.changed_ids&&d.changed_ids.length ? '<div style="font-size:11.5px;color:var(--text2);margin-bottom:6px">Badlne wali: <span style="font-family:var(--fm)">'+d.changed_ids.join(', ')+'</span></div>' : '')
+    + (d.removed_ids&&d.removed_ids.length ? '<div style="font-size:11.5px;color:var(--red-t);margin-bottom:6px">Hatne wali: <span style="font-family:var(--fm)">'+d.removed_ids.join(', ')+'</span></div>' : '')
+    + '<hr class="div">'
+    + '<button class="btn btn-p" onclick="ssApply()">✓ Apply — ye changes portal me laao</button>'
+    + '<span style="font-size:11px;color:var(--text2);margin-left:10px">Apply se pehle purana data backup ho jayega</span>'
+    + '</div>';
+}
+
+function ssStat(label,n,col,bg){
+  return '<div style="background:'+bg+';border-radius:var(--r);padding:11px 13px">'
+    + '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:'+col+'">'+label+'</div>'
+    + '<div style="font-family:var(--fd);font-size:21px;font-weight:700;color:'+col+'">'+n+'</div></div>';
+}
+
+async function ssApply(){
+  const table=document.getElementById('ss-table').value;
+  if(!confirm('Sheet ke changes portal me laayein?\n\nTable: '+table+'\n\nPurana data backup me chala jayega — galti ho to Undo kar sakte ho.')) return;
+  await ssRun('import','&confirm=yes');
 }
 
 // ── ATTENDANCE MODULE ────────────────────────────────────

@@ -1,5 +1,18 @@
 [
   {
+    "id": "mvcb23miiaf8",
+    "employeeId": "SV-EMP-006",
+    "employeeName": "Monika Bhardwaj",
+    "employeeEmail": "monikaservevision567@gmail.com",
+    "leaveType": "CL",
+    "fromDate": "2026-10-19",
+    "toDate": "2026-10-19",
+    "isHalfDay": false,
+    "reason": "I am going home",
+    "status": "pending",
+    "appliedAt": "2026-10-17T11:20:30.426Z"
+  },
+  {
     "id": "mvbzt1p3211e",
     "employeeId": "SV-EMP-010",
     "employeeName": "Aman Khokhar",

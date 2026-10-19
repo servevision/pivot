@@ -130,8 +130,11 @@
     "toDate": "2026-10-14",
     "isHalfDay": false,
     "reason": "Death",
-    "status": "pending",
-    "appliedAt": "2026-10-15T04:27:31.537Z"
+    "status": "approved",
+    "appliedAt": "2026-10-15T04:27:31.537Z",
+    "decidedAt": "2026-10-19T05:56:23.353Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "mv90favxdlqc",

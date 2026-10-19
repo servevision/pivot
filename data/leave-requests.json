@@ -73,9 +73,12 @@
     "toDate": "2026-10-16",
     "isHalfDay": false,
     "reason": "fever( leave type change half day)",
-    "status": "pending",
+    "status": "approved",
     "appliedAt": "2026-10-15T16:35:48.445Z",
-    "editedAt": "2026-10-15T17:47:31.824Z"
+    "editedAt": "2026-10-15T17:47:31.824Z",
+    "decidedAt": "2026-10-19T06:45:40.404Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "mv9rf9qo1ld0",

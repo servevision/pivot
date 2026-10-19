@@ -104,8 +104,11 @@
     "toDate": "2026-10-15",
     "isHalfDay": false,
     "reason": "Hi, due to  some personal Work, I would like to request permission to work from home today. Thank you for understanding.",
-    "status": "pending",
-    "appliedAt": "2026-10-15T05:25:06.874Z"
+    "status": "approved",
+    "appliedAt": "2026-10-15T05:25:06.874Z",
+    "decidedAt": "2026-10-19T05:56:58.222Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "mv93f1e94si7",

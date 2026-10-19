@@ -156,8 +156,11 @@
     "toDate": "2026-10-12",
     "isHalfDay": false,
     "reason": "personal reason",
-    "status": "pending",
-    "appliedAt": "2026-10-13T04:57:41.018Z"
+    "status": "approved",
+    "appliedAt": "2026-10-13T04:57:41.018Z",
+    "decidedAt": "2026-10-19T05:55:09.082Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "mv66ocmpkn02",

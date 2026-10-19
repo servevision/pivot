@@ -8,6 +8,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -140,6 +141,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:16px 0}
 .pp-lvl-2 td{font-size:12px!important;padding:7px 13px!important;background:var(--bg2)!important}
 .pp-lvl-3 td{font-size:11px!important;padding:6px 13px!important;background:var(--bg)!important}
 .pp-emp td{font-size:11px!important;padding:5px 13px!important;color:var(--text2)!important}
+.tds-tab.active{background:var(--ink);color:#fff;border-color:var(--ink)}
 .page-title{font-family:var(--fd);font-size:16px;font-weight:700;letter-spacing:-.3px}
 .sheet-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--rl);padding:13px 15px;margin-bottom:8px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh);flex-wrap:wrap;transition:box-shadow .14s,transform .14s}
 .sheet-card:hover{box-shadow:var(--sh2);transform:translateY(-1px)}
@@ -414,6 +416,7 @@ async function pushAllToGitHub() {
     <button class="ni" onclick="gp('signup-requests',this)" id="ni-signup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>Signup Requests <span id="signup-badge" style="background:#ef4444;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px;display:none">0</span></button>
     <button class="ni" onclick="gp('leave-approvals',this)" id="ni-leave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Leave Approvals <span id="leave-badge" style="background:#ef4444;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px;display:none">0</span></button>
     <button class="ni" onclick="gp('attendance',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Attendance</button>
+    <button class="ni sv-only" onclick="gp('tds',this)" id="ni-tds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6M9 15h6"/></svg>TDS</button>
     <button class="ni" onclick="gp('sheet-sync',this)" id="ni-sheetsync"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>Google Sheet</button>
     <button class="ni" onclick="gp('password-resets',this)" id="ni-pwreset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Password Resets <span id="pwreset-badge" style="background:#ef4444;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px;display:none">0</span></button>
   </nav>
@@ -1056,6 +1059,24 @@ async function pushAllToGitHub() {
       <div id="pwreset-list">Loading...</div>
     </div>
 
+    <!-- TDS -->
+    <div class="page" id="page-tds">
+      <div style="margin-bottom:12px">
+        <div style="font-size:14px;font-weight:800">TDS</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px">Deductee, deduction aur challan — quarter ke end me CA ke format me Excel nikal lo</div>
+      </div>
+      <div class="tabs-row" style="display:flex;gap:4px;margin-bottom:14px;background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:4px;width:fit-content;max-width:100%;overflow-x:auto">
+        <button class="btn btn-sm tds-tab active" onclick="tdsTab('ded')">Deductions</button>
+        <button class="btn btn-sm tds-tab" onclick="tdsTab('chal')">Challans</button>
+        <button class="btn btn-sm tds-tab" onclick="tdsTab('party')">Parties</button>
+        <button class="btn btn-sm tds-tab" onclick="tdsTab('exp')">Quarterly Excel</button>
+      </div>
+      <div id="tds-pane-ded"   class="tds-pane"></div>
+      <div id="tds-pane-chal"  class="tds-pane" style="display:none"></div>
+      <div id="tds-pane-party" class="tds-pane" style="display:none"></div>
+      <div id="tds-pane-exp"   class="tds-pane" style="display:none"></div>
+    </div>
+
     <!-- GOOGLE SHEET SYNC -->
     <div class="page" id="page-sheet-sync">
       <div style="margin-bottom:14px">
@@ -1275,7 +1296,7 @@ async function pushAllToGitHub() {
 const ST='sv_v6',SC='sv_sal_v4',SH='sv_hol_v2';
 const AV=[['#dbeafe','#1e3a8a'],['#d1fae5','#064e3b'],['#ede9fe','#2e1065'],['#fef3c7','#451a03'],['#fce7f3','#500724'],['#ecfdf5','#022c22'],['#fef2f2','#450a0a'],['#fff7ed','#431407']];
 let SHEETS=[],ALL=[],SAL={},HOL={},EXP=[],C1=null,C2=null;
-const PT={'sheets':'Sheet Registry','salary-setup':'Salary Setup','holiday-setup':'Paid Holidays & Leave','overview':'Overview','salaries':'Salaries','partner-pivot':'Partner Pivot','emp-pivot':'Employee Pivot','workrecord':'Work Record','expenses':'Expenses','emp-records':'Employee Records','signup-requests':'Signup Requests','leave-approvals':'Leave Approvals','attendance':'Attendance','password-resets':'Password Resets','sheet-sync':'Google Sheet','sales':'Sales','clients':'Client Data','invoices':'Invoices'};
+const PT={'sheets':'Sheet Registry','salary-setup':'Salary Setup','holiday-setup':'Paid Holidays & Leave','overview':'Overview','salaries':'Salaries','partner-pivot':'Partner Pivot','emp-pivot':'Employee Pivot','workrecord':'Work Record','expenses':'Expenses','emp-records':'Employee Records','signup-requests':'Signup Requests','leave-approvals':'Leave Approvals','attendance':'Attendance','password-resets':'Password Resets','sheet-sync':'Google Sheet','tds':'TDS','sales':'Sales','clients':'Client Data','invoices':'Invoices'};
 const MONTH_ORDER=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 // DATA START DATE — Sirf is month se aage ka data dikhega
@@ -2097,6 +2118,7 @@ function doR(id){
   else if(id==='attendance')loadAttendance();
   else if(id==='password-resets')loadPasswordResets();
   else if(id==='sheet-sync')rSheetSync();
+  else if(id==='tds')rTds();
   else if(id==='sales')loadSales();
   else if(id==='clients')loadClients();
   else if(id==='invoices')loadInvoices();
@@ -3336,6 +3358,398 @@ function svBillName(name, amount, dateStr, originalName){
   return ['SV',co,amt,mon].filter(Boolean).join('_')+'.'+ext;
 }
 
+// ── TDS MODULE ───────────────────────────────────────────
+// CA ke template ke hisaab se. Section codes naye Income Tax Act ke hain
+// (393 series), purane 194C/194J wale nahi.
+const TDS_SECTIONS = ['392(7)','393(1)-1(i)','393(1)-1(ii)','393(1)-2(ii).D(a)','393(1)-2(ii).D(b)',
+'393(1)-3(ii)','393(1)-3(iii)','393(1)-4(i)','393(1)-4(ii)','393(1)-4(iii)','393(1)-4(iv)',
+'393(1)-5(i)','393(1)-5(ii).D(a)','393(1)-5(ii).D(b)','393(1)-5(iii)','393(1)-6(i).D(a)',
+'393(1)-6(i).D(b)','393(1)-6(iii).D(a)','393(1)-6(iii).D(b)','393(1)-7','393(1)-8(i)',
+'393(1)-8(ii)','393(1)-8(iv)','393(1)-8(iv)-6','393(1)-8(v)','393(1)-8(vi)','393(1)-8(vi)-6',
+'393(3)-1','393(3)-1-Note-2','393(3)-2','393(3)-2-Note-2','393(3)-3','393(3)-4',
+'393(3)-5.D(a)','393(3)-5.D(b)','393(3)-6','393(3)-7'];
+
+// Deductee code — PAN ke chauthe akshar se judta hai
+const TDS_DCODES = [['1','1 — Individual (PAN me P)'],['2','2 — HUF (H)'],['3','3 — AOP (A)'],
+['4','4 — BOI (B)'],['5','5 — Firm (F)'],['6','6 — Trust (T)'],['7','7 — Local authority (L)'],
+['8','8 — Artificial juridical (J)'],['9','9 — Government (G)'],['14','14 — Company (C)']];
+
+const TDS_STATES = ['01 - Andaman & Nicobar','02 - Andhra Pradesh','03 - Arunachal Pradesh','04 - Assam',
+'05 - Bihar','06 - Chandigarh','07 - Dadra and Nager Haveli','08 - Daman & Diu','09 - Delhi','10 - Goa',
+'11 - Gujarat','12 - Haryana','13 - Himachal Pradesh','14 - Jammu & Kashmir','15 - Karnataka','16 - Kerala',
+'17 - Lakhswadeep','18 - Madhya Pradesh','19 - Maharashtra','20 - Manipur','21 - Meghalaya','22 - Mizoram',
+'23 - Nagaland','24 - Odisha','25 - Pondicherry','26 - Punjab','27 - Rajasthan','28 - Sikkim',
+'29 - Tamilnadu','30 - Tripura','31 - Uttar Pradesh','32 - West Bengal','33 - Chhatisgarh',
+'34 - Uttarakhand','35 - Jharkhand','36 - Telangana','37 - Ladakh','99 - Other'];
+
+let TDS = {parties:[], deds:[], chals:[], tab:'ded'};
+
+function tdsTab(t){
+  TDS.tab=t;
+  document.querySelectorAll('.tds-pane').forEach(p=>p.style.display='none');
+  document.getElementById('tds-pane-'+t).style.display='block';
+  document.querySelectorAll('.tds-tab').forEach((b,i)=>b.classList.toggle('active', ['ded','chal','party','exp'][i]===t));
+  rTdsPane();
+}
+
+async function tdsApi(method, path, body){
+  return await apiCall(method, '/tds'+(path||''), body);
+}
+
+async function rTds(){
+  const [p,d,c] = await Promise.all([
+    tdsApi('GET','?type=deductees'), tdsApi('GET','?type=deductions'), tdsApi('GET','?type=challans')
+  ]);
+  TDS.parties = Array.isArray(p)?p:[]; TDS.deds = Array.isArray(d)?d:[]; TDS.chals = Array.isArray(c)?c:[];
+  rTdsPane();
+}
+
+function tdsFy(dateStr){
+  const dt=new Date(String(dateStr)+'T00:00:00'); if(isNaN(dt)) return {fy:'',q:''};
+  const m=dt.getMonth(), y=dt.getFullYear(), s=m>=3?y:y-1;
+  return {fy:s+'-'+String(s+1).slice(-2), q:(m>=3&&m<=5)?'Q1':(m>=6&&m<=8)?'Q2':(m>=9&&m<=11)?'Q3':'Q4'};
+}
+function tdsParty(id){ return TDS.parties.find(x=>x.id===id) || {}; }
+function tdsPartyName(p){ return [p.firstName,p.middleName,p.lastName].filter(Boolean).join(' ') || '—'; }
+function tdsChalLabel(c){
+  if(!c) return '—';
+  const d=c.depositDate?fmtLeaveDate(c.depositDate):'';
+  return `${c.bsrCode||''} · ${d} · ${c.serialNo||''}`;
+}
+function opt(list, sel, fn){
+  return list.map(v=>{ const val=Array.isArray(v)?v[0]:v, lab=Array.isArray(v)?v[1]:(fn?fn(v):v);
+    return `<option value="${val}"${String(val)===String(sel)?' selected':''}>${lab}</option>`; }).join('');
+}
+
+function rTdsPane(){
+  if(TDS.tab==='ded') rTdsDeds();
+  else if(TDS.tab==='chal') rTdsChals();
+  else if(TDS.tab==='party') rTdsParties();
+  else rTdsExport();
+}
+
+// ── Parties (deductees) ──────────────────────────────────
+function rTdsParties(){
+  const el=document.getElementById('tds-pane-party');
+  el.innerHTML = `<div class="card">
+    <div class="card-t">Party jodo / badlo</div>
+    <input type="hidden" id="tp-id">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px">
+      <div class="fg"><label>PAN *</label><input type="text" id="tp-pan" placeholder="AAAAA9999A" maxlength="10" style="text-transform:uppercase"></div>
+      <div class="fg"><label>Deductee code *</label><select id="tp-code">${opt(TDS_DCODES,'1')}</select></div>
+      <div class="fg"><label>First name *</label><input type="text" id="tp-fn"></div>
+      <div class="fg"><label>Middle name</label><input type="text" id="tp-mn"></div>
+      <div class="fg"><label>Last name</label><input type="text" id="tp-ln"></div>
+      <div class="fg" style="grid-column:span 2"><label>Address 1</label><input type="text" id="tp-a1"></div>
+      <div class="fg"><label>Address 2</label><input type="text" id="tp-a2"></div>
+      <div class="fg"><label>State</label><select id="tp-st"><option value=""></option>${opt(TDS_STATES,'')}</select></div>
+      <div class="fg"><label>Pin code</label><input type="text" id="tp-pin" maxlength="6"></div>
+      <div class="fg" style="grid-column:span 2"><label>Certificate no. u/s 197 (agar ho)</label><input type="text" id="tp-cert"></div>
+    </div>
+    <button class="btn btn-p" onclick="tdsSaveParty()">Save party</button>
+    <button class="btn" onclick="tdsClearParty()" style="margin-left:6px">Clear</button>
+    <span id="tp-msg" style="margin-left:10px;font-size:12px;font-weight:600"></span>
+  </div>
+  <div class="tw"><table><thead><tr><th>PAN</th><th>Name</th><th>Type</th><th>State</th><th>Deductions</th><th></th></tr></thead><tbody>
+  ${TDS.parties.length ? TDS.parties.map(p=>{
+    const n=TDS.deds.filter(d=>d.partyId===p.id).length;
+    const code=(TDS_DCODES.find(c=>c[0]===String(p.deducteeCode))||['','—'])[1];
+    return `<tr><td style="font-family:var(--fm)">${p.pan||''}</td><td style="font-weight:600">${tdsPartyName(p)}</td>
+      <td style="font-size:11.5px">${code}</td><td style="font-size:11.5px">${p.state||'—'}</td>
+      <td style="text-align:center">${n}</td>
+      <td><button class="btn btn-sm" onclick="tdsEditParty('${p.id}')">Edit</button>
+      <button class="btn btn-sm btn-d" onclick="tdsDel('deductees','${p.id}')" style="margin-left:5px">Del</button></td></tr>`;
+  }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text2);padding:22px">Abhi koi party nahi</td></tr>'}
+  </tbody></table></div>`;
+}
+function tdsClearParty(){ ['tp-id','tp-pan','tp-fn','tp-mn','tp-ln','tp-a1','tp-a2','tp-pin','tp-cert'].forEach(i=>document.getElementById(i).value=''); setMsg('tp-msg','','info'); }
+function tdsEditParty(id){
+  const p=tdsParty(id);
+  document.getElementById('tp-id').value=id; document.getElementById('tp-pan').value=p.pan||'';
+  document.getElementById('tp-code').value=p.deducteeCode||'1';
+  document.getElementById('tp-fn').value=p.firstName||''; document.getElementById('tp-mn').value=p.middleName||'';
+  document.getElementById('tp-ln').value=p.lastName||''; document.getElementById('tp-a1').value=p.address1||'';
+  document.getElementById('tp-a2').value=p.address2||''; document.getElementById('tp-st').value=p.state||'';
+  document.getElementById('tp-pin').value=p.pinCode||''; document.getElementById('tp-cert').value=p.cert197||'';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+async function tdsSaveParty(){
+  const id=document.getElementById('tp-id').value;
+  const item={ pan:document.getElementById('tp-pan').value.toUpperCase().trim(),
+    deducteeCode:document.getElementById('tp-code').value,
+    firstName:document.getElementById('tp-fn').value.trim(), middleName:document.getElementById('tp-mn').value.trim(),
+    lastName:document.getElementById('tp-ln').value.trim(), address1:document.getElementById('tp-a1').value.trim(),
+    address2:document.getElementById('tp-a2').value.trim(), state:document.getElementById('tp-st').value,
+    pinCode:document.getElementById('tp-pin').value.trim(), cert197:document.getElementById('tp-cert').value.trim() };
+  if(!item.pan||!item.firstName){ setMsg('tp-msg','PAN aur first name zaroori hai','red'); return; }
+  setMsg('tp-msg','Saving...','info');
+  const r=await tdsApi('POST','',{type:'deductees',action:id?'update':'create',id,item});
+  if(r&&r.ok){ setMsg('tp-msg', r.warning ? '⚠ '+r.warning : '✓ Saved', r.warning?'amber':'green'); tdsClearParty(); rTds(); }
+  else setMsg('tp-msg','✕ '+((r&&r.error)||'Save failed'),'red');
+}
+
+// ── Challans ─────────────────────────────────────────────
+function rTdsChals(){
+  const el=document.getElementById('tds-pane-chal');
+  el.innerHTML = `<div class="card">
+    <div class="card-t">Challan jodo / badlo</div>
+    <input type="hidden" id="tc-id">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px">
+      <div class="fg"><label>BSR code *</label><input type="text" id="tc-bsr" maxlength="7" placeholder="0510016"></div>
+      <div class="fg"><label>Deposit date *</label><input type="date" id="tc-date"></div>
+      <div class="fg"><label>Challan serial no *</label><input type="text" id="tc-sno" maxlength="5" placeholder="32179"></div>
+      <div class="fg"><label>Section code</label><select id="tc-sec">${opt(TDS_SECTIONS,'393(1)-1(ii)')}</select></div>
+      <div class="fg"><label>TDS (Rs.)</label><input type="number" id="tc-tds" step="0.01"></div>
+      <div class="fg"><label>Surcharge</label><input type="number" id="tc-sur" step="0.01"></div>
+      <div class="fg"><label>Education cess</label><input type="number" id="tc-cess" step="0.01"></div>
+      <div class="fg"><label>Interest</label><input type="number" id="tc-int" step="0.01"></div>
+      <div class="fg"><label>Fees</label><input type="number" id="tc-fee" step="0.01"></div>
+      <div class="fg"><label>Other</label><input type="number" id="tc-oth" step="0.01"></div>
+      <div class="fg"><label>Minor head</label><input type="text" id="tc-mh" value="200"></div>
+      <div class="fg"><label>Cheque / DD no</label><input type="text" id="tc-chq"></div>
+    </div>
+    <button class="btn btn-p" onclick="tdsSaveChal()">Save challan</button>
+    <button class="btn" onclick="tdsClearChal()" style="margin-left:6px">Clear</button>
+    <span id="tc-msg" style="margin-left:10px;font-size:12px;font-weight:600"></span>
+  </div>
+  <div class="tw"><table><thead><tr><th>BSR · Date · Serial</th><th>Section</th><th style="text-align:right">Challan total</th><th style="text-align:right">Mapped</th><th style="text-align:right">Balance</th><th></th></tr></thead><tbody>
+  ${TDS.chals.length ? TDS.chals.map(c=>{
+    const bal=Number(c.balance||0), good=Math.abs(bal)<1;
+    return `<tr><td style="font-family:var(--fm);font-size:11.5px">${tdsChalLabel(c)}</td>
+      <td style="font-size:11.5px">${c.section||'—'}</td>
+      <td style="text-align:right;font-weight:600">${fmt(c.challanTotal||0)}</td>
+      <td style="text-align:right">${fmt(c.mapped||0)}</td>
+      <td style="text-align:right"><span class="badge ${good?'b-green':'b-red'}">${fmt(bal)}</span></td>
+      <td><button class="btn btn-sm" onclick="tdsEditChal('${c.id}')">Edit</button>
+      <button class="btn btn-sm btn-d" onclick="tdsDel('challans','${c.id}')" style="margin-left:5px">Del</button></td></tr>`;
+  }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text2);padding:22px">Abhi koi challan nahi</td></tr>'}
+  </tbody></table></div>
+  <div class="notice n-blue" style="margin-top:10px"><b>Balance zero hona chahiye.</b> Agar lal dikh raha hai to us challan ka kuch hissa kisi deduction se joda nahi gaya — return me short payment aayega.</div>`;
+}
+function tdsClearChal(){ ['tc-id','tc-bsr','tc-date','tc-sno','tc-tds','tc-sur','tc-cess','tc-int','tc-fee','tc-oth','tc-chq'].forEach(i=>document.getElementById(i).value=''); document.getElementById('tc-mh').value='200'; setMsg('tc-msg','','info'); }
+function tdsEditChal(id){
+  const c=TDS.chals.find(x=>x.id===id)||{};
+  const set=(i,v)=>document.getElementById(i).value=(v==null?'':v);
+  set('tc-id',id); set('tc-bsr',c.bsrCode); set('tc-date',c.depositDate); set('tc-sno',c.serialNo);
+  document.getElementById('tc-sec').value=c.section||'393(1)-1(ii)';
+  set('tc-tds',c.tds); set('tc-sur',c.surcharge); set('tc-cess',c.cess); set('tc-int',c.interest);
+  set('tc-fee',c.fees); set('tc-oth',c.other); set('tc-mh',c.minorHead||'200'); set('tc-chq',c.chequeNo);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+async function tdsSaveChal(){
+  const g=i=>document.getElementById(i).value;
+  const id=g('tc-id');
+  const item={ bsrCode:g('tc-bsr').trim(), depositDate:g('tc-date'), serialNo:g('tc-sno').trim(),
+    section:g('tc-sec'), tds:+g('tc-tds')||0, surcharge:+g('tc-sur')||0, cess:+g('tc-cess')||0,
+    interest:+g('tc-int')||0, fees:+g('tc-fee')||0, other:+g('tc-oth')||0,
+    minorHead:g('tc-mh').trim()||'200', chequeNo:g('tc-chq').trim() };
+  if(!item.bsrCode||!item.depositDate||!item.serialNo){ setMsg('tc-msg','BSR, date aur serial no zaroori hai','red'); return; }
+  setMsg('tc-msg','Saving...','info');
+  const r=await tdsApi('POST','',{type:'challans',action:id?'update':'create',id,item});
+  if(r&&r.ok){ setMsg('tc-msg','✓ Saved','green'); tdsClearChal(); rTds(); }
+  else setMsg('tc-msg','✕ '+((r&&r.error)||'Save failed'),'red');
+}
+
+async function tdsDel(type,id){
+  if(!confirm('Ye record delete karein?')) return;
+  const r=await tdsApi('POST','',{type,action:'delete',id});
+  if(r&&r.ok) rTds(); else alert((r&&r.error)||'Delete failed');
+}
+
+// ── Deductions ───────────────────────────────────────────
+function rTdsDeds(){
+  const el=document.getElementById('tds-pane-ded');
+  const partyOpts = TDS.parties.map(p=>`<option value="${p.id}">${tdsPartyName(p)} — ${p.pan||''}</option>`).join('');
+  const chalOpts  = TDS.chals.map(c=>`<option value="${c.id}">${tdsChalLabel(c)}</option>`).join('');
+  el.innerHTML = `<div class="card">
+    <div class="card-t">Deduction jodo / badlo</div>
+    ${TDS.parties.length?'':'<div class="notice n-amber">Pehle <b>Parties</b> tab me party add karo, tabhi yahan chunne ko milegi.</div>'}
+    <input type="hidden" id="td-id">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px">
+      <div class="fg" style="grid-column:span 2"><label>Party *</label><select id="td-party"><option value="">-- chuno --</option>${partyOpts}</select></div>
+      <div class="fg"><label>Amount paid (Rs.) *</label><input type="number" id="td-amt" step="0.01" oninput="tdsCalc()"></div>
+      <div class="fg"><label>Rate (%) *</label><input type="number" id="td-rate" step="0.01" oninput="tdsCalc()"></div>
+      <div class="fg"><label>TDS (Rs.)</label><input type="number" id="td-tds" step="0.01"></div>
+      <div class="fg"><label>Date paid / credited *</label><input type="date" id="td-paid" onchange="tdsCalc()"></div>
+      <div class="fg"><label>Date of deduction</label><input type="date" id="td-dedon"></div>
+      <div class="fg"><label>Section code *</label><select id="td-sec">${opt(TDS_SECTIONS,'393(1)-1(ii)')}</select></div>
+      <div class="fg" style="grid-column:span 2"><label>Challan (kis se jama hua)</label><select id="td-chal"><option value="">-- abhi nahi --</option>${chalOpts}</select></div>
+      <div class="fg" style="grid-column:span 2"><label>Reason for non/lower deduction</label><input type="text" id="td-reason" placeholder="khaali chhod do agar normal hai"></div>
+    </div>
+    <div id="td-calc" style="font-size:12px;color:var(--text2);margin-bottom:10px"></div>
+    <button class="btn btn-p" onclick="tdsSaveDed()">Save deduction</button>
+    <button class="btn" onclick="tdsClearDed()" style="margin-left:6px">Clear</button>
+    <span id="td-msg" style="margin-left:10px;font-size:12px;font-weight:600"></span>
+  </div>
+  <div class="tw"><table><thead><tr><th>Date</th><th>Party</th><th>Section</th><th style="text-align:right">Amount</th><th style="text-align:center">Rate</th><th style="text-align:right">TDS</th><th>Challan</th><th></th></tr></thead><tbody>
+  ${TDS.deds.length ? TDS.deds.slice().sort((a,b)=>String(b.paidOn||'').localeCompare(String(a.paidOn||''))).map(d=>{
+    const p=tdsParty(d.partyId), c=TDS.chals.find(x=>x.id===d.challanId);
+    const fq=tdsFy(d.paidOn);
+    return `<tr><td style="white-space:nowrap">${fmtLeaveDate(d.paidOn)}<div style="font-size:10px;color:var(--text3)">${fq.fy} ${fq.q}</div></td>
+      <td style="font-weight:600">${tdsPartyName(p)}<div style="font-size:10.5px;color:var(--text3);font-family:var(--fm)">${p.pan||''}</div></td>
+      <td style="font-size:11px">${d.section||''}</td>
+      <td style="text-align:right">${fmt(d.amount||0)}</td>
+      <td style="text-align:center">${d.rate||0}%</td>
+      <td style="text-align:right;font-weight:700">${fmt(d.tds||0)}</td>
+      <td style="font-size:10.5px;font-family:var(--fm)">${c?tdsChalLabel(c):'<span class="badge b-amber">not mapped</span>'}</td>
+      <td style="white-space:nowrap"><button class="btn btn-sm" onclick="tdsEditDed('${d.id}')">Edit</button>
+      <button class="btn btn-sm btn-d" onclick="tdsDel('deductions','${d.id}')" style="margin-left:5px">Del</button></td></tr>`;
+  }).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--text2);padding:22px">Abhi koi deduction nahi</td></tr>'}
+  </tbody></table></div>`;
+  tdsCalc();
+}
+function tdsCalc(){
+  const amt=+document.getElementById('td-amt').value||0, rate=+document.getElementById('td-rate').value||0;
+  const tdsEl=document.getElementById('td-tds');
+  if(amt&&rate) tdsEl.value=Math.round(amt*rate/100);
+  const paid=document.getElementById('td-paid').value;
+  const fq=tdsFy(paid);
+  document.getElementById('td-calc').innerHTML = (amt&&rate)
+    ? `TDS = ${fmt(amt)} × ${rate}% = <b>${fmt(Math.round(amt*rate/100))}</b>${fq.fy?` · ye <b>${fq.fy} ${fq.q}</b> me jayega`:''}`
+    : (fq.fy?`Ye <b>${fq.fy} ${fq.q}</b> me jayega`:'');
+}
+function tdsClearDed(){ ['td-id','td-amt','td-rate','td-tds','td-paid','td-dedon','td-reason'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('td-party').value=''; document.getElementById('td-chal').value=''; setMsg('td-msg','','info'); tdsCalc(); }
+function tdsEditDed(id){
+  const d=TDS.deds.find(x=>x.id===id)||{};
+  const set=(i,v)=>document.getElementById(i).value=(v==null?'':v);
+  set('td-id',id); set('td-party',d.partyId); set('td-amt',d.amount); set('td-rate',d.rate); set('td-tds',d.tds);
+  set('td-paid',d.paidOn); set('td-dedon',d.deductedOn); set('td-reason',d.reason);
+  document.getElementById('td-sec').value=d.section||'393(1)-1(ii)'; set('td-chal',d.challanId);
+  tdsCalc(); window.scrollTo({top:0,behavior:'smooth'});
+}
+async function tdsSaveDed(){
+  const g=i=>document.getElementById(i).value;
+  const id=g('td-id');
+  const item={ partyId:g('td-party'), amount:+g('td-amt')||0, rate:+g('td-rate')||0, tds:+g('td-tds')||0,
+    paidOn:g('td-paid'), deductedOn:g('td-dedon')||g('td-paid'), section:g('td-sec'),
+    challanId:g('td-chal'), reason:g('td-reason').trim() };
+  if(!item.partyId||!item.amount||!item.paidOn){ setMsg('td-msg','Party, amount aur date zaroori hai','red'); return; }
+  setMsg('td-msg','Saving...','info');
+  const r=await tdsApi('POST','',{type:'deductions',action:id?'update':'create',id,item});
+  if(r&&r.ok){ setMsg('td-msg','✓ Saved','green'); tdsClearDed(); rTds(); }
+  else setMsg('td-msg','✕ '+((r&&r.error)||'Save failed'),'red');
+}
+
+// ── Quarterly Excel ──────────────────────────────────────
+// CA ke template jaisa hi: "Challan" aur "Annexure" do tabs, wahi columns.
+const TDS_DEDUCTOR = {name:'SERVE VISION PRIVATE LIMITED', tan:'RTKS35240C', form:'26Q'};
+
+function tdsQDates(fy,q){
+  const y=parseInt(String(fy).split('-')[0],10);
+  const r={Q1:[[y,3,1],[y,5,30]],Q2:[[y,6,1],[y,8,30]],Q3:[[y,9,1],[y,11,31]],Q4:[[y+1,0,1],[y+1,2,31]]}[q];
+  const f=d=>new Date(d[0],d[1],d[2]);
+  return r?[f(r[0]),f(r[1])]:[null,null];
+}
+
+function rTdsExport(){
+  const el=document.getElementById('tds-pane-exp');
+  const fys={}; TDS.deds.forEach(d=>{const f=tdsFy(d.paidOn); if(f.fy) fys[f.fy]=1;});
+  const now=tdsFy(new Date().toISOString().slice(0,10));
+  if(now.fy) fys[now.fy]=1;
+  const fyList=Object.keys(fys).sort().reverse();
+  el.innerHTML = `<div class="card">
+    <div class="card-t">Quarter ka Excel banao</div>
+    <div class="card-sub">Jo file banegi wo bilkul aapke CA wale format me hogi — "Challan" aur "Annexure" dono tabs ke saath</div>
+    <div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap">
+      <div class="fg" style="min-width:160px"><label>Financial year</label><select id="tx-fy" onchange="rTdsExpPreview()">${opt(fyList,now.fy)}</select></div>
+      <div class="fg" style="min-width:130px"><label>Quarter</label><select id="tx-q" onchange="rTdsExpPreview()">${opt(['Q1','Q2','Q3','Q4'],now.q)}</select></div>
+      <button class="btn btn-p" onclick="tdsExportXlsx()">⬇ Download Excel</button>
+    </div>
+    <div id="tx-prev" style="margin-top:14px"></div>
+  </div>`;
+  rTdsExpPreview();
+}
+
+function tdsQuarterData(fy,q){
+  const [from,to]=tdsQDates(fy,q);
+  const inQ=d=>{ const dt=new Date(String(d)+'T00:00:00'); return from&&to&&!isNaN(dt)&&dt>=from&&dt<=to; };
+  const deds=TDS.deds.filter(d=>inQ(d.paidOn));
+  const ids={}; deds.forEach(d=>{ if(d.challanId) ids[d.challanId]=1; });
+  const chals=TDS.chals.filter(c=>ids[c.id]);
+  return {deds,chals,from,to};
+}
+
+function rTdsExpPreview(){
+  const fy=document.getElementById('tx-fy').value, q=document.getElementById('tx-q').value;
+  const {deds,chals}=tdsQuarterData(fy,q);
+  const unmapped=deds.filter(d=>!d.challanId);
+  const bad=chals.filter(c=>Math.abs(Number(c.balance||0))>=1);
+  const noPan=deds.filter(d=>!(tdsParty(d.partyId).pan));
+  const tds=deds.reduce((s,d)=>s+(+d.tds||0),0);
+  const amt=deds.reduce((s,d)=>s+(+d.amount||0),0);
+  const issues=[];
+  if(unmapped.length) issues.push(`${unmapped.length} deduction kisi challan se jude nahi hain`);
+  if(bad.length)      issues.push(`${bad.length} challan ka balance zero nahi hai`);
+  if(noPan.length)    issues.push(`${noPan.length} deduction ki party ka PAN nahi hai`);
+  document.getElementById('tx-prev').innerHTML =
+    `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px">
+      ${ssStat('Deductions',deds.length,'var(--blue-t)','var(--blue-bg)')}
+      ${ssStat('Challans',chals.length,'var(--blue-t)','var(--blue-bg)')}
+      ${ssStat('Amount paid',fmt(amt),'var(--text)','var(--gray-bg)')}
+      ${ssStat('Total TDS',fmt(tds),'var(--green-t)','var(--green-bg)')}
+    </div>` +
+    (issues.length
+      ? `<div class="notice n-amber"><b>Download se pehle ye theek kar lo:</b><br>• ${issues.join('<br>• ')}</div>`
+      : (deds.length ? '<div class="notice n-green">Sab theek hai — challan aur annexure mil rahe hain.</div>'
+                     : '<div class="notice n-blue">Is quarter me koi deduction nahi hai.</div>'));
+}
+
+function tdsXlDate(s){ const d=new Date(String(s)+'T00:00:00'); return isNaN(d)?'':d; }
+
+function tdsExportXlsx(){
+  if(typeof XLSX==='undefined'){ alert('Excel library load nahi hui — page refresh karo'); return; }
+  const fy=document.getElementById('tx-fy').value, q=document.getElementById('tx-q').value;
+  const {deds,chals,from,to}=tdsQuarterData(fy,q);
+  if(!deds.length){ alert('Is quarter me koi deduction nahi hai'); return; }
+
+  // challan ko S.No do, wahi number Annexure me "Challan Detail" banega
+  const sno={}; chals.forEach((c,i)=>sno[c.id]=i+1);
+  const label=c=>`${sno[c.id]}  (${c.bsrCode||''}, ${c.depositDate||''}, ${c.serialNo||''})`;
+
+  const ch=[
+    ['Party Name :','',TDS_DEDUCTOR.name,'','','TAN :',TDS_DEDUCTOR.tan],
+    [],
+    ['Details of tax deducted and paid to the credit of the Central Government'],
+    ['S. No.','Section Code','TDS(Rs.)','Surcharge (Rs.)','Education Cess (Rs.)','Higher Education Cess',
+     'Interest (Rs.)','Other (Rs.)','Fees Amount (Rs.)','Cheque/DD No.','BSR Code',
+     'Date on which Tax Deposited','Transfer Voucher/ Challan Serial No.','Whether TDS deposited by book entry?',
+     'Minor Head','','','','Challan Detail']
+  ];
+  chals.forEach(c=>ch.push([ sno[c.id], c.section||'', +c.tds||0, +c.surcharge||0, +c.cess||0, +c.hcess||0,
+    +c.interest||0, +c.other||0, +c.fees||0, c.chequeNo||'', c.bsrCode||'',
+    tdsXlDate(c.depositDate), c.serialNo||'', '', c.minorHead||'200','','','', label(c) ]));
+
+  const an=[
+    ['Party Name :','',TDS_DEDUCTOR.name,'','','TAN :',TDS_DEDUCTOR.tan,'','','','','','','','','','','','','','','','','','','','','','','','','',
+      from, to],
+    [],[],
+    ['Deductee code','PAN of deductee','First Name','Middle Name','Last Name','Address 1','Address 2','State','Pin Code',
+     'Amount of payment (Rs.)','Date on which amount paid/credited','Section code','Rate at which tax deducted','TDS(Rs.)',
+     'Surcharge (Rs.)','Education cess (Rs.)','Higher Education Cess','Date on which tax deducted',
+     'Date on which tax paid to the credit of Central Governement','Bank Branch Code','Challan number given by bank',
+     'Challan Detail\n\n[Sr No (BSR, Date, Challan No.)]','Date of furnishing Tax Deduction  Certificate',
+     'Reason for non-deduction / lower deduction if any','Paid by book entry or otherwise','Certificate No u/s 197',
+     'Deductee/Party Reference No']
+  ];
+  deds.slice().sort((a,b)=>String(a.paidOn).localeCompare(String(b.paidOn))).forEach(d=>{
+    const p=tdsParty(d.partyId), c=TDS.chals.find(x=>x.id===d.challanId);
+    an.push([ p.deducteeCode||'', p.pan||'', p.firstName||'', p.middleName||'', p.lastName||'',
+      p.address1||'', p.address2||'', p.state||'', p.pinCode||'',
+      +d.amount||0, tdsXlDate(d.paidOn), d.section||'', +d.rate||0, +d.tds||0,
+      +d.surcharge||0, +d.cess||0, +d.hcess||0, tdsXlDate(d.deductedOn||d.paidOn),
+      c?tdsXlDate(c.depositDate):'', c?(c.bsrCode||''):'', c?(c.serialNo||''):'',
+      c?label(c):'', '', d.reason||'', '', p.cert197||'', '' ]);
+  });
+
+  const wb=XLSX.utils.book_new();
+  const s1=XLSX.utils.aoa_to_sheet(ch), s2=XLSX.utils.aoa_to_sheet(an);
+  s1['!cols']=new Array(19).fill({wch:15}); s2['!cols']=new Array(27).fill({wch:15});
+  XLSX.utils.book_append_sheet(wb,s1,'Challan');
+  XLSX.utils.book_append_sheet(wb,s2,'Annexure');
+  XLSX.writeFile(wb, `TDS_${TDS_DEDUCTOR.form}_${fy}_${q}.xlsx`);
+}
+
 // ── GOOGLE SHEET SYNC ────────────────────────────────────
 // Portal ka data GitHub me rehta hai; Sheet uska mirror hai. Yahan se use
 // bheja ja sakta hai, aur Sheet ke changes dekhe aur laaye ja sakte hain.
@@ -3348,6 +3762,7 @@ const SS_TABLES = [
   ['exp-settings','Expense Settings'],
   ['hsim-employees','HSIM — Employees'], ['hsim-leave-requests','HSIM — Leave Requests'],
   ['hsim-attendance','HSIM — Attendance'], ['hsim-signup-requests','HSIM — Signup Requests'],
+  ['tds-deductees','TDS — Parties'], ['tds-deductions','TDS — Deductions'], ['tds-challans','TDS — Challans'],
   ['workrecord-cache','Work Record (Send only)']
 ];
 

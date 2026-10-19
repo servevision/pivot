@@ -210,6 +210,33 @@ export async function onRequestPost(context){
       }
     }
 
+    // ── Ek challan se kai deductions ek saath jodo / hatao ──────────────
+    if(action === 'attach'){
+      const challanId = body.challanId;
+      const ids = Array.isArray(body.deductionIds) ? body.deductionIds : [];
+      if(!challanId) return respond({ok:false, error:'challanId chahiye'},400);
+
+      let done = false, changed = 0;
+      for(let attempt = 0; attempt < 4 && !done; attempt++){
+        const {content, sha} = await ghRead(TABLES.deductions);
+        const list = Array.isArray(content) ? content : [];
+        changed = 0;
+        list.forEach(d=>{
+          const want = ids.includes(d.id);
+          const has  = d.challanId === challanId;
+          if(want && !has){ d.challanId = challanId; d.updatedAt = new Date().toISOString(); changed++; }
+          else if(!want && has){ d.challanId = ''; d.updatedAt = new Date().toISOString(); changed++; }
+        });
+        done = await ghWrite(TABLES.deductions, list, sha);
+        if(done && sheetConfigured(context.env)){
+          context.waitUntil(sheetWrite(context.env, TABLES.deductions, list).catch(()=>{}));
+        }
+        if(!done) await new Promise(res=>setTimeout(res, 250 + Math.random()*350));
+      }
+      if(!done) return respond({ok:false, error:'Save nahi ho paya — dobara koshish karo'},500);
+      return respond({ok:true, changed});
+    }
+
     let saved = null;
     let ok = false;
     for(let attempt = 0; attempt < 4 && !ok; attempt++){

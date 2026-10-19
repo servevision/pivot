@@ -89,6 +89,21 @@ export async function onRequestPost(context){
   if(!ALLOWED.includes(table)) return respond({error:'Unknown table'},400);
   const data=await request.json();
 
+  // Suraksha: bhara hua table khaali data se replace na ho jaye. Purana
+  // data padha nahi gaya to bhi kuch nahi likhte — adhoori padhai ko
+  // "sab delete ho gaya" samajh lena hi data gayab hone ki jad hai.
+  const empty = (Array.isArray(data) && data.length===0)
+             || (data && typeof data==='object' && !Array.isArray(data) && Object.keys(data).length===0);
+  if(empty){
+    const prev = await ghRead(table);
+    const had = Array.isArray(prev.content) ? prev.content.length
+              : (prev.content && typeof prev.content==='object' ? Object.keys(prev.content).length : 0);
+    if(had > 0 && new URL(request.url).searchParams.get('allowEmpty') !== 'yes'){
+      return respond({ok:false, saved:false,
+        error:`Save roka gaya: "${table}" me ${had} records hain aur khaali data aaya. Kuch badla nahi gaya.`},409);
+    }
+  }
+
   let ok=false;
   for(let attempt=0; attempt<4 && !ok; attempt++){
     const {sha}=await ghRead(table);

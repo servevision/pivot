@@ -45,20 +45,41 @@ function respond(data, status = 200){
   });
 }
 
+// Padhne me teen haal ho sakte hain, aur teeno alag hain:
+//   missing : file hai hi nahi (pehli baar) — khaali list se shuru karna theek hai
+//   ok      : file mil gayi
+//   failed  : file hai par padhi nahi gayi — ESA ME KUCH LIKHNA NAHI HAI,
+//             warna khaali list purane data ko mita degi
 async function ghRead(file){
   const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/data/${file}.json?ref=${GH_BRANCH}`;
-  const r = await fetch(url,{headers:{Authorization:`token ${GH_TOKEN}`,Accept:'application/vnd.github.v3+json','User-Agent':'SV-Dashboard'}});
-  if(!r.ok) return {content:null, sha:null};
-  const d = await r.json();
-  let content;
+  let r;
+  try{
+    r = await fetch(url,{headers:{Authorization:`token ${GH_TOKEN}`,Accept:'application/vnd.github.v3+json','User-Agent':'SV-Dashboard'}});
+  }catch(e){
+    return {status:'failed', content:null, sha:null};
+  }
+  if(r.status === 404) return {status:'missing', content:null, sha:null};
+  if(!r.ok) return {status:'failed', content:null, sha:null};
+
+  let d;
+  try{ d = await r.json(); }catch(e){ return {status:'failed', content:null, sha:null}; }
+
   if(d.content){
-    content = JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\n/g,'')))));
-  } else {
+    try{
+      return {status:'ok', content: JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\n/g,''))))), sha:d.sha};
+    }catch(e){
+      return {status:'failed', content:null, sha:d.sha};
+    }
+  }
+  // 1 MB se badi file ka content inline nahi aata — raw se lo
+  try{
     const raw = await fetch(`https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/data/${file}.json`,
       {headers:{Authorization:`token ${GH_TOKEN}`}});
-    content = raw.ok ? await raw.json() : null;
+    if(!raw.ok) return {status:'failed', content:null, sha:d.sha};
+    return {status:'ok', content: await raw.json(), sha:d.sha};
+  }catch(e){
+    return {status:'failed', content:null, sha:d.sha};
   }
-  return {content, sha:d.sha};
 }
 
 async function ghWrite(file, content, sha){
@@ -218,7 +239,11 @@ export async function onRequestPost(context){
 
       let done = false, changed = 0;
       for(let attempt = 0; attempt < 4 && !done; attempt++){
-        const {content, sha} = await ghRead(TABLES.deductions);
+        const rd = await ghRead(TABLES.deductions);
+        if(rd.status === 'failed'){
+          return respond({ok:false, error:'Purana data padha nahi ja saka — safety ke liye kuch badla nahi gaya. Dobara koshish karo.'},503);
+        }
+        const {content, sha} = rd;
         const list = Array.isArray(content) ? content : [];
         changed = 0;
         list.forEach(d=>{
@@ -240,8 +265,15 @@ export async function onRequestPost(context){
     let saved = null;
     let ok = false;
     for(let attempt = 0; attempt < 4 && !ok; attempt++){
-      const {content, sha} = await ghRead(table);
+      const rd = await ghRead(table);
+      // Padhna fail hua to likhna bilkul nahi — warna khaali list purane
+      // records ko mita deti hai. Yahi bug tha jisse challan gayab hua.
+      if(rd.status === 'failed'){
+        return respond({ok:false, error:'Purana data padha nahi ja saka — safety ke liye kuch save nahi kiya. Dobara koshish karo.'},503);
+      }
+      const {content, sha} = rd;
       let list = Array.isArray(content) ? content : [];
+      const before = list.length;
 
       if(action === 'create'){
         saved = {...body.item, id:newId(), createdAt:new Date().toISOString()};
@@ -252,11 +284,15 @@ export async function onRequestPost(context){
         saved = {...list[i], ...body.item, id:body.id, updatedAt:new Date().toISOString()};
         list[i] = saved;
       } else if(action === 'delete'){
-        const before = list.length;
         list = list.filter(x=>x.id !== body.id);
         if(list.length === before) return respond({ok:false, error:'Record nahi mila'},404);
       } else {
         return respond({error:'action create / update / delete hona chahiye'},400);
+      }
+
+      // Ek aur taala: delete ke alawa kisi bhi kaam me records ghat nahi sakte
+      if(action !== 'delete' && list.length < before){
+        return respond({ok:false, error:'Save roka gaya — records ghat rahe the. Kuch badla nahi gaya.'},500);
       }
 
       ok = await ghWrite(table, list, sha);

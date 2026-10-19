@@ -9,8 +9,11 @@
     "toDate": "2026-10-19",
     "isHalfDay": false,
     "reason": "I am going home",
-    "status": "pending",
-    "appliedAt": "2026-10-17T11:20:30.426Z"
+    "status": "approved",
+    "appliedAt": "2026-10-17T11:20:30.426Z",
+    "decidedAt": "2026-10-19T06:44:57.941Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "mvbzt1p3211e",

@@ -1,0 +1,24 @@
+[
+  {
+    "serialNo": "00127",
+    "depositDate": "2026-07-13",
+    "section": "393(1)-1(i)",
+    "sectionCode": "1006",
+    "tds": 1125,
+    "surcharge": 0,
+    "cess": 0,
+    "interest": 0,
+    "fees": 0,
+    "other": 0,
+    "bankName": "IDFC First Bank",
+    "bankRef": "",
+    "cin": "",
+    "bsrCode": "",
+    "mode": "Net Banking",
+    "minorHead": "200",
+    "note": "CA Q1 2026-27 payment",
+    "paidBy": "Payments Admin",
+    "id": "mvey6vzoqw6v",
+    "createdAt": "2026-10-19T07:43:37.332Z"
+  }
+]

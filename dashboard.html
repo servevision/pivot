@@ -3317,6 +3317,25 @@ async function decideLeave(id, decision){
   }
 }
 
+// Bills ka naam ek hi pattern me rakho:  SV_<Company>_<Amount>_<MonYY>.<ext>
+// jaise:  SV_InstantlyGrowthPlan_4061_Jul26.pdf
+// Isse Drive me aur Sheet me bills dhundhna aasan rehta hai.
+function svBillName(name, amount, dateStr, originalName){
+  const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  // extension purani file se hi lo
+  let ext='pdf';
+  const m=String(originalName||'').match(/\.([A-Za-z0-9]{2,5})$/);
+  if(m) ext=m[1].toLowerCase();
+  // company naam me sirf letters/numbers rakho
+  const co=String(name||'Expense').replace(/[^A-Za-z0-9]+/g,' ').trim()
+            .split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join('').slice(0,40) || 'Expense';
+  const amt=Math.round(Number(amount)||0);
+  let mon='';
+  const d=new Date(String(dateStr)+'T00:00:00');
+  if(!isNaN(d)) mon=MN[d.getMonth()]+String(d.getFullYear()).slice(-2);
+  return ['SV',co,amt,mon].filter(Boolean).join('_')+'.'+ext;
+}
+
 // ── GOOGLE SHEET SYNC ────────────────────────────────────
 // Portal ka data GitHub me rehta hai; Sheet uska mirror hai. Yahan se use
 // bheja ja sakta hai, aur Sheet ke changes dekhe aur laaye ja sakte hain.
@@ -5208,7 +5227,9 @@ async function saveExpense(){
   const expense={
     id:expId,
     name,usd,inr,date,partner,payment,cat,subcat,notes,
-    fileName:currentInvoiceName,
+    // Bill ka naam hamesha SV_<Company>_<Amount>_<MonYY> pattern me
+    fileName: currentInvoiceName ? svBillName(name, inr||usd, date, currentInvoiceName) : null,
+    originalFileName: currentInvoiceName || null,
     createdAt:editId?undefined:new Date().toISOString(),
     updatedAt:new Date().toISOString(),
   };

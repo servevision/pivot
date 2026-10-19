@@ -3543,7 +3543,8 @@ function rTdsChals(){
       <td style="text-align:right;font-weight:700">${fmt(c.challanTotal||0)}</td>
       <td style="text-align:right"><span class="badge ${good?'b-green':'b-red'}">${fmt(bal)}</span></td>
       <td>${who}</td>
-      <td style="white-space:nowrap"><button class="btn btn-sm" onclick="tdsEditChal('${c.id}')">Edit</button>
+      <td style="white-space:nowrap"><button class="btn btn-sm btn-p" onclick="tdsOpenAttach('${c.id}')">Kaun-kaun</button>
+      <button class="btn btn-sm" onclick="tdsEditChal('${c.id}')" style="margin-left:5px">Edit</button>
       <button class="btn btn-sm btn-d" onclick="tdsDel('challans','${c.id}')" style="margin-left:5px">Del</button></td></tr>`;
   }).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--text2);padding:22px">Abhi koi challan nahi</td></tr>'}
   </tbody></table></div>
@@ -3627,6 +3628,79 @@ async function tdsSaveChal(){
   const r=await tdsApi('POST','',{type:'challans',action:id?'update':'create',id,item});
   if(r&&r.ok){ setMsg('tc-msg','✓ Saved','green'); tdsClearChal(); rTds(); }
   else setMsg('tc-msg','✕ '+((r&&r.error)||'Save failed'),'red');
+}
+
+
+// ── Challan me kaun-kaun hai — tick karke jodo/hatao ─────
+let TDS_ATTACH = {challanId:null, sel:{}};
+
+function tdsOpenAttach(challanId){
+  const c=TDS.chals.find(x=>x.id===challanId); if(!c) return;
+  TDS_ATTACH={challanId, sel:{}};
+  TDS.deds.forEach(d=>{ if(d.challanId===challanId) TDS_ATTACH.sel[d.id]=true; });
+  document.getElementById('tds-attach-modal').style.display='flex';
+  rTdsAttach();
+}
+function tdsCloseAttach(){ document.getElementById('tds-attach-modal').style.display='none'; }
+
+function tdsAttachToggle(id){
+  TDS_ATTACH.sel[id] = !TDS_ATTACH.sel[id];
+  rTdsAttach();
+}
+
+function rTdsAttach(){
+  const c=TDS.chals.find(x=>x.id===TDS_ATTACH.challanId); if(!c) return;
+  // is challan ke, aur jo abhi kisi se jude nahi — dono dikhao
+  const rows=TDS.deds.filter(d=>d.challanId===c.id || !d.challanId)
+    .sort((a,b)=>String(a.paidOn||'').localeCompare(String(b.paidOn||'')));
+  const picked=rows.filter(d=>TDS_ATTACH.sel[d.id]);
+  const sum=picked.reduce((s,d)=>s+(+d.tds||0),0);
+  const total=+c.challanTotal||0;
+  const left=+(total-sum).toFixed(2);
+  const good=Math.abs(left)<1;
+
+  document.getElementById('tds-attach-head').innerHTML =
+    `<div style="font-family:var(--fd);font-size:15px;font-weight:700">Challan #${c.serialNo||'?'}</div>
+     <div style="font-size:12px;color:var(--text2);margin-top:2px">${c.depositDate?fmtLeaveDate(c.depositDate):''} · ${c.bankName||''} · ${c.section||''}</div>`;
+
+  document.getElementById('tds-attach-sum').innerHTML =
+    `<div style="display:flex;gap:18px;flex-wrap:wrap;align-items:center">
+      <div><div style="font-size:10px;color:var(--text2);text-transform:uppercase;font-weight:700">Challan</div>
+        <div style="font-family:var(--fd);font-size:17px;font-weight:700">${fmt(total)}</div></div>
+      <div><div style="font-size:10px;color:var(--text2);text-transform:uppercase;font-weight:700">Chune hue (${picked.length})</div>
+        <div style="font-family:var(--fd);font-size:17px;font-weight:700">${fmt(sum)}</div></div>
+      <div><div style="font-size:10px;color:var(--text2);text-transform:uppercase;font-weight:700">Bacha hua</div>
+        <div style="font-family:var(--fd);font-size:17px;font-weight:700;color:${good?'var(--green-t)':'var(--red-t)'}">${fmt(left)}</div></div>
+      <div style="margin-left:auto">${good
+        ? '<span class="badge b-green">pura match ho gaya</span>'
+        : (left>0 ? '<span class="badge b-amber">abhi '+fmt(left)+' aur jodna hai</span>'
+                  : '<span class="badge b-red">challan se '+fmt(-left)+' zyada chun liya</span>')}</div>
+    </div>`;
+
+  document.getElementById('tds-attach-list').innerHTML = rows.length
+    ? `<table><thead><tr><th style="width:36px"></th><th>Party</th><th>Date</th><th>Section</th><th style="text-align:right">Amount</th><th style="text-align:right">TDS</th><th></th></tr></thead><tbody>
+      ${rows.map(d=>{
+        const p=tdsParty(d.partyId), on=!!TDS_ATTACH.sel[d.id];
+        return `<tr style="cursor:pointer;${on?'background:var(--blue-bg)':''}" onclick="tdsAttachToggle('${d.id}')">
+          <td style="text-align:center"><input type="checkbox" ${on?'checked':''} onclick="event.stopPropagation();tdsAttachToggle('${d.id}')"></td>
+          <td style="font-weight:600">${tdsPartyName(p)}<div style="font-size:10.5px;color:var(--text3);font-family:var(--fm)">${p.pan||''}</div></td>
+          <td style="white-space:nowrap">${fmtLeaveDate(d.paidOn)}</td>
+          <td style="font-size:11px">${d.section||''}</td>
+          <td style="text-align:right">${fmt(d.amount||0)}</td>
+          <td style="text-align:right;font-weight:700">${fmt(d.tds||0)}</td>
+          <td style="font-size:10.5px;color:var(--text3)">${d.challanId===c.id?'isme hai':'free'}</td></tr>`;
+      }).join('')}</tbody></table>`
+    : '<div style="padding:26px;text-align:center;color:var(--text2)">Jodne ke liye koi deduction nahi hai. Pehle <b>Deductions</b> tab me entry banao.</div>';
+}
+
+async function tdsSaveAttach(){
+  const ids=Object.keys(TDS_ATTACH.sel).filter(k=>TDS_ATTACH.sel[k]);
+  const btn=document.getElementById('tds-attach-save');
+  btn.disabled=true; btn.textContent='Saving...';
+  const r=await tdsApi('POST','',{type:'deductions',action:'attach',challanId:TDS_ATTACH.challanId,deductionIds:ids});
+  btn.disabled=false; btn.textContent='Save';
+  if(r&&r.ok){ tdsCloseAttach(); rTds(); }
+  else alert((r&&r.error)||'Save failed');
 }
 
 async function tdsDel(type,id){
@@ -6059,6 +6133,22 @@ function refreshPendingBadges(){
   });
 }
 </script>
+
+<div id="tds-attach-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(10,20,35,.5);align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--bg);border-radius:var(--rl);max-width:880px;width:100%;max-height:90vh;display:flex;flex-direction:column;box-shadow:var(--sh2)">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+      <div id="tds-attach-head"></div>
+      <button class="btn btn-sm" onclick="tdsCloseAttach()">✕</button>
+    </div>
+    <div style="padding:14px 20px;background:var(--bg2);border-bottom:1px solid var(--border)" id="tds-attach-sum"></div>
+    <div style="padding:0 20px;overflow:auto;flex:1" id="tds-attach-list"></div>
+    <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center">
+      <button class="btn btn-p" id="tds-attach-save" onclick="tdsSaveAttach()">Save</button>
+      <button class="btn" onclick="tdsCloseAttach()">Cancel</button>
+      <span style="font-size:11.5px;color:var(--text2);margin-left:auto">Tick karo ki ye challan kin-kin ke liye pay hua hai</span>
+    </div>
+  </div>
+</div>
 
 <div id="manage-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.5);align-items:center;justify-content:center">
   <div style="background:var(--bg);border-radius:var(--rl);width:500px;max-width:95vw;max-height:82vh;display:flex;flex-direction:column;box-shadow:var(--sh2)">

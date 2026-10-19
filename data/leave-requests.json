@@ -1,5 +1,18 @@
 [
   {
+    "id": "mvf7d4sswroo",
+    "employeeId": "SV-EMP-008",
+    "employeeName": "Sakshi Grover",
+    "employeeEmail": "sakshigrover.servevision@gmail.com",
+    "leaveType": "CL",
+    "fromDate": "2026-10-21",
+    "toDate": "2026-10-22",
+    "isHalfDay": false,
+    "reason": "I would like to request 2 days of leave on 21st and 22nd October due to some personal work. Kindly approve my leave.\n\nThank you for your understanding.",
+    "status": "pending",
+    "appliedAt": "2026-10-19T12:00:25.228Z"
+  },
+  {
     "id": "mvcb23miiaf8",
     "employeeId": "SV-EMP-006",
     "employeeName": "Monika Bhardwaj",

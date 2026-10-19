@@ -117,8 +117,11 @@
     "toDate": "2026-10-15",
     "isHalfDay": false,
     "reason": "Dear sir, \nDue to heavy rain, I would like to request work from home today. Thank you for understanding.",
-    "status": "pending",
-    "appliedAt": "2026-10-15T05:23:18.609Z"
+    "status": "approved",
+    "appliedAt": "2026-10-15T05:23:18.609Z",
+    "decidedAt": "2026-10-19T05:56:44.144Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "mv91fas1lk4b",

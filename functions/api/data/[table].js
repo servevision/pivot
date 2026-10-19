@@ -1,3 +1,5 @@
+import { sheetWrite, sheetConfigured } from '../_store.js';
+
 const API_KEY   = 'sv_api_2026_karnal_pivot';
 const HSIM_API_KEY = 'hsim_api_2026_key_x9f2';
 const _t1 = 'github_pat_11BKQ3ODY0q74UW1OzqPmP_';
@@ -62,6 +64,22 @@ export async function onRequestGet(context){
   return respond(content??(['sheets','expenses','employees','signup-requests','leave-requests','workrecord-cache','hsim-employees','hsim-signup-requests','hsim-leave-requests','hsim-attendance','password-reset-requests','hsim-password-reset-requests','sales','clients','invoices'].includes(table)?[]:{}) );
 }
 
+// Sheet me bhejte waqt expenses ke saath bill ka clickable link bhi jodo,
+// taki Sheet se hi bill khul jaye. Link tabhi banta hai jab Cloudflare me
+// FILE_VIEW_KEY set ho (wo ek read-only key hai, sirf bill dikhane ke liye).
+function forSheet(context, table, data){
+  if(table !== 'expenses' || !Array.isArray(data)) return data;
+  const key = context.env && context.env.FILE_VIEW_KEY;
+  if(!key) return data;
+  const base = new URL(context.request.url).origin;
+  return data.map(e=>{
+    if(!e || !e.fileRef) return e;
+    const name = e.fileName || e.fileRef.split('/').pop();
+    return { ...e, fileUrl: `${base}/api/expense-file?ref=${encodeURIComponent(e.fileRef)}`
+      + `&name=${encodeURIComponent(name)}&k=${encodeURIComponent(key)}` };
+  });
+}
+
 export async function onRequestPost(context){
   useEnv(context.env);
   const {request,params}=context;
@@ -77,5 +95,11 @@ export async function onRequestPost(context){
     ok=await ghWrite(table,data,sha);
     if(!ok) await new Promise(res=>setTimeout(res, 250 + Math.random()*350));
   }
-  return respond({ok,saved:ok});
+  // GitHub me save hone ke baad wahi table Google Sheet me bhi bhej do.
+  // waitUntil se ye background me hota hai — user ko Google ka wait nahi karna
+  // padta, aur Sheet fail ho jaye to bhi save safe rehta hai.
+  if(ok && sheetConfigured(context.env)){
+    context.waitUntil(sheetWrite(context.env, table, forSheet(context, table, data)).catch(()=>{}));
+  }
+  return respond({ok,saved:ok,mirrored:ok && sheetConfigured(context.env)});
 }

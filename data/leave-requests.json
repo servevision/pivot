@@ -25,8 +25,11 @@
     "toDate": "2026-10-17",
     "isHalfDay": false,
     "reason": "WFH",
-    "status": "pending",
-    "appliedAt": "2026-10-17T06:05:32.247Z"
+    "status": "approved",
+    "appliedAt": "2026-10-17T06:05:32.247Z",
+    "decidedAt": "2026-10-19T06:45:08.456Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "mvag33n0gfr8",

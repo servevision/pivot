@@ -1,21 +1,3 @@
-async function tdsSaveDed(){
-  const g=i=>{const e=document.getElementById(i); return e?e.value:'';};
-  const id=g('td-id');
-  const dedOn=g('td-dedon');
-  const code=g('td-code').trim();
-  const item={ partyId:g('td-party'), amount:+g('td-amt')||0, rate:+g('td-rate')||0,
-    tds:+g('td-tds')||0, surcharge:+g('td-sur')||0, cess:+g('td-cess')||0,
-    deductedOn:dedOn, paidOn:g('td-paid')||'', section:g('td-sec'), sectionCode:code,
-    quarter:g('td-q')||tdsFy(dedOn).q, challanId:g('td-chal'), reason:g('td-reason').trim() };
-  if(!item.partyId){ setMsg('td-msg','Party chuno','red'); return; }
-  if(!item.amount){ setMsg('td-msg','Tax amount daalo','red'); return; }
-  if(!dedOn){ setMsg('td-msg','Date of deduction zaroori hai','red'); return; }
-  if(!/^\d{4}$/.test(code)){ setMsg('td-msg','Code 4 digit ka hona chahiye (jaise 1023)','red'); return; }
-  setMsg('td-msg','Saving...','info');
-  const r=await tdsApi('POST','',{type:'deductions',action:id?'update':'create',id,item});
-  if(r&&r.ok){ setMsg('td-msg','✓ Saved','green'); tdsClearDed(); rTds(); }
-  else setMsg('td-msg','✕ '+((r&&r.error)||'Save failed'),'red');
-}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -3864,12 +3846,18 @@ function tdsEditDed(id){
 }
 
 async function tdsSaveDed(){
-  const g=i=>document.getElementById(i).value;
+  const g=i=>{const e=document.getElementById(i); return e?e.value:'';};
   const id=g('td-id');
-  const item={ partyId:g('td-party'), amount:+g('td-amt')||0, rate:+g('td-rate')||0, tds:+g('td-tds')||0,
-    paidOn:g('td-paid'), deductedOn:g('td-dedon')||g('td-paid'), section:g('td-sec'),
-    challanId:g('td-chal'), reason:g('td-reason').trim() };
-  if(!item.partyId||!item.amount||!item.paidOn){ setMsg('td-msg','Party, amount aur date zaroori hai','red'); return; }
+  const dedOn=g('td-dedon');
+  const code=g('td-code').trim();
+  const item={ partyId:g('td-party'), amount:+g('td-amt')||0, rate:+g('td-rate')||0,
+    tds:+g('td-tds')||0, surcharge:+g('td-sur')||0, cess:+g('td-cess')||0,
+    deductedOn:dedOn, paidOn:g('td-paid')||'', section:g('td-sec'), sectionCode:code,
+    quarter:g('td-q')||tdsFy(dedOn).q, challanId:g('td-chal'), reason:g('td-reason').trim() };
+  if(!item.partyId){ setMsg('td-msg','Party chuno','red'); return; }
+  if(!item.amount){ setMsg('td-msg','Tax amount daalo','red'); return; }
+  if(!dedOn){ setMsg('td-msg','Date of deduction zaroori hai','red'); return; }
+  if(!/^\d{4}$/.test(code)){ setMsg('td-msg','Code 4 digit ka hona chahiye (jaise 1023)','red'); return; }
   setMsg('td-msg','Saving...','info');
   const r=await tdsApi('POST','',{type:'deductions',action:id?'update':'create',id,item});
   if(r&&r.ok){ setMsg('td-msg','✓ Saved','green'); tdsClearDed(); rTds(); }

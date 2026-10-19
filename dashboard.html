@@ -1,3 +1,21 @@
+async function tdsSaveDed(){
+  const g=i=>{const e=document.getElementById(i); return e?e.value:'';};
+  const id=g('td-id');
+  const dedOn=g('td-dedon');
+  const code=g('td-code').trim();
+  const item={ partyId:g('td-party'), amount:+g('td-amt')||0, rate:+g('td-rate')||0,
+    tds:+g('td-tds')||0, surcharge:+g('td-sur')||0, cess:+g('td-cess')||0,
+    deductedOn:dedOn, paidOn:g('td-paid')||'', section:g('td-sec'), sectionCode:code,
+    quarter:g('td-q')||tdsFy(dedOn).q, challanId:g('td-chal'), reason:g('td-reason').trim() };
+  if(!item.partyId){ setMsg('td-msg','Party chuno','red'); return; }
+  if(!item.amount){ setMsg('td-msg','Tax amount daalo','red'); return; }
+  if(!dedOn){ setMsg('td-msg','Date of deduction zaroori hai','red'); return; }
+  if(!/^\d{4}$/.test(code)){ setMsg('td-msg','Code 4 digit ka hona chahiye (jaise 1023)','red'); return; }
+  setMsg('td-msg','Saving...','info');
+  const r=await tdsApi('POST','',{type:'deductions',action:id?'update':'create',id,item});
+  if(r&&r.ok){ setMsg('td-msg','✓ Saved','green'); tdsClearDed(); rTds(); }
+  else setMsg('td-msg','✕ '+((r&&r.error)||'Save failed'),'red');
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -3433,6 +3451,9 @@ function rTdsPane(){
 // ── Parties (deductees) ──────────────────────────────────
 function rTdsParties(){
   const el=document.getElementById('tds-pane-party');
+  const qp=(TDS.qParty||'').toLowerCase();
+  let pRows=TDS.parties.slice();
+  if(qp) pRows=pRows.filter(p=>[tdsPartyName(p),p.pan,p.state,p.address1,p.cert197].join(' ').toLowerCase().includes(qp));
   el.innerHTML = `<div class="card">
     <div class="card-t">Party jodo / badlo</div>
     <input type="hidden" id="tp-id">
@@ -3452,8 +3473,13 @@ function rTdsParties(){
     <button class="btn" onclick="tdsClearParty()" style="margin-left:6px">Clear</button>
     <span id="tp-msg" style="margin-left:10px;font-size:12px;font-weight:600"></span>
   </div>
+  <div style="display:flex;gap:10px;align-items:center;margin:12px 0 10px;flex-wrap:wrap">
+    <input type="text" id="tp-search" placeholder="Naam, PAN, state se dhundo..." value="${TDS.qParty||''}"
+      oninput="TDS.qParty=this.value;rTdsParties();document.getElementById('tp-search').focus()" style="min-width:280px;flex:1">
+    <span style="font-size:11.5px;color:var(--text2)">${pRows.length} / ${TDS.parties.length}</span>
+  </div>
   <div class="tw"><table><thead><tr><th>PAN</th><th>Name</th><th>Type</th><th>State</th><th>Deductions</th><th></th></tr></thead><tbody>
-  ${TDS.parties.length ? TDS.parties.map(p=>{
+  ${pRows.length ? pRows.map(p=>{
     const n=TDS.deds.filter(d=>d.partyId===p.id).length;
     const code=(TDS_DCODES.find(c=>c[0]===String(p.deducteeCode))||['','—'])[1];
     return `<tr><td style="font-family:var(--fm)">${p.pan||''}</td><td style="font-weight:600">${tdsPartyName(p)}</td>
@@ -3461,7 +3487,7 @@ function rTdsParties(){
       <td style="text-align:center">${n}</td>
       <td><button class="btn btn-sm" onclick="tdsEditParty('${p.id}')">Edit</button>
       <button class="btn btn-sm btn-d" onclick="tdsDel('deductees','${p.id}')" style="margin-left:5px">Del</button></td></tr>`;
-  }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text2);padding:22px">Abhi koi party nahi</td></tr>'}
+  }).join('') : `<tr><td colspan="6" style="text-align:center;color:var(--text2);padding:22px">${TDS.qParty?'Is search se kuch nahi mila':'Abhi koi party nahi'}</td></tr>`}
   </tbody></table></div>`;
 }
 function tdsClearParty(){ ['tp-id','tp-pan','tp-fn','tp-mn','tp-ln','tp-a1','tp-a2','tp-pin','tp-cert'].forEach(i=>document.getElementById(i).value=''); setMsg('tp-msg','','info'); }
@@ -3493,6 +3519,13 @@ async function tdsSaveParty(){
 // ── Challans ─────────────────────────────────────────────
 function rTdsChals(){
   const el=document.getElementById('tds-pane-chal');
+  const qc=(TDS.qChal||'').toLowerCase();
+  let chalRows=TDS.chals.slice().sort((a,b)=>String(b.depositDate||'').localeCompare(String(a.depositDate||'')));
+  if(qc) chalRows=chalRows.filter(c=>{
+    const who=TDS.deds.filter(d=>d.challanId===c.id).map(d=>tdsPartyName(tdsParty(d.partyId))).join(' ');
+    return [c.serialNo,c.bankName,c.section,c.sectionCode,c.cin,c.bankRef,c.paidBy,c.note,who]
+      .join(' ').toLowerCase().includes(qc);
+  });
   const bankOpts=(typeof BANKS_DATA!=='undefined'&&Array.isArray(BANKS_DATA))
     ? BANKS_DATA.map(b=>`<option value="${b.name||''}">${b.name||''}</option>`).join('') : '';
   el.innerHTML = `<div class="card">
@@ -3528,8 +3561,13 @@ function rTdsChals(){
     <span id="tc-msg" style="margin-left:10px;font-size:12px;font-weight:600"></span>
   </div>
   ${tdsPendingPanel()}
+  <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+    <input type="text" id="tc-search" placeholder="Challan no, bank, section, code, party se dhundo..." value="${TDS.qChal||''}"
+      oninput="TDS.qChal=this.value;rTdsChals();document.getElementById('tc-search').focus()" style="min-width:280px;flex:1">
+    <span style="font-size:11.5px;color:var(--text2)">${chalRows.length} / ${TDS.chals.length}</span>
+  </div>
   <div class="tw"><table><thead><tr><th>Challan No</th><th>Date</th><th>Section / Code</th><th>Bank</th><th>Paid by</th><th style="text-align:right">Total</th><th style="text-align:right">Balance</th><th>Kiske liye</th><th></th></tr></thead><tbody>
-  ${TDS.chals.length ? TDS.chals.slice().sort((a,b)=>String(b.depositDate||'').localeCompare(String(a.depositDate||''))).map(c=>{
+  ${chalRows.length ? chalRows.map(c=>{
     const bal=Number(c.balance||0), good=Math.abs(bal)<1;
     const mine=TDS.deds.filter(d=>d.challanId===c.id);
     const who = mine.length
@@ -3546,7 +3584,7 @@ function rTdsChals(){
       <td style="white-space:nowrap"><button class="btn btn-sm btn-p" onclick="tdsOpenAttach('${c.id}')">Kaun-kaun</button>
       <button class="btn btn-sm" onclick="tdsEditChal('${c.id}')" style="margin-left:5px">Edit</button>
       <button class="btn btn-sm btn-d" onclick="tdsDel('challans','${c.id}')" style="margin-left:5px">Del</button></td></tr>`;
-  }).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--text2);padding:22px">Abhi koi challan nahi</td></tr>'}
+  }).join('') : `<tr><td colspan="9" style="text-align:center;color:var(--text2);padding:22px">${TDS.qChal?'Is search se kuch nahi mila':'Abhi koi challan nahi'}</td></tr>`}
   </tbody></table></div>
   <div class="notice n-blue" style="margin-top:10px"><b>Balance zero hona chahiye.</b> Lal dikhe to us challan ka kuch hissa kisi deduction se joda nahi gaya — return me short payment aayega.</div>`;
   tdsChalTotal();
@@ -3712,65 +3750,119 @@ async function tdsDel(type,id){
 // ── Deductions ───────────────────────────────────────────
 function rTdsDeds(){
   const el=document.getElementById('tds-pane-ded');
+  const q=(TDS.qDed||'').toLowerCase();
   const partyOpts = TDS.parties.map(p=>`<option value="${p.id}">${tdsPartyName(p)} — ${p.pan||''}</option>`).join('');
   const chalOpts  = TDS.chals.map(c=>`<option value="${c.id}">${tdsChalLabel(c)}</option>`).join('');
+
+  let rows=TDS.deds.slice();
+  if(q) rows=rows.filter(d=>{
+    const p=tdsParty(d.partyId);
+    return [tdsPartyName(p),p.pan,d.section,d.sectionCode,d.quarter,d.reason,
+            String(d.amount),String(d.tds)].join(' ').toLowerCase().includes(q);
+  });
+  rows.sort((a,b)=>String(b.deductedOn||b.paidOn||'').localeCompare(String(a.deductedOn||a.paidOn||'')));
+
   el.innerHTML = `<div class="card">
     <div class="card-t">Deduction jodo / badlo</div>
-    ${TDS.parties.length?'':'<div class="notice n-amber">Pehle <b>Parties</b> tab me party add karo, tabhi yahan chunne ko milegi.</div>'}
+    ${TDS.parties.length?'':'<div class="notice n-amber">Pehle <b>Parties</b> tab me party add karo.</div>'}
     <input type="hidden" id="td-id">
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px">
       <div class="fg" style="grid-column:span 2"><label>Party *</label><select id="td-party"><option value="">-- chuno --</option>${partyOpts}</select></div>
-      <div class="fg"><label>Amount paid (Rs.) *</label><input type="number" id="td-amt" step="0.01" oninput="tdsCalc()"></div>
+      <div class="fg"><label>Section *</label><select id="td-sec" onchange="tdsDedCode()">${opt(TDS_SECTIONS,'393(1)-1(ii)')}</select></div>
+      <div class="fg"><label>Code * (4 digit)</label><input type="text" id="td-code" maxlength="4" inputmode="numeric" placeholder="1023"></div>
+
+      <div class="fg"><label>Tax amount * (Rs.)</label><input type="number" id="td-amt" step="0.01" oninput="tdsCalc()"></div>
       <div class="fg"><label>Rate (%) *</label><input type="number" id="td-rate" step="0.01" oninput="tdsCalc()"></div>
-      <div class="fg"><label>TDS (Rs.)</label><input type="number" id="td-tds" step="0.01"></div>
-      <div class="fg"><label>Date paid / credited *</label><input type="date" id="td-paid" onchange="tdsCalc()"></div>
-      <div class="fg"><label>Date of deduction</label><input type="date" id="td-dedon"></div>
-      <div class="fg"><label>Section code *</label><select id="td-sec">${opt(TDS_SECTIONS,'393(1)-1(ii)')}</select></div>
-      <div class="fg" style="grid-column:span 2"><label>Challan (kis se jama hua)</label><select id="td-chal"><option value="">-- abhi nahi --</option>${chalOpts}</select></div>
-      <div class="fg" style="grid-column:span 2"><label>Reason for non/lower deduction</label><input type="text" id="td-reason" placeholder="khaali chhod do agar normal hai"></div>
+      <div class="fg"><label>TDS (Rs.)</label><input type="number" id="td-tds" step="0.01" oninput="tdsCalc(1)"></div>
+      <div class="fg"><label>Surcharge</label><input type="number" id="td-sur" step="0.01" oninput="tdsCalc(1)"></div>
+      <div class="fg"><label>Edu. cess</label><input type="number" id="td-cess" step="0.01" oninput="tdsCalc(1)"></div>
+
+      <div class="fg"><label>Date of deduction *</label><input type="date" id="td-dedon" onchange="tdsCalc(1)"></div>
+      <div class="fg"><label>Quarter</label><select id="td-q" onchange="TDS.qTouched=true"><option value="">auto</option>${opt(['Q1','Q2','Q3','Q4'],'')}</select></div>
+      <div class="fg"><label>Date paid / credited</label><input type="date" id="td-paid"></div>
+      <div class="fg" style="grid-column:span 2"><label>Challan (jab pay ho jaye)</label><select id="td-chal"><option value="">-- abhi nahi --</option>${chalOpts}</select></div>
+      <div class="fg" style="grid-column:span 2"><label>Reason for non / lower deduction</label><input type="text" id="td-reason" placeholder="normal ho to khaali chhodo"></div>
     </div>
-    <div id="td-calc" style="font-size:12px;color:var(--text2);margin-bottom:10px"></div>
+    <div id="td-calc" style="font-size:12.5px;color:var(--text2);margin-bottom:10px"></div>
     <button class="btn btn-p" onclick="tdsSaveDed()">Save deduction</button>
     <button class="btn" onclick="tdsClearDed()" style="margin-left:6px">Clear</button>
     <span id="td-msg" style="margin-left:10px;font-size:12px;font-weight:600"></span>
   </div>
-  <div class="tw"><table><thead><tr><th>Date</th><th>Party</th><th>Section</th><th style="text-align:right">Amount</th><th style="text-align:center">Rate</th><th style="text-align:right">TDS</th><th>Challan</th><th></th></tr></thead><tbody>
-  ${TDS.deds.length ? TDS.deds.slice().sort((a,b)=>String(b.paidOn||'').localeCompare(String(a.paidOn||''))).map(d=>{
+  <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+    <input type="text" id="td-search" placeholder="Party, PAN, section, code se dhundo..." value="${TDS.qDed||''}"
+      oninput="TDS.qDed=this.value;rTdsDeds();document.getElementById('td-search').focus()" style="min-width:280px;flex:1">
+    <span style="font-size:11.5px;color:var(--text2)">${rows.length} / ${TDS.deds.length}</span>
+  </div>
+  <div class="tw"><table><thead><tr><th>Deducted on</th><th>Qtr</th><th>Party</th><th>Section / Code</th><th style="text-align:right">Tax amount</th><th style="text-align:center">Rate</th><th style="text-align:right">Total TDS</th><th>Challan</th><th></th></tr></thead><tbody>
+  ${rows.length ? rows.map(d=>{
     const p=tdsParty(d.partyId), c=TDS.chals.find(x=>x.id===d.challanId);
-    const fq=tdsFy(d.paidOn);
-    return `<tr><td style="white-space:nowrap">${fmtLeaveDate(d.paidOn)}<div style="font-size:10px;color:var(--text3)">${fq.fy} ${fq.q}</div></td>
+    const tot=(+d.tds||0)+(+d.surcharge||0)+(+d.cess||0);
+    return `<tr><td style="white-space:nowrap">${d.deductedOn?fmtLeaveDate(d.deductedOn):'—'}</td>
+      <td><span class="badge b-blue">${d.quarter||tdsFy(d.deductedOn||d.paidOn).q||'—'}</span></td>
       <td style="font-weight:600">${tdsPartyName(p)}<div style="font-size:10.5px;color:var(--text3);font-family:var(--fm)">${p.pan||''}</div></td>
-      <td style="font-size:11px">${d.section||''}</td>
+      <td style="font-size:11px">${d.section||''}<div style="font-family:var(--fm);color:var(--text3)">${d.sectionCode||''}</div></td>
       <td style="text-align:right">${fmt(d.amount||0)}</td>
       <td style="text-align:center">${d.rate||0}%</td>
-      <td style="text-align:right;font-weight:700">${fmt(d.tds||0)}</td>
-      <td style="font-size:10.5px;font-family:var(--fm)">${c?tdsChalLabel(c):'<span class="badge b-amber">not mapped</span>'}</td>
+      <td style="text-align:right;font-weight:700">${fmt(tot)}</td>
+      <td style="font-size:10.5px;font-family:var(--fm)">${c?tdsChalLabel(c):'<span class="badge b-amber">pending</span>'}</td>
       <td style="white-space:nowrap"><button class="btn btn-sm" onclick="tdsEditDed('${d.id}')">Edit</button>
       <button class="btn btn-sm btn-d" onclick="tdsDel('deductions','${d.id}')" style="margin-left:5px">Del</button></td></tr>`;
-  }).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--text2);padding:22px">Abhi koi deduction nahi</td></tr>'}
+  }).join('') : `<tr><td colspan="9" style="text-align:center;color:var(--text2);padding:22px">${q?'Is search se kuch nahi mila':'Abhi koi deduction nahi'}</td></tr>`}
   </tbody></table></div>`;
   tdsCalc();
 }
-function tdsCalc(){
-  const amt=+document.getElementById('td-amt').value||0, rate=+document.getElementById('td-rate').value||0;
-  const tdsEl=document.getElementById('td-tds');
-  if(amt&&rate) tdsEl.value=Math.round(amt*rate/100);
-  const paid=document.getElementById('td-paid').value;
-  const fq=tdsFy(paid);
-  document.getElementById('td-calc').innerHTML = (amt&&rate)
-    ? `TDS = ${fmt(amt)} × ${rate}% = <b>${fmt(Math.round(amt*rate/100))}</b>${fq.fy?` · ye <b>${fq.fy} ${fq.q}</b> me jayega`:''}`
-    : (fq.fy?`Ye <b>${fq.fy} ${fq.q}</b> me jayega`:'');
+
+// Section chunte hi wahi code bhar do jo pehle is section par use hua tha
+function tdsDedCode(){
+  const sec=document.getElementById('td-sec').value, el=document.getElementById('td-code');
+  if(!el || el.value) return;
+  const prev = TDS.deds.find(d=>d.section===sec && d.sectionCode)
+            || TDS.chals.find(c=>c.section===sec && c.sectionCode);
+  if(prev) el.value=prev.sectionCode;
 }
-function tdsClearDed(){ ['td-id','td-amt','td-rate','td-tds','td-paid','td-dedon','td-reason'].forEach(i=>document.getElementById(i).value='');
-  document.getElementById('td-party').value=''; document.getElementById('td-chal').value=''; setMsg('td-msg','','info'); tdsCalc(); }
+
+// manual=1 matlab user ne TDS khud type kiya — tab amount×rate se mat badlo
+function tdsCalc(manual){
+  const g=i=>{const e=document.getElementById(i); return e?(+e.value||0):0;};
+  const amt=g('td-amt'), rate=g('td-rate');
+  const tdsEl=document.getElementById('td-tds');
+  if(!manual && amt && rate && tdsEl) tdsEl.value=Math.round(amt*rate/100);
+  const tds=g('td-tds'), sur=g('td-sur'), cess=g('td-cess');
+  const total=tds+sur+cess;
+
+  const dedOn=(document.getElementById('td-dedon')||{}).value||'';
+  const fq=tdsFy(dedOn);
+  const qSel=document.getElementById('td-q');
+  if(qSel && !TDS.qTouched && fq.q) qSel.value=fq.q;
+
+  const box=document.getElementById('td-calc');
+  if(!box) return;
+  const bits=[];
+  if(amt&&rate) bits.push(`TDS = ${fmt(amt)} × ${rate}% = <b>${fmt(Math.round(amt*rate/100))}</b>`);
+  if(total)     bits.push(`Total jama karna = TDS ${fmt(tds)}${sur?' + surcharge '+fmt(sur):''}${cess?' + cess '+fmt(cess):''} = <b>${fmt(total)}</b>`);
+  if(fq.fy)     bits.push(`Ye <b>${fq.fy} ${qSel&&qSel.value?qSel.value:fq.q}</b> me jayega`);
+  box.innerHTML=bits.join(' &nbsp;·&nbsp; ');
+}
+
+function tdsClearDed(){
+  ['td-id','td-amt','td-rate','td-tds','td-sur','td-cess','td-paid','td-dedon','td-reason','td-code']
+    .forEach(i=>{const e=document.getElementById(i); if(e) e.value='';});
+  ['td-party','td-chal','td-q'].forEach(i=>{const e=document.getElementById(i); if(e) e.value='';});
+  TDS.qTouched=false; setMsg('td-msg','','info'); tdsCalc();
+}
+
 function tdsEditDed(id){
   const d=TDS.deds.find(x=>x.id===id)||{};
-  const set=(i,v)=>document.getElementById(i).value=(v==null?'':v);
-  set('td-id',id); set('td-party',d.partyId); set('td-amt',d.amount); set('td-rate',d.rate); set('td-tds',d.tds);
-  set('td-paid',d.paidOn); set('td-dedon',d.deductedOn); set('td-reason',d.reason);
-  document.getElementById('td-sec').value=d.section||'393(1)-1(ii)'; set('td-chal',d.challanId);
-  tdsCalc(); window.scrollTo({top:0,behavior:'smooth'});
+  const set=(i,v)=>{const e=document.getElementById(i); if(e) e.value=(v==null?'':v);};
+  set('td-id',id); set('td-party',d.partyId); set('td-amt',d.amount); set('td-rate',d.rate);
+  set('td-tds',d.tds); set('td-sur',d.surcharge); set('td-cess',d.cess);
+  set('td-paid',d.paidOn); set('td-dedon',d.deductedOn); set('td-reason',d.reason); set('td-code',d.sectionCode);
+  const sec=document.getElementById('td-sec'); if(sec) sec.value=d.section||'393(1)-1(ii)';
+  set('td-chal',d.challanId); set('td-q',d.quarter||'');
+  TDS.qTouched=!!d.quarter;
+  tdsCalc(1); window.scrollTo({top:0,behavior:'smooth'});
 }
+
 async function tdsSaveDed(){
   const g=i=>document.getElementById(i).value;
   const id=g('td-id');
@@ -3817,7 +3909,12 @@ function rTdsExport(){
 function tdsQuarterData(fy,q){
   const [from,to]=tdsQDates(fy,q);
   const inQ=d=>{ const dt=new Date(String(d)+'T00:00:00'); return from&&to&&!isNaN(dt)&&dt>=from&&dt<=to; };
-  const deds=TDS.deds.filter(d=>inQ(d.paidOn));
+  // Agar quarter manually set kiya hai to wahi manega, warna date se
+  const deds=TDS.deds.filter(d=>{
+    const base=d.deductedOn||d.paidOn;
+    if(d.quarter) return d.quarter===q && tdsFy(base).fy===fy;
+    return inQ(base);
+  });
   const ids={}; deds.forEach(d=>{ if(d.challanId) ids[d.challanId]=1; });
   const chals=TDS.chals.filter(c=>ids[c.id]);
   return {deds,chals,from,to};
@@ -3888,11 +3985,11 @@ function tdsExportXlsx(){
      'Reason for non-deduction / lower deduction if any','Paid by book entry or otherwise','Certificate No u/s 197',
      'Deductee/Party Reference No']
   ];
-  deds.slice().sort((a,b)=>String(a.paidOn).localeCompare(String(b.paidOn))).forEach(d=>{
+  deds.slice().sort((a,b)=>String(a.deductedOn||a.paidOn).localeCompare(String(b.deductedOn||b.paidOn))).forEach(d=>{
     const p=tdsParty(d.partyId), c=TDS.chals.find(x=>x.id===d.challanId);
     an.push([ p.deducteeCode||'', p.pan||'', p.firstName||'', p.middleName||'', p.lastName||'',
       p.address1||'', p.address2||'', p.state||'', p.pinCode||'',
-      +d.amount||0, tdsXlDate(d.paidOn), d.section||'', +d.rate||0, +d.tds||0,
+      +d.amount||0, tdsXlDate(d.paidOn||d.deductedOn), d.section||'', +d.rate||0, +d.tds||0,
       +d.surcharge||0, +d.cess||0, +d.hcess||0, tdsXlDate(d.deductedOn||d.paidOn),
       c?tdsXlDate(c.depositDate):'', c?(c.bsrCode||''):'', c?(c.serialNo||''):'',
       c?label(c):'', '', d.reason||'', '', p.cert197||'', '' ]);

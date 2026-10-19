@@ -1,5 +1,7 @@
 // functions/api/leave.js
 // Leave request + approval system
+import { sheetWrite, sheetConfigured } from './_store.js';
+
 const GH_T1 = 'github_pat_11BKQ3ODY0q74UW1OzqPmP_';
 const GH_T2 = 'Xf6U9IjMYaNuKR2gzdZ1xWm7PrDsrvbb1B8BYu9LmpSN4JFAPH3YyPgCgnT';
 let GH_TOKEN = GH_T1 + GH_T2;
@@ -42,6 +44,13 @@ async function ghRead(file){
     content = rawRes.ok ? await rawRes.json() : null;
   }
   return {content, sha:d.sha};
+}
+
+// GitHub me likhne ke baad Sheet me bhi bhej do (background me).
+function mirror(context, table, data, ok){
+  if(ok && context && sheetConfigured(context.env)){
+    context.waitUntil(sheetWrite(context.env, table, data).catch(()=>{}));
+  }
 }
 
 async function ghWrite(file,content,sha){
@@ -156,6 +165,7 @@ export async function onRequestPost(context){
     };
     list.unshift(newRequest);
     const ok = await ghWrite('leave-requests',list,sha);
+    mirror(context,'leave-requests',list,ok);
 
     await notifyAdmins(env,
       `Leave request from ${emp.name} - ${leaveType}`,
@@ -190,6 +200,7 @@ export async function onRequestPost(context){
     list[idx].reason = reason;
     list[idx].editedAt = new Date().toISOString();
     const ok = await ghWrite('leave-requests',list,sha);
+    mirror(context,'leave-requests',list,ok);
     return respond({ok, record:list[idx]});
   }
 
@@ -209,6 +220,7 @@ export async function onRequestPost(context){
     if(body.decidedByName)  list[idx].decidedBy      = String(body.decidedByName).slice(0,60);
     if(body.decidedByEmail) list[idx].decidedByEmail = String(body.decidedByEmail).slice(0,120);
     const ok = await ghWrite('leave-requests',list,sha);
+    mirror(context,'leave-requests',list,ok);
 
     const item = list[idx];
     await sendEmail(env, item.employeeEmail,

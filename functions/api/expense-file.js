@@ -34,6 +34,17 @@ function checkAuth(request){
   return auth===API_KEY || auth===HSIM_API_KEY;
 }
 
+// Google Sheet se bill ka link seedha click ho sake, iske liye ek alag
+// read-only key. Ye sirf bill DEKHNE deti hai — na data padh sakti hai, na
+// kuch badal sakti hai. Cloudflare me FILE_VIEW_KEY set karne par hi chalti
+// hai; na ho to link band rehte hain.
+function checkViewKey(request, env){
+  const want = env && env.FILE_VIEW_KEY;
+  if(!want) return false;
+  const k = new URL(request.url).searchParams.get('k');
+  return k === want;
+}
+
 function extFor(mime){
   if(!mime) return 'bin';
   if(mime.includes('pdf')) return 'pdf';
@@ -51,7 +62,9 @@ export async function onRequestOptions(){
 export async function onRequestGet(context){
   useEnv(context.env);
   const {request}=context;
-  if(!checkAuth(request)) return respond({error:'Unauthorized'},401);
+  if(!checkAuth(request) && !checkViewKey(request, context.env)){
+    return respond({error:'Unauthorized'},401);
+  }
   const url=new URL(request.url);
   const ref=url.searchParams.get('ref');
   if(!ref || !ref.startsWith('expense-files/') || ref.includes('..')){
@@ -81,7 +94,24 @@ export async function onRequestGet(context){
              : ext==='jpg' ? 'image/jpeg'
              : 'application/octet-stream';
 
-  return respond({ dataUrl:`data:${mime};base64,${b64.replace(/\n/g,'')}` });
+  const clean = b64.replace(/\n/g,'');
+
+  // Sheet / browser se link click karne par asli file kholo, JSON nahi.
+  // Dashboard ke andar se call hone par purana dataUrl hi milta hai.
+  if(url.searchParams.get('raw')==='1' || checkViewKey(request, context.env)){
+    const bin = Uint8Array.from(atob(clean), c=>c.charCodeAt(0));
+    const name = url.searchParams.get('name') || ref.split('/').pop();
+    return new Response(bin, {
+      headers: {
+        'Content-Type': mime,
+        'Content-Disposition': `inline; filename="${name.replace(/"/g,'')}"`,
+        'Cache-Control': 'private, max-age=300',
+        ...CORS
+      }
+    });
+  }
+
+  return respond({ dataUrl:`data:${mime};base64,${clean}` });
 }
 
 // POST { id, dataUrl } -> { ok, ref }

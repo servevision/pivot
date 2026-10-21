@@ -1,5 +1,22 @@
 [
   {
+    "id": "mvhu4a93rzcg",
+    "name": "OpenRouter AI Credits",
+    "usd": 42.2,
+    "inr": 4100,
+    "date": "2026-10-21",
+    "partner": "Serve Vision",
+    "payment": "SV Mercury-4877",
+    "cat": "Software / SaaS",
+    "subcat": "",
+    "notes": "Invoice YY3NIKLL-0014, OpenRouter Invoice #1950-9683",
+    "fileName": "SV_OpenRouterAICredits_4100_Oct26.pdf",
+    "originalFileName": "openrouter Invoice-YY3NIKLL-0014 42.20 USD Mercury 4877 Oct26.pdf",
+    "createdAt": "2026-10-21T08:12:55.911Z",
+    "updatedAt": "2026-10-21T08:12:55.911Z",
+    "fileRef": "expense-files/mvhu4a93rzcg.pdf"
+  },
+  {
     "id": "mvbvicrrtll0",
     "name": "Spaceship Domain Registrations (82 .shop domains)",
     "usd": 73.8,

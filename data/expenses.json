@@ -1,5 +1,22 @@
 [
   {
+    "id": "mvm2armmikjd",
+    "name": "Domain Registrations (197 .shop domains)",
+    "usd": 177.3,
+    "inr": 17000,
+    "date": "2026-10-24",
+    "partner": "Serve Vision",
+    "payment": "SV Mercury-4877",
+    "cat": "Domain",
+    "subcat": "",
+    "notes": "Invoice VW-202610240505864, Order ID e2d75a7d-6769-444f-8c54-f051f2aea2b5, 197 domains at $0.90/year each, billed to Tejas Goel via Spaceship.com",
+    "fileName": "SV_DomainRegistrations197ShopDomains_17000_Oct26.pdf",
+    "originalFileName": "spaceship-e2d75a7d-6769-444f-8c54-f051f2aea2b5.pdf",
+    "createdAt": "2026-10-24T07:12:59.998Z",
+    "updatedAt": "2026-10-24T07:12:59.998Z",
+    "fileRef": "expense-files/mvm2armmikjd.pdf"
+  },
+  {
     "id": "mvhu4a93rzcg",
     "name": "OpenRouter AI Credits",
     "usd": 42.2,

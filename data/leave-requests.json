@@ -1,5 +1,18 @@
 [
   {
+    "id": "mvlw5d1oei2f",
+    "employeeId": "SV-EMP-010",
+    "employeeName": "Aman Khokhar",
+    "employeeEmail": "aman@servevision.io",
+    "leaveType": "WFH",
+    "fromDate": "2026-10-24",
+    "toDate": "2026-10-24",
+    "isHalfDay": false,
+    "reason": "WFH",
+    "status": "pending",
+    "appliedAt": "2026-10-24T04:20:50.124Z"
+  },
+  {
     "id": "mvkft30ai1y5",
     "employeeId": "SV-EMP-010",
     "employeeName": "Aman Khokhar",

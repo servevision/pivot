@@ -1,5 +1,18 @@
 [
   {
+    "id": "mvm8qyo3rkow",
+    "employeeId": "SV-EMP-002",
+    "employeeName": "Ansh",
+    "employeeEmail": "ansh24.sv@gmail.com",
+    "leaveType": "CL",
+    "fromDate": "2026-10-26",
+    "toDate": "2026-10-26",
+    "isHalfDay": false,
+    "reason": "Dear Sir,\n\nI need 1 day leave on 26 October 2026 due to some personal work at home, kindly approve my leave.\n\nThank You...",
+    "status": "pending",
+    "appliedAt": "2026-10-24T10:13:33.315Z"
+  },
+  {
     "id": "mvm8aixn94se",
     "employeeId": "SV-EMP-002",
     "employeeName": "Ansh",

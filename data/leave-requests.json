@@ -1,5 +1,18 @@
 [
   {
+    "id": "mvm8aixn94se",
+    "employeeId": "SV-EMP-002",
+    "employeeName": "Ansh",
+    "employeeEmail": "ansh24.sv@gmail.com",
+    "leaveType": "CL",
+    "fromDate": "2026-10-21",
+    "toDate": "2026-10-23",
+    "isHalfDay": false,
+    "reason": "I want to request leave for three days, from 21 October to 23 October, as I will be travelling out of town for personal reasons. Kindly approve my leave for the mentioned dates. I will resume work on 24 October. Thank you for your understanding.",
+    "status": "pending",
+    "appliedAt": "2026-10-24T10:00:46.427Z"
+  },
+  {
     "id": "mvlw5d1oei2f",
     "employeeId": "SV-EMP-010",
     "employeeName": "Aman Khokhar",

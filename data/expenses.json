@@ -1,5 +1,22 @@
 [
   {
+    "id": "mvm3qa0xqc8d",
+    "name": "Claude Pro Subscription",
+    "usd": 20,
+    "inr": 2000,
+    "date": "2026-10-24",
+    "partner": "Vivek Attri",
+    "payment": "SV Mercury-4877",
+    "cat": "Software / SaaS",
+    "subcat": "",
+    "notes": "Invoice GBSN36YM-0001, billing period Oct 24 – Nov 23, 2026 - johnston.annie.aj@gmail.com",
+    "fileName": "SV_ClaudeProSubscription_2000_Oct26.pdf",
+    "originalFileName": "Claude johnston.annie.aj@gmail.com 10-26.pdf",
+    "createdAt": "2026-10-24T07:53:03.298Z",
+    "updatedAt": "2026-10-24T07:53:03.298Z",
+    "fileRef": "expense-files/mvm3qa0xqc8d.pdf"
+  },
+  {
     "id": "mvm2armmikjd",
     "name": "Domain Registrations (197 .shop domains)",
     "usd": 177.3,

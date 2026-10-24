@@ -35,8 +35,11 @@
     "toDate": "2026-10-24",
     "isHalfDay": false,
     "reason": "I would like to request leave for four days, from 21 October to 24 October, as I will be travelling out of town for personal reasons.\n\nKindly approve my leave for the mentioned dates. I will resume work on 25 October.\n\nThank you for your understanding.",
-    "status": "pending",
-    "appliedAt": "2026-10-21T02:49:41.079Z"
+    "status": "rejected",
+    "appliedAt": "2026-10-21T02:49:41.079Z",
+    "decidedAt": "2026-10-24T09:58:27.841Z",
+    "decidedBy": "Payments Admin",
+    "decidedByEmail": "payments@servevision.io"
   },
   {
     "id": "mvf7d4sswroo",

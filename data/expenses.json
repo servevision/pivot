@@ -1,5 +1,22 @@
 [
   {
+    "id": "mvq8gug0dyoh",
+    "name": "OpenRouter AI Credits",
+    "usd": 42.2,
+    "inr": 4100,
+    "date": "2026-10-27",
+    "partner": "Serve Vision",
+    "payment": "SV Mercury-4877",
+    "cat": "Software / SaaS",
+    "subcat": "",
+    "notes": "Receipt #1612-6299, OpenRouter Credits purchase, card ending 4877",
+    "fileName": "SV_OpenRouterAICredits_4100_Oct26.jpeg",
+    "originalFileName": "Claude 42.20 USD 10-26.jpeg",
+    "createdAt": "2026-10-27T05:16:45.985Z",
+    "updatedAt": "2026-10-27T05:16:45.985Z",
+    "fileRef": "expense-files/mvq8gug0dyoh.jpg"
+  },
+  {
     "id": "mvm3qa0xqc8d",
     "name": "Claude Pro Subscription",
     "usd": 20,

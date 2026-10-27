@@ -1,5 +1,18 @@
 [
   {
+    "id": "mvqdm9giwoon",
+    "employeeId": "SV-EMP-008",
+    "employeeName": "Sakshi Grover",
+    "employeeEmail": "sakshigrover.servevision@gmail.com",
+    "leaveType": "HalfDay",
+    "fromDate": "2026-10-27",
+    "toDate": "2026-10-27",
+    "isHalfDay": true,
+    "reason": "I’m not feeling well and need to get some tests done.\nplease approve my half day leave.",
+    "status": "pending",
+    "appliedAt": "2026-10-27T07:40:56.802Z"
+  },
+  {
     "id": "mvq6qqujflwk",
     "employeeId": "SV-EMP-002",
     "employeeName": "Ansh",

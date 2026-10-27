@@ -1,5 +1,18 @@
 [
   {
+    "id": "mvq6l6tkrgab",
+    "employeeId": "SV-EMP-008",
+    "employeeName": "Sakshi Grover",
+    "employeeEmail": "sakshigrover.servevision@gmail.com",
+    "leaveType": "SL",
+    "fromDate": "2026-10-26",
+    "toDate": "2026-10-26",
+    "isHalfDay": false,
+    "reason": "Dear sir, I’m not feeling well today, so i need to take sick leave. Thank you for understanding.",
+    "status": "pending",
+    "appliedAt": "2026-10-27T04:24:09.416Z"
+  },
+  {
     "id": "mvm9md4tgkp1",
     "employeeId": "SV-EMP-006",
     "employeeName": "Monika Bhardwaj",

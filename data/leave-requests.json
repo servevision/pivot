@@ -1,5 +1,18 @@
 [
   {
+    "id": "mvtjgb5bohor",
+    "employeeId": "SV-EMP-009",
+    "employeeName": "Sunita Mahata",
+    "employeeEmail": "sunitamahata@servevision.io",
+    "leaveType": "WFH",
+    "fromDate": "2026-10-29",
+    "toDate": "2026-10-29",
+    "isHalfDay": false,
+    "reason": "Dear Sir,\n\nI am feeling unwell due to a cold and would like to request permission to work from home today. \n\nKindly approve my WFH request.\n\nThank you.",
+    "status": "pending",
+    "appliedAt": "2026-10-29T12:47:35.279Z"
+  },
+  {
     "id": "mvt442qcppjf",
     "employeeId": "SV-EMP-002",
     "employeeName": "Ansh",

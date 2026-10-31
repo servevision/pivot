@@ -1,5 +1,18 @@
 [
   {
+    "id": "mvvxy8061nkt",
+    "employeeId": "SV-EMP-008",
+    "employeeName": "Sakshi Grover",
+    "employeeEmail": "sakshigrover.servevision@gmail.com",
+    "leaveType": "CL",
+    "fromDate": "2026-10-30",
+    "toDate": "2026-10-30",
+    "isHalfDay": false,
+    "reason": "Hi, I need leave today due to an emergency. I hope you understand. Thank you.",
+    "status": "pending",
+    "appliedAt": "2026-10-31T05:08:57.990Z"
+  },
+  {
     "id": "mvtjgb5bohor",
     "employeeId": "SV-EMP-009",
     "employeeName": "Sunita Mahata",

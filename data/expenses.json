@@ -1,5 +1,22 @@
 [
   {
+    "id": "mvz33u32glp9",
+    "name": "Instantly Growth Plan",
+    "usd": 42.3,
+    "inr": 4100,
+    "date": "2026-10-01",
+    "partner": "Vivek Attri",
+    "payment": "SV Mercury-4877",
+    "cat": "Software / SaaS",
+    "subcat": "Subscription",
+    "notes": "Invoice II77Z7OM-0005, Receipt 2623-5174, 10% partnership discount applied, Mastercard-4877",
+    "fileName": "SV_InstantlyGrowthPlan_4100_Oct26.pdf",
+    "originalFileName": "Receipt-2623-5174.pdf",
+    "createdAt": "2026-11-02T09:56:36.494Z",
+    "updatedAt": "2026-11-02T09:56:36.494Z",
+    "fileRef": "expense-files/mvz33u32glp9.pdf"
+  },
+  {
     "id": "mvz32otyd749",
     "name": "Instantly Growth Plan",
     "usd": 42.3,

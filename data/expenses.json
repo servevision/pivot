@@ -1,5 +1,22 @@
 [
   {
+    "id": "mvz32otyd749",
+    "name": "Instantly Growth Plan",
+    "usd": 42.3,
+    "inr": 4100,
+    "date": "2026-11-01",
+    "partner": "Vivek Attri",
+    "payment": "SV Mercury-4877",
+    "cat": "Software / SaaS",
+    "subcat": "",
+    "notes": "Invoice II77Z7OM-0006, Receipt 2603-6320, 10% discount applied (Partnerships - Lead Gen Jay)",
+    "fileName": "SV_InstantlyGrowthPlan_4100_Nov26.pdf",
+    "originalFileName": "Receipt-2603-6320.pdf",
+    "createdAt": "2026-11-02T09:55:43.030Z",
+    "updatedAt": "2026-11-02T09:55:43.030Z",
+    "fileRef": "expense-files/mvz32otyd749.pdf"
+  },
+  {
     "id": "mvq96reiqyx8",
     "name": "dearbornwaterdamagerepair.shop domain registration",
     "usd": 0.9,

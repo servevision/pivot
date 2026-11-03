@@ -115,12 +115,18 @@
     "email": "payalsv26@gmail.com",
     "designation": "Meta Ads Executive",
     "department": "Marketing",
-    "phone": 8607871633,
-    "dateOfJoining": "2026-07-05T18:30:00.000Z",
+    "phone": "8607871633",
+    "dateOfJoining": "",
     "salary": 0,
     "documents": {},
-    "status": "active",
-    "createdAt": "2026-07-06T06:24:09.520Z"
+    "status": "inactive",
+    "createdAt": "2026-07-06T06:24:09.520Z",
+    "dateOfBirth": "",
+    "exitDate": "",
+    "bankAccountNo": "",
+    "bankIFSC": "",
+    "bankName": "",
+    "updatedAt": "2026-11-03T09:03:28.636Z"
   },
   {
     "employeeId": "SV-EMP-013",

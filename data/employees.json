@@ -64,12 +64,18 @@
     "email": "sakshigrover.servevision@gmail.com",
     "designation": "Content Editior",
     "department": "Content",
-    "phone": 7027310001,
-    "dateOfJoining": "2026-03-31T18:30:00.000Z",
+    "phone": "7027310001",
+    "dateOfJoining": "",
     "salary": 22000,
     "documents": {},
-    "status": "active",
-    "createdAt": "2026-07-03T00:00:00.000Z"
+    "status": "inactive",
+    "createdAt": "2026-07-03T00:00:00.000Z",
+    "dateOfBirth": "",
+    "exitDate": "",
+    "bankAccountNo": "",
+    "bankIFSC": "",
+    "bankName": "",
+    "updatedAt": "2026-11-03T09:03:40.702Z"
   },
   {
     "employeeId": "SV-EMP-009",

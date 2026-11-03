@@ -199,8 +199,11 @@
     "toDate": "2026-10-22",
     "isHalfDay": false,
     "reason": "I would like to request 2 days of leave on 21st and 22nd October due to some personal work. Kindly approve my leave.\n\nThank you for your understanding.",
-    "status": "pending",
-    "appliedAt": "2026-10-19T12:00:25.228Z"
+    "status": "approved",
+    "appliedAt": "2026-10-19T12:00:25.228Z",
+    "decidedAt": "2026-11-03T06:58:41.473Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "mvcb23miiaf8",

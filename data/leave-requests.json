@@ -9,8 +9,11 @@
     "toDate": "2026-10-29",
     "isHalfDay": false,
     "reason": "Activa issue and repair",
-    "status": "pending",
-    "appliedAt": "2026-11-03T09:13:06.045Z"
+    "status": "approved",
+    "appliedAt": "2026-11-03T09:13:06.045Z",
+    "decidedAt": "2026-11-03T09:37:21.129Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "mw0gxcd5ael5",

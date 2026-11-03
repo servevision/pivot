@@ -9,8 +9,11 @@
     "toDate": "2026-10-10",
     "isHalfDay": false,
     "reason": "1-day Leave",
-    "status": "pending",
-    "appliedAt": "2026-11-03T09:42:04.008Z"
+    "status": "approved",
+    "appliedAt": "2026-11-03T09:42:04.008Z",
+    "decidedAt": "2026-11-03T10:11:37.285Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "mw0gzqilyd74",

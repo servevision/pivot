@@ -1,5 +1,18 @@
 [
   {
+    "id": "mw0gzqilyd74",
+    "employeeId": "SV-EMP-011",
+    "employeeName": "Yogesh Miglani",
+    "employeeEmail": "myogesh805@gmail.com",
+    "leaveType": "WFH",
+    "fromDate": "2026-10-29",
+    "toDate": "2026-10-29",
+    "isHalfDay": false,
+    "reason": "Activa issue and repair",
+    "status": "pending",
+    "appliedAt": "2026-11-03T09:13:06.045Z"
+  },
+  {
     "id": "mw0gxcd5ael5",
     "employeeId": "SV-EMP-011",
     "employeeName": "Yogesh Miglani",

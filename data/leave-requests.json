@@ -9,8 +9,11 @@
     "toDate": "2026-10-30",
     "isHalfDay": false,
     "reason": "Hi, I need leave today due to an emergency. I hope you understand. Thank you.",
-    "status": "pending",
-    "appliedAt": "2026-10-31T05:08:57.990Z"
+    "status": "approved",
+    "appliedAt": "2026-10-31T05:08:57.990Z",
+    "decidedAt": "2026-11-03T06:57:40.344Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "mvtjgb5bohor",

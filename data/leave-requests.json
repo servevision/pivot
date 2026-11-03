@@ -41,8 +41,11 @@
     "toDate": "2026-10-29",
     "isHalfDay": false,
     "reason": "I’m unwell today and need sick leave. Thank you.",
-    "status": "pending",
-    "appliedAt": "2026-10-29T05:38:10.260Z"
+    "status": "approved",
+    "appliedAt": "2026-10-29T05:38:10.260Z",
+    "decidedAt": "2026-11-03T06:59:46.885Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "mvrlfuvtthc5",

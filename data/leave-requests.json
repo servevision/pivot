@@ -150,8 +150,11 @@
     "toDate": "2026-10-23",
     "isHalfDay": false,
     "reason": "I want to request leave for three days, from 21 October to 23 October, as I will be travelling out of town for personal reasons. Kindly approve my leave for the mentioned dates. I will resume work on 24 October. Thank you for your understanding.",
-    "status": "pending",
-    "appliedAt": "2026-10-24T10:00:46.427Z"
+    "status": "approved",
+    "appliedAt": "2026-10-24T10:00:46.427Z",
+    "decidedAt": "2026-11-03T07:00:10.438Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "mvlw5d1oei2f",

@@ -1,5 +1,18 @@
 [
   {
+    "id": "mw0i0zjcpihj",
+    "employeeId": "SV-EMP-011",
+    "employeeName": "Yogesh Miglani",
+    "employeeEmail": "myogesh805@gmail.com",
+    "leaveType": "CL",
+    "fromDate": "2026-10-10",
+    "toDate": "2026-10-10",
+    "isHalfDay": false,
+    "reason": "1-day Leave",
+    "status": "pending",
+    "appliedAt": "2026-11-03T09:42:04.008Z"
+  },
+  {
     "id": "mw0gzqilyd74",
     "employeeId": "SV-EMP-011",
     "employeeName": "Yogesh Miglani",

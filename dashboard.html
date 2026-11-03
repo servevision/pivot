@@ -1001,7 +1001,7 @@ async function pushAllToGitHub() {
 
       <div class="card">
         <div class="card-t">📤 Bulk Attendance Upload</div>
-        <div class="card-sub">Download a template for a date range (leave requests are pre-filled with their unique Leave ID), fill in Present/Absent/Holiday for the rest, then upload it back to update everyone at once.</div>
+        <div class="card-sub">Date range chuno aur template download karo — Sunday aur approve hui leaves pehle se bhari aati hain. Baaki dinon me Status bharo aur file wapas upload kar do. Pehli baar kar rahe ho to <b>Sample (bhara hua)</b> dekh lo.</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">
           <div class="fg" style="flex:1;min-width:130px">
             <label>From Date</label>
@@ -1012,6 +1012,7 @@ async function pushAllToGitHub() {
             <input type="date" id="bulk-to">
           </div>
           <button class="btn" onclick="downloadAttendanceTemplate()">↓ Download Template</button>
+          <button class="btn" onclick="downloadAttendanceSample()">↓ Sample (bhara hua)</button>
         </div>
         <hr class="div">
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px">
@@ -1357,6 +1358,17 @@ function monthNum(m){
   if(i<0||isNaN(y)) return -1;
   return y*12+i;
 }
+// Date ko YYYY-MM-DD banao LOCAL time ke hisaab se.
+// toISOString() UTC me badal deta hai, aur India UTC se 5:30 aage hai —
+// isliye wo aadhi raat se subah 5:30 tak PICHHLA din deta hai. Attendance
+// template me isi wajah se Sunday ek din khisak gaya tha.
+function isoDate(d){
+  if(!(d instanceof Date) || isNaN(d)) return '';
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function todayISO(){ return isoDate(new Date()); }
+const DAY_NAMES=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
 function curMonthKey(){
   const d=new Date();
   return MONTH_ORDER[d.getMonth()]+'-'+d.getFullYear();
@@ -3010,7 +3022,7 @@ function openEmpForm(){
   document.getElementById('emp-form-area').style.display='block';
   document.getElementById('emp-form-title').textContent='Add New Employee';
   document.getElementById('ef-edit-id').value='';
-  document.getElementById('ef-doj').value=new Date().toISOString().split('T')[0];
+  document.getElementById('ef-doj').value=todayISO();
   document.getElementById('emp-form-msg').textContent='';
   ['ef-name','ef-email','ef-phone','ef-dob','ef-desig','ef-sal','ef-acc','ef-ifsc','ef-bank'].forEach(id=>document.getElementById(id).value='');
 }
@@ -4252,7 +4264,7 @@ function onAttViewChange(){
   document.getElementById('att-fdate').style.display = view==='daily' ? 'inline-block' : 'none';
   document.getElementById('att-femp').style.display = view==='employee' ? 'inline-block' : 'none';
   if(view==='daily' && !document.getElementById('att-fdate').value){
-    document.getElementById('att-fdate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('att-fdate').value = todayISO();
   }
   rAttendance();
 }
@@ -4284,7 +4296,7 @@ function rAttendance(){
   filtered.sort((a,b)=>new Date(b.checkInTime)-new Date(a.checkInTime));
 
   // ── Stats cards ──
-  const today=new Date().toISOString().split('T')[0];
+  const today=todayISO();
   const todayRecs=ATT_RECORDS.filter(r=>r.date===today);
   const totalEmp = EMP_RECORDS.length;
   const presentToday = todayRecs.filter(r=>r.status==='present'||r.status==='late').length;
@@ -4875,7 +4887,7 @@ async function loadInvoices(){
   await loadBanks();
   loadCompanyDetails();
   const dateEl = document.getElementById('inv-date');
-  if(dateEl && !dateEl.value) dateEl.value = new Date().toISOString().split('T')[0];
+  if(dateEl && !dateEl.value) dateEl.value = todayISO();
   onInvTypeChange();
   const d = await apiCall('GET','/business?type=invoices');
   INVOICES_DATA = Array.isArray(d) ? d : [];
@@ -5407,13 +5419,13 @@ async function downloadAttendanceTemplate(){
   const leaveData = await apiCall('GET',dp('leave-requests'));
   const leaves = Array.isArray(leaveData) ? leaveData : [];
 
-  const rows = [['Employee ID','Employee Name','Date','Status','Check-in Time (HH:MM)','Check-out Time (HH:MM)','Leave ID','Leave Type']];
+  const rows = [['Employee ID','Employee Name','Date','Day','Status','Check-in Time (HH:MM)','Check-out Time (HH:MM)','Leave ID','Leave Type']];
 
   EMP_RECORDS.forEach(emp=>{
     let d = new Date(from+'T00:00:00');
     const endD = new Date(to+'T00:00:00');
     while(d <= endD){
-      const dateStr = d.toISOString().split('T')[0];
+      const dateStr = isoDate(d);
       const matchLeave = leaves.find(l=>l.employeeId===emp.employeeId && l.status!=='rejected' && l.fromDate<=dateStr && (l.toDate||l.fromDate)>=dateStr);
       const existing = ATT_RECORDS.find(a=>a.employeeId===emp.employeeId && a.date===dateStr);
 
@@ -5429,7 +5441,7 @@ async function downloadAttendanceTemplate(){
       }
 
       rows.push([
-        emp.employeeId, emp.name, dateStr, status,
+        emp.employeeId, emp.name, dateStr, DAY_NAMES[d.getDay()], status,
         existing ? toHHMM(existing.checkInTime) : '',
         existing ? toHHMM(existing.checkOutTime) : '',
         leaveId, leaveType
@@ -5439,6 +5451,51 @@ async function downloadAttendanceTemplate(){
   });
 
   dlC(rows, `attendance_template_${from}_to_${to}.csv`);
+}
+
+// Ek chhota bhara-hua example, taki pata chale kis column me kya likhna hai.
+// Ye sirf dekhne ke liye hai — isse upload mat karna.
+function downloadAttendanceSample(){
+  const emp = EMP_RECORDS[0] || {employeeId:'SV-EMP-004', name:'Gourav Madaan'};
+  // Pichhla Monday se ek poora hafta, taki Sunday bhi dikh jaye
+  const d = new Date(); d.setDate(d.getDate() - ((d.getDay()+6)%7) - 7);
+
+  const rows = [['Employee ID','Employee Name','Date','Day','Status','Check-in Time (HH:MM)','Check-out Time (HH:MM)','Leave ID','Leave Type']];
+  const week = [
+    ['present',      '09:45','18:30','',''],
+    ['present',      '09:52','18:40','',''],
+    ['half-day',     '09:48','14:00','',''],
+    ['casual-leave', '',     '',     'mg7k2p4a','CL'],
+    ['absent',       '',     '',     '',''],
+    ['present',      '10:05','18:25','',''],
+    ['holiday',      '',     '',     '','']
+  ];
+  week.forEach((w,i)=>{
+    const dt=new Date(d); dt.setDate(dt.getDate()+i);
+    rows.push([emp.employeeId, emp.name, isoDate(dt), DAY_NAMES[dt.getDay()], w[0], w[1], w[2], w[3], w[4]]);
+  });
+
+  rows.push([]);
+  rows.push(['--- NEECHE SIRF SAMAJHNE KE LIYE HAI, UPLOAD SE PEHLE HATA DENA ---']);
+  rows.push([]);
+  rows.push(['Status me ye likh sakte ho:']);
+  rows.push(['present','poora din aaya']);
+  rows.push(['absent','nahi aaya, bina leave ke']);
+  rows.push(['half-day','aadha din']);
+  rows.push(['holiday','chhutti — Sunday aur office holiday']);
+  rows.push(['casual-leave','CL li — Leave ID zaroor bharo']);
+  rows.push(['sick-leave','SL li — Leave ID zaroor bharo']);
+  rows.push(['wfh','ghar se kaam']);
+  rows.push([]);
+  rows.push(['Dhyan dene wali baatein:']);
+  rows.push(['1','Sunday apne aap "holiday" bhar kar aata hai — chhed-chhad mat karna']);
+  rows.push(['2','Jin dinon ki leave approve ho chuki hai, unka Leave ID pehle se bhara aata hai']);
+  rows.push(['3','Time 24-hour format me likho: 09:45, 18:30 (AM/PM nahi)']);
+  rows.push(['4','Status khaali chhoda to wo din chhod diya jayega — kuch nahi badlega']);
+  rows.push(['5','Employee ID aur Date kabhi mat badalna — unhi se record jodta hai']);
+  rows.push(['6','Day column sirf dekhne ke liye hai, upload me use nahi hota']);
+
+  dlC(rows, 'attendance_sample_bhara_hua.csv');
 }
 
 function uploadAttendanceFile(){
@@ -5894,7 +5951,7 @@ function toggleExpForm(){
   } else {
     w.style.display='block';
     zone.style.display='block';
-    document.getElementById('exp-date').value=new Date().toISOString().split('T')[0];
+    document.getElementById('exp-date').value=todayISO();
     document.getElementById('exp-form-title').textContent='Add New Expense';
     document.getElementById('exp-edit-id').value='';
     document.getElementById('ai-badge').style.display='none';

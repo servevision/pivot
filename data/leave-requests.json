@@ -170,8 +170,11 @@
     "toDate": "2026-10-22",
     "isHalfDay": false,
     "reason": "Hospital",
-    "status": "pending",
-    "appliedAt": "2026-10-23T03:55:37.210Z"
+    "status": "approved",
+    "appliedAt": "2026-10-23T03:55:37.210Z",
+    "decidedAt": "2026-11-03T06:58:53.455Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "mvhikl3re2bi",

@@ -1,5 +1,18 @@
 [
   {
+    "id": "mw0gxcd5ael5",
+    "employeeId": "SV-EMP-011",
+    "employeeName": "Yogesh Miglani",
+    "employeeEmail": "myogesh805@gmail.com",
+    "leaveType": "WFH",
+    "fromDate": "2026-10-12",
+    "toDate": "2026-10-12",
+    "isHalfDay": false,
+    "reason": "Family emergency",
+    "status": "pending",
+    "appliedAt": "2026-11-03T09:11:14.393Z"
+  },
+  {
     "id": "mvvxy8061nkt",
     "employeeId": "SV-EMP-008",
     "employeeName": "Sakshi Grover",

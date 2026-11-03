@@ -19,8 +19,8 @@
     "email": "gouravsv1@gmail.com",
     "designation": "Video Editor",
     "department": "Design",
-    "phone": 9103320212,
-    "dateOfJoining": "2026-03-31T18:30:00.000Z",
+    "phone": "9103320212",
+    "dateOfJoining": "",
     "salary": 18585,
     "documents": {
       "aadhar": {
@@ -28,9 +28,14 @@
         "name": "Gaurav Madaan Aadhar Card.docx.pdf"
       }
     },
-    "status": "active",
+    "status": "inactive",
     "createdAt": "2026-07-03T00:00:00.000Z",
-    "updatedAt": "2026-10-09T11:31:29.193Z"
+    "updatedAt": "2026-11-03T09:04:28.971Z",
+    "dateOfBirth": "",
+    "exitDate": "",
+    "bankAccountNo": "",
+    "bankIFSC": "",
+    "bankName": ""
   },
   {
     "employeeId": "SV-EMP-005",

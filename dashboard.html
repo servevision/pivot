@@ -5415,6 +5415,7 @@ async function downloadAttendanceTemplate(){
   if(from > to){ alert('"From" date must be before "To" date'); return; }
   if(!EMP_RECORDS.length) await loadEmpData();
   if(!ATT_RECORDS.length) await fetchAttendance();
+  if(typeof loadOfficeHolidays==='function'){ try{ await loadOfficeHolidays(); }catch(e){} }
 
   const leaveData = await apiCall('GET',dp('leave-requests'));
   const leaves = Array.isArray(leaveData) ? leaveData : [];
@@ -5430,14 +5431,24 @@ async function downloadAttendanceTemplate(){
       const existing = ATT_RECORDS.find(a=>a.employeeId===emp.employeeId && a.date===dateStr);
 
       let status = '', leaveId = '', leaveType = '';
+      // Sunday aur office holiday sabse upar — in dinon ki leave nahi kati
+      // jaati, isliye leave range inpar aaye tab bhi "holiday" hi rahega.
+      // Leave ID phir bhi dikhate hain taki pata rahe ki leave overlap hui.
+      const isSun = d.getDay()===0;
+      const isOffHol = (typeof isOfficeHoliday==='function') && isOfficeHoliday(dateStr);
+
       if(matchLeave){
-        status = matchLeave.leaveType==='SL' ? 'sick-leave' : 'casual-leave';
         leaveId = matchLeave.id;
         leaveType = matchLeave.leaveType;
-      } else if(existing){
-        status = existing.status || '';
-      } else if(d.getDay()===0){
-        status = 'holiday'; // Sunday, auto-filled
+      }
+      if(isSun || isOffHol){
+        status = 'holiday';
+      } else if(matchLeave){
+        status = matchLeave.leaveType==='SL' ? 'sick-leave'
+               : matchLeave.leaveType==='WFH' ? 'wfh'
+               : 'casual-leave';
+      } else if(existing && existing.status){
+        status = existing.status;
       }
 
       rows.push([
@@ -5498,6 +5509,35 @@ function downloadAttendanceSample(){
   dlC(rows, 'attendance_sample_bhara_hua.csv');
 }
 
+// Excel CSV kholte hi dates badal deta hai — 2026-10-11 ko 11-10-26 bana
+// deta hai. Jo bhi roop ho, usse wapas YYYY-MM-DD me laao, warna record
+// galat din par chala jayega. Samajh na aaye to khaali lautao, taki wo row
+// chhod di jaye — galat date likhne se behtar hai.
+function normAttDate(v){
+  const t=String(v||'').trim();
+  if(!t) return '';
+  let m;
+  // 2026-10-11  ya  2026/10/11
+  if((m=t.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/)))
+    return m[1]+'-'+m[2].padStart(2,'0')+'-'+m[3].padStart(2,'0');
+  // 11-10-26 / 11-10-2026 / 11.10.2026  (din pehle — Excel ka Indian format)
+  if((m=t.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2}|\d{4})$/))){
+    let [,dd,mm,yy]=m;
+    if(+dd>31 || +mm>12) return '';
+    const yr = yy.length===2 ? '20'+yy : yy;
+    return yr+'-'+mm.padStart(2,'0')+'-'+dd.padStart(2,'0');
+  }
+  // 11-Oct-2026
+  if((m=t.match(/^(\d{1,2})[-\s]([A-Za-z]{3,})[-\s](\d{2}|\d{4})$/))){
+    const MN=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+    const i=MN.indexOf(m[2].slice(0,3).toLowerCase());
+    if(i<0) return '';
+    const yr = m[3].length===2 ? '20'+m[3] : m[3];
+    return yr+'-'+String(i+1).padStart(2,'0')+'-'+m[1].padStart(2,'0');
+  }
+  return '';
+}
+
 function uploadAttendanceFile(){
   const fileInput = document.getElementById('bulk-file');
   const file = fileInput.files[0];
@@ -5510,11 +5550,14 @@ function uploadAttendanceFile(){
     skipEmptyLines: true,
     complete: async function(results){
       const rows = [];
+      const badDates = [];
       results.data.forEach(r=>{
         const empId = (r['Employee ID']||'').trim();
-        const date = (r['Date']||'').trim();
+        const rawDate = (r['Date']||'').trim();
         let status = (r['Status']||'').trim().toLowerCase();
-        if(!empId || !date || !status) return;
+        if(!empId || !rawDate || !status) return;
+        const date = normAttDate(rawDate);
+        if(!date){ badDates.push(empId+' — '+rawDate); return; }
         const inTime = (r['Check-in Time (HH:MM)']||'').trim();
         const outTime = (r['Check-out Time (HH:MM)']||'').trim();
         rows.push({
@@ -5527,6 +5570,12 @@ function uploadAttendanceFile(){
           leaveRequestId: (r['Leave ID']||'').trim() || null
         });
       });
+      if(badDates.length){
+        const show=badDates.slice(0,5).join(', ')+(badDates.length>5?` (aur ${badDates.length-5})`:'');
+        msgEl.innerHTML = `✕ ${badDates.length} row ki date samajh nahi aayi, isliye kuch upload nahi kiya: ${show}`
+          + `<br>Date column ko <b>Text</b> format me rakho ya <b>YYYY-MM-DD</b> likho (jaise 2026-10-11).`;
+        msgEl.style.color='var(--red-t)'; return;
+      }
       if(!rows.length){ msgEl.textContent='No valid rows found — make sure Employee ID, Date and Status columns are filled'; msgEl.style.color='var(--red-t)'; return; }
       msgEl.textContent = `Uploading ${rows.length} rows...`; msgEl.style.color='var(--text2)';
       const res = await apiCall('POST',ep('attendance'),{action:'bulkUpload', rows});

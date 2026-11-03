@@ -25,8 +25,11 @@
     "toDate": "2026-10-29",
     "isHalfDay": false,
     "reason": "Dear Sir,\n\nI am feeling unwell due to a cold and would like to request permission to work from home today. \n\nKindly approve my WFH request.\n\nThank you.",
-    "status": "pending",
-    "appliedAt": "2026-10-29T12:47:35.279Z"
+    "status": "approved",
+    "appliedAt": "2026-10-29T12:47:35.279Z",
+    "decidedAt": "2026-11-03T06:57:48.566Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "mvt442qcppjf",

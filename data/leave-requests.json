@@ -99,8 +99,11 @@
     "toDate": "2026-10-26",
     "isHalfDay": false,
     "reason": "Dear sir, I’m not feeling well today, so i need to take sick leave. Thank you for understanding.",
-    "status": "pending",
-    "appliedAt": "2026-10-27T04:24:09.416Z"
+    "status": "approved",
+    "appliedAt": "2026-10-27T04:24:09.416Z",
+    "decidedAt": "2026-11-03T06:58:14.486Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "mvm9md4tgkp1",

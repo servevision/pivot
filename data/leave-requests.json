@@ -22,8 +22,11 @@
     "toDate": "2026-10-12",
     "isHalfDay": false,
     "reason": "Family emergency",
-    "status": "pending",
-    "appliedAt": "2026-11-03T09:11:14.393Z"
+    "status": "approved",
+    "appliedAt": "2026-11-03T09:11:14.393Z",
+    "decidedAt": "2026-11-03T09:37:13.596Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "mvvxy8061nkt",

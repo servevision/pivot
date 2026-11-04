@@ -1,5 +1,16 @@
 [
   {
+    "id": "mw1zplj7rtjk",
+    "name": "Vivek Attri",
+    "email": "vivek.hsim@gmail.com",
+    "password": "vivek.hsim@gmail.com",
+    "designation": "SEO Trainer",
+    "department": "HR",
+    "phone": "8689023912",
+    "status": "pending",
+    "requestedAt": "2026-11-04T10:44:51.907Z"
+  },
+  {
     "id": "mu3zybew330z",
     "name": "Prerna",
     "email": "prernakashyap605@gmail.com",

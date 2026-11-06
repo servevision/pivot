@@ -1,5 +1,18 @@
 [
   {
+    "id": "mw4vgbmer42n",
+    "employeeId": "SV-EMP-006",
+    "employeeName": "Monika Bhardwaj",
+    "employeeEmail": "monikaservevision567@gmail.com",
+    "leaveType": "CL",
+    "fromDate": "2026-11-07",
+    "toDate": "2026-11-07",
+    "isHalfDay": false,
+    "reason": "I am going home to celebrate the festival of Deepawali",
+    "status": "pending",
+    "appliedAt": "2026-11-06T11:08:59.222Z"
+  },
+  {
     "id": "mw4kmqtixjm1",
     "employeeId": "SV-EMP-011",
     "employeeName": "Yogesh Miglani",

@@ -25,8 +25,11 @@
     "toDate": "2026-11-06",
     "isHalfDay": true,
     "reason": "Personal work in Market",
-    "status": "pending",
-    "appliedAt": "2026-11-06T06:06:03.078Z"
+    "status": "approved",
+    "appliedAt": "2026-11-06T06:06:03.078Z",
+    "decidedAt": "2026-11-10T15:02:49.898Z",
+    "decidedBy": "Payments Admin",
+    "decidedByEmail": "payments@servevision.io"
   },
   {
     "id": "mw0i0zjcpihj",

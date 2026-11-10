@@ -9,8 +9,11 @@
     "toDate": "2026-11-07",
     "isHalfDay": false,
     "reason": "I am going home to celebrate the festival of Deepawali",
-    "status": "pending",
-    "appliedAt": "2026-11-06T11:08:59.222Z"
+    "status": "approved",
+    "appliedAt": "2026-11-06T11:08:59.222Z",
+    "decidedAt": "2026-11-10T15:02:30.396Z",
+    "decidedBy": "Payments Admin",
+    "decidedByEmail": "payments@servevision.io"
   },
   {
     "id": "mw4kmqtixjm1",

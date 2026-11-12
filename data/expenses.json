@@ -1,5 +1,22 @@
 [
   {
+    "id": "mwd3lchgenfm",
+    "name": "Hostinger Cloud Enterprise Hosting",
+    "usd": 428.43,
+    "inr": 35988,
+    "date": "2026-11-11",
+    "partner": "Serve Vision",
+    "payment": "Sv Hdfc CC-5089",
+    "cat": "Server / Hosting",
+    "subcat": "",
+    "notes": "Invoice #HSG-10246453, Order #hb_65036325, annual plan Nov 11 2026 - Nov 11 2027, includes Daily Backup",
+    "fileName": "SV_HostingerCloudEnterpriseHosting_35988_Nov26.pdf",
+    "originalFileName": "SV E Cloud Enterprise H_54663122 35988 INR 11-26.pdf",
+    "createdAt": "2026-11-12T05:18:59.956Z",
+    "updatedAt": "2026-11-12T05:18:59.956Z",
+    "fileRef": "expense-files/mwd3lchgenfm.pdf"
+  },
+  {
     "id": "mw346xte1w6m",
     "name": "lifesciencereport.com Domain Purchase & Renewal",
     "usd": 198.19,

@@ -202,5 +202,22 @@
     "documents": {},
     "status": "active",
     "createdAt": "2026-11-14T08:57:23.147Z"
+  },
+  {
+    "employeeId": "SV-EMP-017",
+    "name": "Lavisha Sharma",
+    "email": "lavishasharma.sv@gmail.com",
+    "designation": "Outreach and SEO Executive",
+    "department": "Marketing",
+    "phone": "8199974185",
+    "dateOfJoining": "2026-11-14",
+    "exitDate": "",
+    "salary": 0,
+    "bankAccountNo": "",
+    "bankIFSC": "",
+    "bankName": "",
+    "documents": {},
+    "status": "active",
+    "createdAt": "2026-11-14T08:57:53.716Z"
   }
 ]

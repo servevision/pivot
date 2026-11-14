@@ -168,5 +168,22 @@
     "documents": {},
     "status": "active",
     "createdAt": "2026-09-17T04:51:48.914Z"
+  },
+  {
+    "employeeId": "SV-EMP-015",
+    "name": "Vivek Attri",
+    "email": "vivek.hsim@gmail.com",
+    "designation": "SEO Trainer",
+    "department": "HR",
+    "phone": "8689023912",
+    "dateOfJoining": "2026-11-14",
+    "exitDate": "",
+    "salary": 0,
+    "bankAccountNo": "",
+    "bankIFSC": "",
+    "bankName": "",
+    "documents": {},
+    "status": "active",
+    "createdAt": "2026-11-14T08:57:16.692Z"
   }
 ]

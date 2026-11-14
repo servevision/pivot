@@ -58,5 +58,10 @@
     "password": "vivek.hsim@gmail.com",
     "employeeId": "SV-EMP-015",
     "name": "Vivek Attri"
+  },
+  "lavishasharma.sv@gmail.com": {
+    "password": "L@vish@123",
+    "employeeId": "SV-EMP-016",
+    "name": "Lavisha Sharma"
   }
 }

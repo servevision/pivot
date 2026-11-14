@@ -1,5 +1,18 @@
 [
   {
+    "id": "mwftaxk2n9t0",
+    "employeeId": "SV-EMP-011",
+    "employeeName": "Yogesh Miglani",
+    "employeeEmail": "myogesh805@gmail.com",
+    "leaveType": "WFH",
+    "fromDate": "2026-11-14",
+    "toDate": "2026-11-14",
+    "isHalfDay": false,
+    "reason": "Urgent Personal Errands",
+    "status": "pending",
+    "appliedAt": "2026-11-14T02:54:16.418Z"
+  },
+  {
     "id": "mw4vgbmer42n",
     "employeeId": "SV-EMP-006",
     "employeeName": "Monika Bhardwaj",

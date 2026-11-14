@@ -18,8 +18,11 @@
     "designation": "SEO Trainer",
     "department": "HR",
     "phone": "8689023912",
-    "status": "pending",
-    "requestedAt": "2026-11-04T10:44:51.907Z"
+    "status": "approved",
+    "requestedAt": "2026-11-04T10:44:51.907Z",
+    "decidedAt": "2026-11-14T08:57:20.203Z",
+    "decidedBy": "Payments Admin",
+    "decidedByEmail": "payments@servevision.io"
   },
   {
     "id": "mu3zybew330z",

@@ -202,5 +202,22 @@
     "documents": {},
     "status": "active",
     "createdAt": "2026-11-14T08:57:23.147Z"
+  },
+  {
+    "name": "Shubham Kumar",
+    "email": "data-analysis@servevission.io",
+    "phone": "",
+    "dateOfBirth": "1997-07-02",
+    "designation": "",
+    "department": "Operations",
+    "dateOfJoining": "2026-10-01",
+    "exitDate": "",
+    "salary": 0,
+    "status": "active",
+    "bankAccountNo": "",
+    "bankIFSC": "",
+    "bankName": "",
+    "employeeId": "SV-EMP-017",
+    "createdAt": "2026-11-16T04:37:18.065Z"
   }
 ]

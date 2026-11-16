@@ -1,5 +1,18 @@
 [
   {
+    "id": "mwisczgcczkv",
+    "employeeId": "SV-EMP-006",
+    "employeeName": "Monika Bhardwaj",
+    "employeeEmail": "monikaservevision567@gmail.com",
+    "leaveType": "SL",
+    "fromDate": "2026-11-14",
+    "toDate": "2026-11-14",
+    "isHalfDay": true,
+    "reason": "Due to fever",
+    "status": "pending",
+    "appliedAt": "2026-11-16T04:51:11.100Z"
+  },
+  {
     "id": "mwftaxk2n9t0",
     "employeeId": "SV-EMP-011",
     "employeeName": "Yogesh Miglani",

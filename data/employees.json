@@ -219,5 +219,22 @@
     "bankName": "",
     "employeeId": "SV-EMP-017",
     "createdAt": "2026-11-16T04:37:18.065Z"
+  },
+  {
+    "employeeId": "SV-EMP-018",
+    "name": "Shubham",
+    "email": "data-analysis@servevision.io",
+    "designation": "",
+    "department": "Operations",
+    "phone": "7988078515",
+    "dateOfJoining": "2026-11-16",
+    "exitDate": "",
+    "salary": 0,
+    "bankAccountNo": "",
+    "bankIFSC": "",
+    "bankName": "",
+    "documents": {},
+    "status": "active",
+    "createdAt": "2026-11-16T04:43:49.164Z"
   }
 ]

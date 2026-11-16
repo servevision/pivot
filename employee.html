@@ -318,8 +318,13 @@ textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3.5px rgba(36,84,214,.1
             <option value="CL">Casual Leave (CL)</option>
             <option value="SL">Sick Leave (SL)</option>
             <option value="WFH">Work From Home (WFH)</option>
-            <option value="HalfDay">Half Day (0.5 CL)</option>
           </select>
+        </div>
+        <div class="fg" id="half-wrap" style="margin-top:-4px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600">
+            <input type="checkbox" id="lv-half" onchange="updateLeaveFields()" style="width:16px;height:16px;cursor:pointer">
+            <span>Sirf aadha din (0.5 <span id="half-type-lbl">CL</span>)</span>
+          </label>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           <div class="fg">
@@ -678,11 +683,12 @@ function updateLeaveBalances(leaveList){
   const approvedSL = leaveList.filter(l=>l.status==='approved'&&l.leaveType==='SL').reduce((s,l)=>{
     const d = new Date(l.fromDate);
     const fy = d.getMonth()>=3?d.getFullYear():d.getFullYear()-1;
-    return fy===fyStart?s+dateDiff(l.fromDate,l.toDate)+1:s;
+    if(fy!==fyStart) return s;
+    return s + (l.isHalfDay ? 0.5 : dateDiff(l.fromDate,l.toDate)+1);
   },0);
   const slBal = 6-approvedSL;
   const slEl = document.getElementById('sl-balance');
-  slEl.textContent = slBal;
+  slEl.textContent = (slBal % 1 === 0) ? slBal : slBal.toFixed(1);
   slEl.style.color = slBal<0 ? 'var(--red-t)' : '';
 
   const thisMonthWFH = leaveList.filter(l=>{
@@ -800,7 +806,17 @@ async function saveEditLeave(id){
 
 function updateLeaveFields(){
   const t = document.getElementById('lv-type').value;
-  document.getElementById('to-date-wrap').style.display = (t==='HalfDay') ? 'none' : 'block';
+  // Aadha din sirf CL aur SL par — WFH me aadha din ka matlab nahi
+  const halfWrap = document.getElementById('half-wrap');
+  const halfBox  = document.getElementById('lv-half');
+  const canHalf  = (t==='CL' || t==='SL');
+  if(halfWrap) halfWrap.style.display = canHalf ? 'block' : 'none';
+  if(!canHalf && halfBox) halfBox.checked = false;
+  const lbl = document.getElementById('half-type-lbl');
+  if(lbl) lbl.textContent = t;
+  // Aadha din hamesha ek hi din ka hota hai
+  const isHalf = !!(halfBox && halfBox.checked);
+  document.getElementById('to-date-wrap').style.display = (t==='HalfDay' || isHalf) ? 'none' : 'block';
   const today = new Date().toISOString().split('T')[0];
   const fromEl = document.getElementById('lv-from');
   const toEl = document.getElementById('lv-to');
@@ -829,7 +845,9 @@ async function applyLeave(){
   ok.classList.remove('show'); err.classList.remove('show');
 
   if(!from||!reason){err.textContent='Date and reason are required';err.classList.add('show');return;}
-  if(type!=='HalfDay' && to < from){
+  const halfChk = document.getElementById('lv-half');
+  const isHalf = !!(halfChk && halfChk.checked && (type==='CL' || type==='SL'));
+  if(type!=='HalfDay' && !isHalf && to < from){
     err.textContent='"To" date cannot be before "From" date';
     err.classList.add('show');
     return;
@@ -839,7 +857,7 @@ async function applyLeave(){
     const r = await fetch(API+'/leave',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+_token},
-      body:JSON.stringify({action:'apply',token:_token,leaveType:type,fromDate:from,toDate:type==='HalfDay'?from:to,isHalfDay:type==='HalfDay',reason})
+      body:JSON.stringify({action:'apply',token:_token,leaveType:type,fromDate:from,toDate:(type==='HalfDay'||isHalf)?from:to,isHalfDay:(type==='HalfDay'||isHalf),reason})
     });
     const d = await r.json();
     if(d.ok){

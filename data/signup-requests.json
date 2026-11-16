@@ -1,5 +1,16 @@
 [
   {
+    "id": "mwirxduvqhql",
+    "name": "Shubham",
+    "email": "data-analysis@servevision.io",
+    "password": "Qwerty.10",
+    "designation": "",
+    "department": "Operations",
+    "phone": "7988078515",
+    "status": "pending",
+    "requestedAt": "2026-11-16T04:39:03.271Z"
+  },
+  {
     "id": "mwg3orii7fws",
     "name": "Lavisha Sharma",
     "email": "lavishasharma.sv@gmail.com",

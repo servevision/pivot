@@ -1,5 +1,18 @@
 [
   {
+    "id": "mwpx215p86hi",
+    "employeeId": "SV-EMP-019",
+    "employeeName": "Lavisha Sharma",
+    "employeeEmail": "lavishasharma.sv@gmail.com",
+    "leaveType": "WFH",
+    "fromDate": "2026-11-20",
+    "toDate": "2026-11-20",
+    "isHalfDay": false,
+    "reason": "Due to health issues.",
+    "status": "pending",
+    "appliedAt": "2026-11-21T04:37:01.405Z"
+  },
+  {
     "id": "mwiz80edd806",
     "employeeId": "SV-EMP-006",
     "employeeName": "Monika Bhardwaj",

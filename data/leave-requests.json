@@ -1,5 +1,18 @@
 [
   {
+    "id": "mwqa3t510ct0",
+    "employeeId": "SV-EMP-006",
+    "employeeName": "Monika Bhardwaj",
+    "employeeEmail": "monikaservevision567@gmail.com",
+    "leaveType": "SL",
+    "fromDate": "2026-11-20",
+    "toDate": "2026-11-21",
+    "isHalfDay": false,
+    "reason": "I have a severe infection and need to take rest to recover",
+    "status": "pending",
+    "appliedAt": "2026-11-21T10:42:19.333Z"
+  },
+  {
     "id": "mwpx215p86hi",
     "employeeId": "SV-EMP-019",
     "employeeName": "Lavisha Sharma",

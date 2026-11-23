@@ -1,5 +1,18 @@
 [
   {
+    "id": "mwssjq9zfapz",
+    "employeeId": "SV-EMP-010",
+    "employeeName": "Aman Khokhar",
+    "employeeEmail": "aman@servevision.io",
+    "leaveType": "SL",
+    "fromDate": "2026-11-20",
+    "toDate": "2026-11-21",
+    "isHalfDay": false,
+    "reason": "Sick",
+    "status": "pending",
+    "appliedAt": "2026-11-23T04:54:07.559Z"
+  },
+  {
     "id": "mwso5r4szrqu",
     "employeeId": "SV-EMP-011",
     "employeeName": "Yogesh Miglani",

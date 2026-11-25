@@ -73,8 +73,11 @@
     "toDate": "2026-11-20",
     "isHalfDay": false,
     "reason": "Due to health issues.",
-    "status": "pending",
-    "appliedAt": "2026-11-21T04:37:01.405Z"
+    "status": "approved",
+    "appliedAt": "2026-11-21T04:37:01.405Z",
+    "decidedAt": "2026-11-25T07:13:42.907Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "mwiz80edd806",

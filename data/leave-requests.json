@@ -57,8 +57,11 @@
     "toDate": "2026-11-21",
     "isHalfDay": false,
     "reason": "I have a severe infection and need to take rest to recover",
-    "status": "pending",
-    "appliedAt": "2026-11-21T10:42:19.333Z"
+    "status": "approved",
+    "appliedAt": "2026-11-21T10:42:19.333Z",
+    "decidedAt": "2026-11-25T07:13:26.937Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "mwpx215p86hi",

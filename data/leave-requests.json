@@ -102,8 +102,11 @@
     "toDate": "2026-11-16",
     "isHalfDay": true,
     "reason": "Due to Cold",
-    "status": "pending",
-    "appliedAt": "2026-11-16T08:01:57.726Z"
+    "status": "approved",
+    "appliedAt": "2026-11-16T08:01:57.726Z",
+    "decidedAt": "2026-11-25T07:13:46.906Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "mwisczgcczkv",

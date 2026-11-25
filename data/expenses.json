@@ -1,5 +1,22 @@
 [
   {
+    "id": "mwvu2zc1hnsw",
+    "name": "Domain Registrations (97 .shop domains)",
+    "usd": 87.3,
+    "inr": 8100,
+    "date": "2026-11-24",
+    "partner": "Serve Vision",
+    "payment": "SV Mercury-2262",
+    "cat": "Domain",
+    "subcat": "",
+    "notes": "Invoice VW-202611241633802, Order ID: 2b920041-b4de47a0-944b4108b334eab0, 97 domains at $0.90/year each, billed to Tejas Goel",
+    "fileName": "SV_DomainRegistrations97ShopDomains_8100_Nov26.pdf",
+    "originalFileName": "spaceship-2b920041-b4de-47a0-944b-4108b334eab0.pdf",
+    "createdAt": "2026-11-25T08:00:23.905Z",
+    "updatedAt": "2026-11-25T08:00:23.905Z",
+    "fileRef": "expense-files/mwvu2zc1hnsw.pdf"
+  },
+  {
     "id": "mwd3lchgenfm",
     "name": "Hostinger Cloud Enterprise Hosting",
     "usd": 428.43,

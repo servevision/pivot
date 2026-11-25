@@ -41,8 +41,11 @@
     "toDate": "2026-11-23",
     "isHalfDay": false,
     "reason": "bad headache",
-    "status": "pending",
-    "appliedAt": "2026-11-23T02:51:17.020Z"
+    "status": "approved",
+    "appliedAt": "2026-11-23T02:51:17.020Z",
+    "decidedAt": "2026-11-25T07:13:24.027Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "mwqa3t510ct0",

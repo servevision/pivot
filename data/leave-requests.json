@@ -134,8 +134,11 @@
     "toDate": "2026-11-14",
     "isHalfDay": false,
     "reason": "Urgent Personal Errands",
-    "status": "pending",
-    "appliedAt": "2026-11-14T02:54:16.418Z"
+    "status": "approved",
+    "appliedAt": "2026-11-14T02:54:16.418Z",
+    "decidedAt": "2026-11-25T07:14:04.798Z",
+    "decidedBy": "Mohit",
+    "decidedByEmail": "mohit@servevision.io"
   },
   {
     "id": "mw4vgbmer42n",

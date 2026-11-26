@@ -1,5 +1,22 @@
 [
   {
+    "id": "mwxe09ha19ct",
+    "name": "OpenRouter Credits",
+    "usd": 21.21,
+    "inr": 2050,
+    "date": "2026-11-26",
+    "partner": "Serve Vision",
+    "payment": "SV Mercury-4877",
+    "cat": "Software / SaaS",
+    "subcat": "",
+    "notes": "Invoice YY3NIKLL-0015, OpenRouter EIN: 92-3594255",
+    "fileName": "SV_OpenRouterCredits_2050_Nov26.pdf",
+    "originalFileName": "Invoice-YY3NIKLL-0015.pdf",
+    "createdAt": "2026-11-26T10:05:55.582Z",
+    "updatedAt": "2026-11-26T10:05:55.583Z",
+    "fileRef": "expense-files/mwxe09ha19ct.pdf"
+  },
+  {
     "id": "mwvu2zc1hnsw",
     "name": "Domain Registrations (97 .shop domains)",
     "usd": 87.3,

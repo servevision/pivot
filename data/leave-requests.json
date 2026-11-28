@@ -1,5 +1,18 @@
 [
   {
+    "id": "mwzzqrym4r4s",
+    "employeeId": "SV-EMP-019",
+    "employeeName": "Lavisha Sharma",
+    "employeeEmail": "lavishasharma.sv@gmail.com",
+    "leaveType": "CL",
+    "fromDate": "2026-11-27",
+    "toDate": "2026-11-27",
+    "isHalfDay": false,
+    "reason": "Attend an event in Chandigarh organised by HSIM.",
+    "status": "pending",
+    "appliedAt": "2026-11-28T05:49:56.878Z"
+  },
+  {
     "id": "mwvz7vjoo5ef",
     "employeeId": "SV-EMP-006",
     "employeeName": "Monika Bhardwaj",
